@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Star, Clock, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, X } from 'lucide-react';
 import { wordData } from './data';
 import { prefetch } from './lib/googleTTS';
 import { TOTAL_DAYS, getDayBasePool } from './lib/curriculum';
 import HomeScreen        from './components/HomeScreen';
 import BrowseScreen      from './components/BrowseScreen';
+import DayPreviewScreen  from './components/DayPreviewScreen';
 import WordCard          from './components/WordCard';
 import ProgressBar       from './components/ProgressBar';
 import CompletionScreen  from './components/CompletionScreen';
@@ -13,7 +14,7 @@ import CompletionScreen  from './components/CompletionScreen';
 const LS = {
   SETTINGS:   'jflash_settings_v2',
   SRS:        'jflash_srs_v2',
-  CURRICULUM: 'jflash_curriculum_v1', // { currentDay: number }
+  CURRICULUM: 'jflash_curriculum_v1',
 };
 
 function loadLS(key, def) {
@@ -25,11 +26,11 @@ function saveLS(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 
+// maxCards 제거 (item 4)
 const DEFAULT_SETTINGS = {
   reverseMode:  false,
   blindMode:    false,
   hardcoreMode: false,
-  maxCards:     30,
 };
 
 // ─── Fisher-Yates 셔플 ───────────────────────────────────────────
@@ -107,7 +108,8 @@ export default function App() {
   };
 
   // ── 화면 상태 ─────────────────────────────────────────────
-  const [appScreen, setAppScreen] = useState('home'); // 'home' | 'browse'
+  // 'home' | 'browse' | 'day-preview'
+  const [appScreen, setAppScreen] = useState('home');
 
   // ── 선택 상태 ───────────────────────────────────────────────
   const [selectedWordIds, setSelectedWordIds] = useState(() => {
@@ -116,20 +118,35 @@ export default function App() {
   });
   const [selectedTags, setSelectedTags] = useState([]);
 
+  // Day 미리보기 풀 (item 5): startGameByDay 시 계산
+  const [dayPreviewPool, setDayPreviewPool] = useState([]);
+
   // ── 게임 상태 ─────────────────────────────────────────────
-  const [queue, setQueue]                       = useState([]);
-  const [mastered, setMastered]                 = useState([]);
-  const [inSessionCorrect, setInSessionCorrect] = useState({});
-  const [failCount, setFailCount]               = useState({});
-  const [showAnswer, setShowAnswer]             = useState(false);
-  const [gameStarted, setGameStarted]           = useState(false);
-  const [animateCard, setAnimateCard]           = useState(false);
-  const [totalActive, setTotalActive]           = useState(0);
+  const [queue, setQueue]         = useState([]);
+  const [mastered, setMastered]   = useState([]);
+  const [failCount, setFailCount] = useState({});
+  const [showAnswer, setShowAnswer]   = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [animateCard, setAnimateCard] = useState(false);
+  const [totalActive, setTotalActive] = useState(0);
+
+  // ── Toast (item 9) ───────────────────────────────────────────
+  const [toastMsg, setToastMsg] = useState('');
 
   // ── 하드코어 타이머 ─────────────────────────────────────────
   const [hcTimeLeft, setHcTimeLeft] = useState(null);
-  const hcRef            = useRef(null);
-  const handleActionRef  = useRef(null);
+  const hcRef           = useRef(null);
+  const handleActionRef = useRef(null);
+
+  // ── 시간 초과 시스템 refs (item 9) ──────────────────────────
+  const cardStartTimeRef = useRef(null); // 앞면 노출 시각
+  const overTimeRef      = useRef(false); // 초과 플래그
+
+  // ── Toast 헬퍼 ───────────────────────────────────────────────
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 2200);
+  };
 
   // ── 선택 핸들러 (BrowseScreen 전용) ──────────────────────────
   const toggleWord = (id) => {
@@ -163,7 +180,7 @@ export default function App() {
   );
   const clearTags = () => setSelectedTags([]);
 
-  // ── 큐 빌드 (pool → SRS → maxCards → priority 정렬) ────────
+  // ── 큐 빌드 (pool → SRS → priority 정렬, maxCards 제한 없음) ─
   const buildQueue = (pool) => {
     let active = [...pool];
 
@@ -174,16 +191,9 @@ export default function App() {
       if (due.length >= 3) active = due;
     }
 
-    // 2. 최대 카드 수 제한 (priority 낮은 순으로 자름)
-    if (active.length > settings.maxCards) {
-      active = [...active]
-        .sort((a, b) => a.priority - b.priority)
-        .slice(0, settings.maxCards);
-    }
-
     setTotalActive(active.length);
 
-    // 3. priority별 그룹 + 반의어 쌍 묶기
+    // 2. priority별 그룹 + 반의어 쌍 묶기
     const poolIds    = new Set(pool.map((w) => w.id));
     const byPriority = { 1: [], 2: [], 3: [] };
     const seen       = new Set();
@@ -209,7 +219,7 @@ export default function App() {
       byPriority[p].push(group);
     });
 
-    // 4. Fisher-Yates 셔플 (priority 순서 유지, 타입 믹싱)
+    // 3. Fisher-Yates 셔플 (priority 순서 유지, 타입 믹싱)
     return [
       ...shuffle(byPriority[1]),
       ...shuffle(byPriority[2]),
@@ -227,15 +237,15 @@ export default function App() {
 
     setQueue(q);
     setMastered([]);
-    setInSessionCorrect({});
     setFailCount({});
     setShowAnswer(false);
     setGameStarted(true);
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
+    overTimeRef.current = false;
   };
 
-  // ── 게임 시작 — HomeScreen (Day 풀 + 중요 패턴 1개) ─────────
+  // ── 게임 시작 — HomeScreen (Day N 시작 → day-preview로 이동) ─
   const startGameByDay = () => {
     const basePool    = getDayBasePool(currentDay);
     const allPatterns = wordData.filter((w) => w.type === 'pattern');
@@ -246,6 +256,15 @@ export default function App() {
       if (!pool.find((w) => w.id === rp.id)) pool.push(rp);
     }
 
+    setDayPreviewPool(pool);
+    setSelectedWordIds(new Set(pool.map((w) => w.id)));
+    setAppScreen('day-preview');
+  };
+
+  // ── 게임 시작 — DayPreviewScreen (선택된 단어로 시작) ────────
+  const startGameByDayWithSelection = () => {
+    const pool = wordData.filter((w) => selectedWordIds.has(w.id));
+    if (pool.length === 0) return;
     _launchGame(pool);
   };
 
@@ -254,6 +273,20 @@ export default function App() {
     const pool = wordData.filter((w) => selectedWordIds.has(w.id));
     if (pool.length === 0) return;
     _launchGame(pool);
+  };
+
+  // ── 중도 퇴장 (item 3) ────────────────────────────────────────
+  const handleExit = () => {
+    clearInterval(hcRef.current);
+    setGameStarted(false);
+    setQueue([]);
+    setMastered([]);
+    setFailCount({});
+    setShowAnswer(false);
+    setHcTimeLeft(null);
+    overTimeRef.current = false;
+    setAppScreen('home');
+    // srsData는 handleAction 시마다 saveLS 처리됨 — 추가 저장 불필요
   };
 
   // ── 하드코어 타이머 ──────────────────────────────────────────
@@ -283,6 +316,13 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue[0]?.id, showAnswer, gameStarted, settings.hardcoreMode]);
 
+  // ── 카드 앞면 노출 시 타이머 리셋 (item 9) ──────────────────
+  useEffect(() => {
+    if (!gameStarted || showAnswer || queue.length === 0) return;
+    cardStartTimeRef.current = Date.now();
+    overTimeRef.current = false;
+  }, [queue[0]?.id, showAnswer, gameStarted]);
+
   // ── 프리패치 ─────────────────────────────────────────────────
   useEffect(() => {
     if (!gameStarted || queue.length === 0) return;
@@ -295,6 +335,16 @@ export default function App() {
     if (!showAnswer) {
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
+
+      // 시간 초과 체크 (item 9)
+      if (cardStartTimeRef.current && queue.length > 0) {
+        const threshold = queue[0].type === 'word' ? 3000 : 8000;
+        const elapsed   = Date.now() - cardStartTimeRef.current;
+        if (elapsed > threshold) {
+          overTimeRef.current = true;
+        }
+      }
+
       setShowAnswer(true);
     } else {
       handleAction('dontKnow');
@@ -308,38 +358,37 @@ export default function App() {
     setHcTimeLeft(null);
     setAnimateCard(true);
 
+    // 시간 초과 플래그 스냅샷 (item 9)
+    const timedOut = overTimeRef.current;
+    overTimeRef.current = false;
+
     setTimeout(() => {
       const current   = queue[0];
       let newQueue    = queue.slice(1);
       let newMastered = [...mastered];
 
-      if (actionType === 'know') {
-        const prevCorrect = inSessionCorrect[current.id] ?? 0;
-        const newCorrect  = prevCorrect + 1;
+      if (timedOut) {
+        // ── 시간 초과: 큐 맨 끝으로 이동 (item 9)
+        newQueue = [...newQueue, current];
+        showToast('시간 초과 — 카드 맨 끝으로 이동됨');
 
-        if (newCorrect >= 2) {
-          // 마스터 확정 — SRS 업데이트
-          setSrsData((prev) => {
-            const rec = prev[current.id] ?? { masteryCount: 0 };
-            const next = {
-              masteryCount: rec.masteryCount + 1,
-              nextReview:   getSRSNextDate(rec.masteryCount + 1),
-            };
-            const updated = { ...prev, [current.id]: next };
-            saveLS(LS.SRS, updated);
-            return updated;
-          });
-          newMastered.push(current);
-          setInSessionCorrect((p) => { const n = { ...p }; delete n[current.id]; return n; });
-          setFailCount((p)        => { const n = { ...p }; delete n[current.id]; return n; });
-        } else {
-          // 1회 정답 — +10~+15번째에 재삽입
-          setInSessionCorrect((p) => ({ ...p, [current.id]: newCorrect }));
-          const insertAt = Math.min(Math.floor(Math.random() * 6) + 10, newQueue.length);
-          newQueue = [...newQueue.slice(0, insertAt), current, ...newQueue.slice(insertAt)];
-        }
+      } else if (actionType === 'know') {
+        // ── 1회 즉시 마스터 (item 2)
+        setSrsData((prev) => {
+          const rec = prev[current.id] ?? { masteryCount: 0 };
+          const next = {
+            masteryCount: rec.masteryCount + 1,
+            nextReview:   getSRSNextDate(rec.masteryCount + 1),
+          };
+          const updated = { ...prev, [current.id]: next };
+          saveLS(LS.SRS, updated);
+          return updated;
+        });
+        newMastered.push(current);
+        setFailCount((p) => { const n = { ...p }; delete n[current.id]; return n; });
+
       } else {
-        // 오답 처리
+        // ── 오답 처리
         setSrsData((prev) => {
           const rec = prev[current.id] ?? { masteryCount: 0 };
           const updated = {
@@ -351,8 +400,7 @@ export default function App() {
         });
 
         const currentFail = (failCount[current.id] ?? 0) + 1;
-        setFailCount((p)        => ({ ...p, [current.id]: currentFail }));
-        setInSessionCorrect((p) => { const n = { ...p }; delete n[current.id]; return n; });
+        setFailCount((p) => ({ ...p, [current.id]: currentFail }));
 
         // 반의어 함께 재삽입
         let antonym = null;
@@ -367,7 +415,6 @@ export default function App() {
         }
 
         // 의존성 주입: 3회 이상 실패 → componentIds를 큐 5~10번째에 삽입
-        // ※ Day 풀 필터링 이후, 동적으로 전체 wordData에서 탐색
         if (currentFail >= 3 && current.componentIds?.length > 0) {
           current.componentIds.forEach((cid) => {
             const comp = wordData.find((w) => w.id === cid);
@@ -404,54 +451,104 @@ export default function App() {
   // ref 갱신 (stale closure 방지)
   handleActionRef.current = handleAction;
 
+  // ── Toast UI ─────────────────────────────────────────────────
+  const Toast = toastMsg ? (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg pointer-events-none whitespace-nowrap">
+      {toastMsg}
+    </div>
+  ) : null;
+
   // ── 화면 라우팅 ────────────────────────────────────────────────
   if (!gameStarted) {
     if (appScreen === 'browse') {
       return (
-        <BrowseScreen
-          wordData={wordData}
-          selectedWordIds={selectedWordIds}
-          onToggle={toggleWord}
-          onSelectAll={selectAll}
-          onDeselectAll={deselectAll}
-          onToggleCategory={toggleCategory}
-          onSelectRandom={selectRandom}
-          selectedTags={selectedTags}
-          onTagToggle={toggleTag}
-          onClearTags={clearTags}
-          onStart={startGameBySelection}
-          onBack={() => setAppScreen('home')}
-        />
+        <>
+          {Toast}
+          <BrowseScreen
+            wordData={wordData}
+            selectedWordIds={selectedWordIds}
+            onToggle={toggleWord}
+            onSelectAll={selectAll}
+            onDeselectAll={deselectAll}
+            onToggleCategory={toggleCategory}
+            onSelectRandom={selectRandom}
+            selectedTags={selectedTags}
+            onTagToggle={toggleTag}
+            onClearTags={clearTags}
+            onStart={startGameBySelection}
+            onBack={() => setAppScreen('home')}
+          />
+        </>
+      );
+    }
+
+    if (appScreen === 'day-preview') {
+      return (
+        <>
+          {Toast}
+          <DayPreviewScreen
+            currentDay={currentDay}
+            dayPool={dayPreviewPool}
+            selectedWordIds={selectedWordIds}
+            onToggle={toggleWord}
+            onSelectAll={() => setSelectedWordIds(new Set(dayPreviewPool.map((w) => w.id)))}
+            onDeselectAll={deselectAll}
+            onStart={startGameByDayWithSelection}
+            onBack={() => setAppScreen('home')}
+          />
+        </>
       );
     }
 
     return (
-      <HomeScreen
-        currentDay={currentDay}
-        onDayChange={updateCurrentDay}
-        dayPool={getDayBasePool(currentDay)}
-        settings={settings}
-        onSettingsChange={updateSettings}
-        onStart={startGameByDay}
-        onShowBrowse={() => setAppScreen('browse')}
-      />
+      <>
+        {Toast}
+        <HomeScreen
+          currentDay={currentDay}
+          onDayChange={updateCurrentDay}
+          dayPool={getDayBasePool(currentDay)}
+          settings={settings}
+          onSettingsChange={updateSettings}
+          onStart={startGameByDay}
+          onShowBrowse={() => setAppScreen('browse')}
+        />
+      </>
     );
   }
 
   if (queue.length === 0) {
     return (
-      <CompletionScreen
-        totalActiveWords={totalActive}
-        onReset={() => setGameStarted(false)}
-      />
+      <>
+        {Toast}
+        <CompletionScreen
+          totalActiveWords={totalActive}
+          onReset={() => { setGameStarted(false); setAppScreen('home'); }}
+        />
+      </>
     );
   }
 
-  const currentWord      = queue[0];
-  const isFirstConfirmed = (inSessionCorrect[currentWord.id] ?? 0) >= 1;
+  const currentWord = queue[0];
 
   return (
     <div className="min-h-screen bg-sky-50 flex flex-col items-center py-6 px-4 font-sans">
+      {Toast}
+
+      {/* 진행 헤더: Exit 버튼 + 완료 수 (item 3 · item 8) */}
+      <div className="max-w-md w-full flex items-center justify-between mb-2">
+        <button
+          onClick={handleExit}
+          aria-label="퀴즈 종료"
+          className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-rose-500 transition-colors py-1 px-2 rounded-lg hover:bg-rose-50"
+        >
+          <X className="w-4 h-4" /> 종료
+        </button>
+        <span className="text-xs text-slate-400 font-medium">
+          {mastered.length} / {totalActive} 완료
+        </span>
+      </div>
+
+      {/* 진행률 바 (item 8) */}
       <ProgressBar mastered={mastered.length} total={totalActive} />
 
       {/* 하드코어 타이머 표시 */}
@@ -474,27 +571,22 @@ export default function App() {
         onCardClick={handleCardClick}
         reverseMode={settings.reverseMode}
         blindMode={settings.blindMode}
-        inSessionConfirmed={isFirstConfirmed}
       />
 
       {/* 버튼 영역 */}
       <div className="max-w-md w-full space-y-3">
+        {/* 알아요 버튼 (1회 즉시 마스터, item 2) */}
         <button
           disabled={!showAnswer}
           onClick={() => handleAction('know')}
           className={`w-full flex items-center justify-center py-4 rounded-3xl transition-all shadow-md ${
             showAnswer
-              ? isFirstConfirmed
-                ? 'bg-yellow-400 text-white hover:bg-yellow-500 active:scale-95'
-                : 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95'
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95'
               : 'bg-slate-200 text-slate-400 opacity-50 cursor-not-allowed'
           }`}
         >
-          {isFirstConfirmed ? (
-            <><Star className="w-7 h-7 mr-2" /><span className="font-bold text-xl">확실히 안다 (마스터 확정)</span></>
-          ) : (
-            <><CheckCircle2 className="w-7 h-7 mr-2" /><span className="font-bold text-xl">안다 (1차 확인)</span></>
-          )}
+          <CheckCircle2 className="w-7 h-7 mr-2" />
+          <span className="font-bold text-xl">알아요</span>
         </button>
 
         {showAnswer && (
@@ -503,16 +595,10 @@ export default function App() {
             className="w-full flex items-center justify-center py-3 rounded-3xl bg-slate-100 text-slate-500 hover:bg-slate-200 active:scale-95 transition-all"
           >
             <XCircle className="w-5 h-5 mr-2" />
-            <span className="font-semibold">모른다 (뒤로)</span>
+            <span className="font-semibold">몰라요</span>
           </button>
         )}
       </div>
-
-      <p className="mt-4 text-sm font-medium text-slate-400">
-        남은: <span className="text-slate-600 font-bold">{queue.length}</span>장
-        &nbsp;·&nbsp;
-        완료: <span className="text-emerald-600 font-bold">{mastered.length}</span>장
-      </p>
     </div>
   );
 }

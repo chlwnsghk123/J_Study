@@ -25,18 +25,6 @@ function SettingsPanel({ settings, onSettingsChange }) {
       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1">
         <Settings className="w-3 h-3" /> 세션 설정
       </p>
-      <div className="flex items-center gap-3 mb-3">
-        <label className="text-xs font-semibold text-slate-600 whitespace-nowrap">최대 카드</label>
-        <input
-          type="number"
-          min={5}
-          max={200}
-          value={settings.maxCards}
-          onChange={(e) => onSettingsChange({ maxCards: Math.max(5, parseInt(e.target.value) || 20) })}
-          className="w-20 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-center font-bold focus:outline-none focus:ring-2 focus:ring-sky-300"
-        />
-        <span className="text-xs text-slate-400">장</span>
-      </div>
       <div className="grid grid-cols-3 gap-2">
         <ToggleSwitch label="리버스"   desc="뜻→발음"  checked={settings.reverseMode}  onChange={(v) => onSettingsChange({ reverseMode:  v })} colorOn="bg-blue-500"   />
         <ToggleSwitch label="하드코어" desc="3초 제한" checked={settings.hardcoreMode} onChange={(v) => onSettingsChange({ hardcoreMode: v })} colorOn="bg-red-500"    />
