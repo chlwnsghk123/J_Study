@@ -289,11 +289,11 @@ export default function App() {
     // srsData는 handleAction 시마다 saveLS 처리됨 — 추가 저장 불필요
   };
 
-  // ── 하드코어 타이머 ──────────────────────────────────────────
-  const startHCTimer = () => {
+  // ── 하드코어 타이머 (word=3초, pattern/sentence=7초) ──────────
+  const startHCTimer = (duration) => {
     clearInterval(hcRef.current);
-    setHcTimeLeft(3);
-    let remaining = 3;
+    setHcTimeLeft(duration);
+    let remaining = duration;
     hcRef.current = setInterval(() => {
       remaining -= 1;
       setHcTimeLeft(remaining);
@@ -311,7 +311,8 @@ export default function App() {
       if (!showAnswer) setHcTimeLeft(null);
       return;
     }
-    startHCTimer();
+    const duration = queue[0].type === 'word' ? 3 : 7;
+    startHCTimer(duration);
     return () => clearInterval(hcRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue[0]?.id, showAnswer, gameStarted, settings.hardcoreMode]);
@@ -336,9 +337,9 @@ export default function App() {
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
 
-      // 시간 초과 체크 (item 9)
+      // 시간 초과 체크 (word=3초, pattern/sentence=7초)
       if (cardStartTimeRef.current && queue.length > 0) {
-        const threshold = queue[0].type === 'word' ? 3000 : 8000;
+        const threshold = queue[0].type === 'word' ? 3000 : 7000;
         const elapsed   = Date.now() - cardStartTimeRef.current;
         if (elapsed > threshold) {
           overTimeRef.current = true;
