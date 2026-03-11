@@ -174,8 +174,25 @@ function CardFront({ word, onCardClick, reverseMode, blindMode }) {
   );
 }
 
+// ─── AI 질문 버튼 (뒷면 하단 우측 전용) ─────────────────────────
+function AiButton({ onAiClick }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onAiClick(); }}
+      title="AI에게 질문하기"
+      aria-label="AI에게 질문하기"
+      className="flex items-center gap-1 text-xs font-semibold text-violet-500
+        bg-violet-50 border border-violet-200 hover:bg-violet-100
+        transition-colors px-2.5 py-1.5 rounded-full"
+    >
+      <Sparkles className="w-3.5 h-3.5" />
+      AI 질문
+    </button>
+  );
+}
+
 // ─── 카드 뒷면 ────────────────────────────────────────────────────
-function CardBack({ word, onCardClick, reverseMode, blindMode = false }) {
+function CardBack({ word, onCardClick, reverseMode, blindMode = false, onAiClick }) {
   const pronSize    = getPronSizeClass(word.pron, word.type);
   const meaningSize = getMeaningSizeClass(word.meaning, word.type);
 
@@ -194,18 +211,22 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false }) {
         </p>
 
         {/* pron: 1/7 — 가장 작은 보조 요소 */}
-        <p className="text-sm font-medium text-slate-400 break-keep text-center mb-5">
+        <p className="text-sm font-medium text-slate-400 break-keep text-center mb-3">
           {word.pron}
         </p>
 
         {/* meaning: 2/7 — 두 번째 크기 */}
-        <p className={`${meanSize} font-bold text-slate-600 break-keep text-center leading-snug`}>
+        <p className={`${meanSize} font-bold text-slate-600 break-keep text-center leading-snug mb-3`}>
           {word.meaning}
         </p>
 
-        {/* TTS 버튼 */}
-        <div className="mt-auto pt-5">
+        {/* 정중체 — 뜻 바로 아래 */}
+        <PolitenessTag politeness={word.politeness} />
+
+        {/* 하단: 왼쪽 TTS · 오른쪽 AI */}
+        <div className="w-full flex items-center justify-between mt-auto pt-4">
           <TTSButtons hiragana={word.hiragana} />
+          <AiButton onAiClick={onAiClick} />
         </div>
       </button>
     );
@@ -217,7 +238,7 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false }) {
       className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-slate-50 transition-colors p-5"
     >
       {/* 히라가나 + 발음 + 주요 답 */}
-      <div className="w-full text-center mb-3">
+      <div className="w-full text-center mb-2">
         <span className="text-slate-300 font-medium block text-base mb-0.5 break-keep">
           {word.hiragana}
         </span>
@@ -229,6 +250,11 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false }) {
         >
           {reverseMode ? word.pron : word.meaning}
         </h2>
+      </div>
+
+      {/* 정중체 뱃지 — 뜻 바로 아래 */}
+      <div className="mb-3">
+        <PolitenessTag politeness={word.politeness} />
       </div>
 
       {/* 문법 구조 (패턴 전용) */}
@@ -259,10 +285,10 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false }) {
         </div>
       )}
 
-      {/* 정중체 + TTS 버튼 */}
+      {/* 하단: 왼쪽 TTS · 오른쪽 AI */}
       <div className="w-full flex items-center justify-between mt-auto pt-1">
-        <PolitenessTag politeness={word.politeness} />
         <TTSButtons hiragana={word.hiragana} />
+        <AiButton onAiClick={onAiClick} />
       </div>
     </button>
   );
@@ -319,21 +345,6 @@ export default function WordCard({
             )}
           </div>
 
-          {/* AI 질문 버튼 — 정답 노출 시 우상단 */}
-          {showAnswer && (
-            <button
-              onClick={() => setShowAiModal(true)}
-              title="AI에게 질문하기"
-              aria-label="AI에게 질문하기"
-              className="absolute top-3 right-3 z-10 flex items-center gap-1 text-xs font-semibold
-                text-violet-500 bg-violet-50 border border-violet-200 hover:bg-violet-100
-                transition-colors px-2.5 py-1.5 rounded-full"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              AI 질문
-            </button>
-          )}
-
           {/* 앞/뒷면 렌더링 */}
           {!showAnswer ? (
             <CardFront
@@ -348,6 +359,7 @@ export default function WordCard({
               onCardClick={onCardClick}
               reverseMode={reverseMode}
               blindMode={blindMode}
+              onAiClick={() => setShowAiModal(true)}
             />
           )}
         </div>

@@ -2,6 +2,50 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Send, Loader2, Sparkles } from 'lucide-react';
 import { askAI } from '../lib/gemini';
 
+// ─── 마크다운 인라인 파서 ────────────────────────────────────────
+// **굵게**, *기울임*, `코드` 패턴을 React 엘리먼트로 변환
+function parseInline(line, lineKey) {
+  const parts = [];
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
+  let last = 0, m, ki = 0;
+  while ((m = regex.exec(line)) !== null) {
+    if (m.index > last) parts.push(line.slice(last, m.index));
+    if (m[1] != null)
+      parts.push(<strong key={`${lineKey}-${ki++}`} className="font-bold">{m[1]}</strong>);
+    else if (m[2] != null)
+      parts.push(<em key={`${lineKey}-${ki++}`} className="italic">{m[2]}</em>);
+    else if (m[3] != null)
+      parts.push(
+        <code key={`${lineKey}-${ki++}`} className="bg-black/10 px-1 rounded text-xs font-mono">
+          {m[3]}
+        </code>
+      );
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) parts.push(line.slice(last));
+  return parts;
+}
+
+// 줄바꿈·불릿(- )·빈 줄 처리 포함
+function MarkdownText({ text }) {
+  const lines = text.split('\n');
+  return (
+    <>
+      {lines.map((line, i) => {
+        if (!line.trim()) return <br key={i} />;
+        const isBullet = /^[-•*]\s/.test(line);
+        const content  = isBullet ? line.slice(2) : line;
+        return (
+          <span key={i} className="block">
+            {isBullet && <span className="mr-1 select-none">·</span>}
+            {parseInline(content, i)}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 export default function AiChatModal({ currentCard, onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState('');
@@ -95,15 +139,17 @@ export default function AiChatModal({ currentCard, onClose }) {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
                   msg.role === 'user'
-                    ? 'bg-sky-500 text-white rounded-br-sm'
+                    ? 'bg-sky-500 text-white rounded-br-sm whitespace-pre-wrap'
                     : msg.error
                       ? 'bg-rose-50 text-rose-600 border border-rose-100 rounded-bl-sm'
                       : 'bg-slate-100 text-slate-700 rounded-bl-sm'
                 }`}
               >
-                {msg.text}
+                {msg.role === 'user'
+                  ? msg.text
+                  : <MarkdownText text={msg.text} />}
               </div>
             </div>
           ))}

@@ -7,7 +7,10 @@
 ## 스택
 - React 18 + Vite 5 + Tailwind CSS v3 + lucide-react
 - Google Cloud TTS API (`ja-JP-Neural2-B` 고정)
-- API 키: `import.meta.env.VITE_GOOGLE_TTS_API_KEY` (`.env` 파일)
+  - API 키: `import.meta.env.VITE_GOOGLE_TTS_API_KEY` (`.env` 파일)
+- Google Gemini API (`@google/generative-ai`, 모델: `models/gemini-3-flash-preview`)
+  - API 키: `import.meta.env.VITE_GEMINI_API_KEY` (`.env` 파일)
+- PWA: `public/manifest.json` + OG/Twitter Card 메타 태그 (`index.html`)
 
 ---
 
@@ -58,24 +61,37 @@ CATEGORY_META = {
 | 파일 | 역할 |
 |---|---|
 | `src/lib/googleTTS.js` | TTS API 호출, 인메모리 캐싱, prefetch |
+| `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion)` — 카드 문맥 주입형 |
+| `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 43일 커리큘럼 순수 함수 |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
-| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입 |
-| `src/components/WordCard.jsx` | 카드 앞/뒷면, 모드별 렌더링, 정중체 뱃지, 학습포인트 |
-| `src/components/WordSelector.jsx` | 카테고리 선택, 태그 OR 필터, 설정 패널, D-Day 패널 |
+| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트 |
+| `src/components/WordCard.jsx` | 카드 앞/뒷면, 모드별 렌더링, TTS 버튼 쌍, AI 질문 버튼, AiChatModal 연결 |
+| `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 탐색 모드 |
+| `src/components/DayPreviewScreen.jsx` | Day 미리보기 — 단어 체크박스 선택, 퀴즈 시작 |
+| `src/components/AiChatModal.jsx` | AI 질문 바텀시트 — 채팅 UI, 마크다운 렌더러, 카드 변경 시 기록 초기화 |
+| `src/components/ProgressBar.jsx` | 얇은 진행 바 (`h-1.5`), 마스터 수 / 전체 수 표시 |
+| `src/components/BrowseScreen.jsx` | 전체 단어 탐색 화면 |
 | `src/data/index.js` | 전체 wordData 통합, CATEGORY_META, TYPE_META |
+| `public/manifest.json` | PWA Web App Manifest (아이콘, display: standalone, 테마색) |
+| `public/favicon-96x96.png` | 브라우저 탭 파비콘 (96×96) |
+| `public/icon-192.png` | PWA 홈 화면 아이콘 — Android (192×192) |
+| `public/icon-512.png` | PWA 스플래시 / 마켓 아이콘 (512×512) |
+| `public/apple-touch-icon.png` | iOS 홈 화면 추가 아이콘 (180×180) |
+| `public/og-image.png` | 카카오톡·SNS 공유 섬네일 (1200×630) |
+| `index.html` | PWA 메타 태그, Open Graph, Twitter Card, 파비콘 링크 |
 
 ---
 
 ## 핵심 알고리즘
 
 ### SRS (Spaced Repetition)
-- 세션 내 **2회** 정답 → 마스터 확정 (`inSessionCorrect`)
-- 1회 정답 → 큐 +10~+15번째에 재삽입 (재확인 대기)
+- **1회** 정답(알아요) → 마스터 즉시 확정 (구버전 2회 제거)
+- 오답(몰라요) → 큐 +10~+15번째에 재삽입
 - 마스터 확정 시 → `nextReview` = 오늘 + [1, 3, 7]일 (`masteryCount` 기반)
 - `srsData` = localStorage `jflash_srs_v2`
 
 ### 큐 빌드 순서
-1. 선택된 단어 필터링 → OR 태그 필터 → SRS 만기 필터 → maxCards 제한
+1. 선택된 단어 필터링 → OR 태그 필터 → SRS 만기 필터 (maxCards 없음)
 2. priority 1 → 2 → 3 순으로 그룹화, 각 그룹 내 Fisher-Yates 셔플
 3. `word` 타입 + `antonymId` → 반의어 쌍 묶어서 함께 배치
 
@@ -83,26 +99,41 @@ CATEGORY_META = {
 - `sentence/pattern` 카드 3회 이상 실패 → `componentIds`의 단어/패턴을 큐 5~10번째에 삽입
 - 슬롯 치환: `[VERB]`, `[ADJ]`, `[WORD]` → 마스터된 단어로 대체
 
-### 하드코어 타이머
-- `queue[0]?.id` 변경 + `showAnswer=false` 시 3초 카운트다운 시작
+### 하드코어 타이머 + 시간 초과 자동 보류
+- `queue[0]?.id` 변경 + `showAnswer=false` 시 카운트다운 시작
+  - `word` 타입: **3초**, `pattern`/`sentence` 타입: **7초** (차등 적용)
 - 0초 → `handleActionRef.current('dontKnow')` 호출 (stale closure 방지용 ref)
+- 카드 탭 시점 기준으로 경과 시간 측정 (`cardStartTimeRef`):
+  - word > 3000ms / pattern·sentence > 7000ms 초과 → 정답이어도 카드 큐 맨 끝으로 이동 + 토스트 표시
+  - `overTimeRef`로 초과 여부 전달, `handleAction` 진입 시 즉시 소비 후 리셋
 
 ### 43일 커리큘럼 (슬라이딩 윈도우)
 - 전체 430장을 id 오름차순으로 10개씩 → `SETS[0]~SETS[42]` (모듈 로드 시 1회 계산, 불변)
 - Day별 풀: Day 1 = Set 1, Day 2 = Set 1-2, Day N≥3 = Set(N-2)~Set(N)
 - 각 Day 시작 시 `patterns.js` 전체에서 무작위 1개 '중요 패턴' 자동 추가
 - `getDayBasePool(day)` — 순수 함수, 랜덤 패턴 미포함 (UI 미리보기용)
-- `currentDay` 변경 → `selectedWordIds` 자동 동기화
+- `currentDay` 변경 → `DayPreviewScreen` 경유 → `selectedWordIds` 동기화
+
+### Day 미리보기 플로우
+1. `startGameByDay(day)` → `dayPreviewPool` + `selectedWordIds` 세팅 → `appScreen = 'day-preview'`
+2. `DayPreviewScreen` — 체크박스로 개별 카드 선택/해제, 전체 선택/해제
+3. "퀴즈 시작" → `startGameByDayWithSelection()` → `_launchGame()`
 
 ### TTS 흐름
-1. `useTTS(hiragana, autoPlay)` → `speak(text, 1.0)` → 캐시 or API
-2. 천천히 듣기 버튼 → `speakText(hiragana, { rate: 0.7 })`
+1. `useTTS(hiragana, !showAnswer)` — 카드 앞면 노출 시 자동 재생 (모드 무관)
+2. `TTSButtons` — 듣기(1.0x) / 천천히(0.7x) 버튼 쌍, 카드 앞면·뒷면 모두 상시 노출
 3. 프리패치: `queue[0]?.id` 변경 시 다음 5개 카드 1.0x + 0.7x 백그라운드 캐싱
+
+### AI Q&A 흐름
+1. 카드 뒷면 하단 우측 `AI 질문` 버튼 → `AiChatModal` 오픈
+2. `askAI(currentCard, userQuestion)` — 카드 객체를 시스템 프롬프트에 주입
+3. Gemini 응답 → `MarkdownText` 컴포넌트로 렌더링 (`**굵게**`, `*기울임*`, `` `코드` ``, 불릿, 줄바꿈)
+4. `currentCard.id` 변경 시 채팅 기록 초기화
 
 ### localStorage 키 목록
 | 키 | 내용 |
 |---|---|
-| `jflash_settings_v2` | reverseMode, blindMode, hardcoreMode, maxCards |
+| `jflash_settings_v2` | reverseMode, blindMode, hardcoreMode |
 | `jflash_srs_v2` | { [wordId]: { masteryCount, nextReview } } |
 | `jflash_curriculum_v1` | { currentDay: number } — 현재 학습 Day (1~43) |
 
@@ -208,6 +239,7 @@ CATEGORY_META = {
   - 정답(알아요): `bg-emerald-500 hover:bg-emerald-600`
   - 오답(몰라요): `bg-rose-500 hover:bg-rose-600`
   - 보조 액션: `bg-gray-100 hover:bg-gray-200 text-gray-700`
+  - AI 질문: `bg-violet-50 text-violet-500 border-violet-200`
 - **텍스트 대비**: 배경 대비 WCAG AA 기준(4.5:1) 이상 유지. 회색 텍스트는 `gray-600` 이상.
 
 ### 4. 카드 레이아웃 원칙
@@ -217,6 +249,7 @@ CATEGORY_META = {
 - 카드 그림자: `shadow-md rounded-2xl` — 배경과 카드를 명확히 분리.
 - 앞면과 뒷면의 **카드 크기·위치가 동일**해야 전환 시 흔들림이 없다.
 - 정보 밀도: 뒷면에 요소를 추가할 때 스크롤 없이 한 화면에 담길 수 있는지 확인한다.
+- 카드 뒷면 하단 고정 레이아웃: **왼쪽 = TTS 버튼 쌍**, **오른쪽 = AI 질문 버튼**
 
 ### 5. 버튼·인터랙션 원칙
 
@@ -252,10 +285,20 @@ CATEGORY_META = {
 - [ ] `src/data/index.js`에 import + `wordData` spread 추가
 - [ ] `type`이 기존 3종(`word/pattern/sentence`) 외 신규라면 `CATEGORY_META`에도 추가
 
+## 환경 변수 (.env)
+
+```env
+VITE_GOOGLE_TTS_API_KEY=...   # Google Cloud TTS
+VITE_GEMINI_API_KEY=...       # Google Gemini AI
+```
+
+Vercel 배포 시 대시보드 Environment Variables에도 동일하게 추가.
+
 ## 실행
 
 ```bash
 npm install
+npm install @google/generative-ai   # Gemini SDK (최초 1회)
 npm run dev    # 개발
 npm run build  # 빌드 (dist/)
 ```
