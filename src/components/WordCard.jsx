@@ -205,10 +205,13 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false, onAiClick
         onClick={onCardClick}
         className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-slate-50 transition-colors px-6 py-8"
       >
-        {/* hiragana: 4/7 — 가장 큰 dominant 요소 */}
-        <p className={`${hiraSize} font-black text-slate-800 break-keep text-center leading-tight mb-3`}>
-          {word.hiragana}
-        </p>
+        {/* hiragana + 정중체 인라인 */}
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <p className={`${hiraSize} font-black text-slate-800 break-keep text-center leading-tight`}>
+            {word.hiragana}
+          </p>
+          <PolitenessTag politeness={word.politeness} />
+        </div>
 
         {/* pron: 1/7 — 가장 작은 보조 요소 */}
         <p className="text-sm font-medium text-slate-400 break-keep text-center mb-3">
@@ -219,9 +222,6 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false, onAiClick
         <p className={`${meanSize} font-bold text-slate-600 break-keep text-center leading-snug mb-3`}>
           {word.meaning}
         </p>
-
-        {/* 정중체 — 뜻 바로 아래 */}
-        <PolitenessTag politeness={word.politeness} />
 
         {/* 하단: 왼쪽 TTS · 오른쪽 AI */}
         <div className="w-full flex items-center justify-between mt-auto pt-4">
@@ -237,11 +237,14 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false, onAiClick
       onClick={onCardClick}
       className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-slate-50 transition-colors p-5"
     >
-      {/* 히라가나 + 발음 + 주요 답 */}
+      {/* 히라가나 + 정중체 인라인 + 발음 + 주요 답 */}
       <div className="w-full text-center mb-2">
-        <span className="text-slate-300 font-medium block text-base mb-0.5 break-keep">
-          {word.hiragana}
-        </span>
+        <div className="flex items-center justify-center gap-2 mb-0.5">
+          <span className="text-slate-300 font-medium text-base break-keep">
+            {word.hiragana}
+          </span>
+          <PolitenessTag politeness={word.politeness} />
+        </div>
         <span className="text-slate-400 font-medium block text-xs mb-3 break-keep">
           [{word.pron}]
         </span>
@@ -250,11 +253,6 @@ function CardBack({ word, onCardClick, reverseMode, blindMode = false, onAiClick
         >
           {reverseMode ? word.pron : word.meaning}
         </h2>
-      </div>
-
-      {/* 정중체 뱃지 — 뜻 바로 아래 */}
-      <div className="mb-3">
-        <PolitenessTag politeness={word.politeness} />
       </div>
 
       {/* 문법 구조 (패턴 전용) */}
@@ -303,6 +301,8 @@ export default function WordCard({
   onCardClick,
   reverseMode = false,
   blindMode   = false,
+  aiMessages,
+  setAiMessages,
 }) {
   const [showAiModal, setShowAiModal] = useState(false);
 
@@ -369,6 +369,8 @@ export default function WordCard({
         <AiChatModal
           currentCard={word}
           onClose={() => setShowAiModal(false)}
+          messages={aiMessages}
+          setMessages={setAiMessages}
         />
       )}
     </>

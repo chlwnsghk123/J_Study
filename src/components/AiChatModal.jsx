@@ -46,19 +46,11 @@ function MarkdownText({ text }) {
   );
 }
 
-export default function AiChatModal({ currentCard, onClose }) {
-  const [messages, setMessages] = useState([]);
+export default function AiChatModal({ currentCard, onClose, messages, setMessages }) {
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
   const bottomRef               = useRef(null);
   const inputRef                = useRef(null);
-
-  // 카드 변경 시 채팅 기록 초기화
-  useEffect(() => {
-    setMessages([]);
-    setInput('');
-    setLoading(false);
-  }, [currentCard.id]);
 
   // 새 메시지마다 스크롤 하단 이동
   useEffect(() => {
@@ -86,7 +78,7 @@ export default function AiChatModal({ currentCard, onClose }) {
       }]);
     } finally {
       setLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      // focus 자동 호출 제거 — 모바일 키보드 불필요 팝업 방지
     }
   };
 
@@ -180,7 +172,6 @@ export default function AiChatModal({ currentCard, onClose }) {
               focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-300
               max-h-24 overflow-y-auto"
             style={{ fieldSizing: 'content' }}
-            autoFocus
           />
           <button
             onClick={handleSend}

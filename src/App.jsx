@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Clock, XCircle, X } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, X, Undo2 } from 'lucide-react';
 import { wordData } from './data';
 import { prefetch } from './lib/googleTTS';
 import { TOTAL_DAYS, getDayBasePool } from './lib/curriculum';
@@ -130,8 +130,14 @@ export default function App() {
   const [animateCard, setAnimateCard] = useState(false);
   const [totalActive, setTotalActive] = useState(0);
 
-  // ── Toast (item 9) ───────────────────────────────────────────
+  // ── Toast ───────────────────────────────────────────────────
   const [toastMsg, setToastMsg] = useState('');
+
+  // ── AI 채팅 상태 (호이스팅: 모달 닫아도 유지, 카드 전환 시 초기화) ─
+  const [aiMessages, setAiMessages] = useState([]);
+
+  // ── 이전 카드 되돌리기 스택 ────────────────────────────────
+  const [historyStack, setHistoryStack] = useState([]);
 
   // ── 하드코어 타이머 ─────────────────────────────────────────
   const [hcTimeLeft, setHcTimeLeft] = useState(null);
@@ -240,6 +246,8 @@ export default function App() {
     setFailCount({});
     setShowAnswer(false);
     setGameStarted(true);
+    setHistoryStack([]);
+    setAiMessages([]);
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
     overTimeRef.current = false;
@@ -284,6 +292,8 @@ export default function App() {
     setFailCount({});
     setShowAnswer(false);
     setHcTimeLeft(null);
+    setHistoryStack([]);
+    setAiMessages([]);
     overTimeRef.current = false;
     setAppScreen('home');
     // srsData는 handleAction 시마다 saveLS 처리됨 — 추가 저장 불필요
@@ -317,12 +327,18 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue[0]?.id, showAnswer, gameStarted, settings.hardcoreMode]);
 
-  // ── 카드 앞면 노출 시 타이머 리셋 (item 9) ──────────────────
+  // ── 카드 앞면 노출 시 타이머 리셋 ──────────────────────────
   useEffect(() => {
     if (!gameStarted || showAnswer || queue.length === 0) return;
     cardStartTimeRef.current = Date.now();
     overTimeRef.current = false;
   }, [queue[0]?.id, showAnswer, gameStarted]);
+
+  // ── 카드 전환 시 AI 채팅 기록 초기화 ──────────────────────
+  useEffect(() => {
+    setAiMessages([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queue[0]?.id]);
 
   // ── 프리패치 ─────────────────────────────────────────────────
   useEffect(() => {
@@ -337,9 +353,10 @@ export default function App() {
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
 
-      // 시간 초과 체크 (word=3초, pattern/sentence=7초)
+      // 시간 초과 체크 — 페널티 기준 (word=8초, pattern=13초, sentence=17초)
       if (cardStartTimeRef.current && queue.length > 0) {
-        const threshold = queue[0].type === 'word' ? 3000 : 7000;
+        const t = queue[0].type;
+        const threshold = t === 'word' ? 8000 : t === 'pattern' ? 13000 : 17000;
         const elapsed   = Date.now() - cardStartTimeRef.current;
         if (elapsed > threshold) {
           overTimeRef.current = true;
@@ -352,6 +369,30 @@ export default function App() {
     }
   };
 
+  // ── 이전 카드 되돌리기 ───────────────────────────────────────
+  const handleUndo = () => {
+    if (historyStack.length === 0) return;
+    const prev = historyStack[historyStack.length - 1];
+    setHistoryStack((s) => s.slice(0, -1));
+    setQueue((q) => [prev.card, ...q]);
+    setMastered(prev.mastered);
+    setFailCount(prev.failCount);
+    setShowAnswer(false);
+    clearInterval(hcRef.current);
+    setHcTimeLeft(null);
+    overTimeRef.current = false;
+    // SRS 롤백
+    if (prev.srsSnapshot !== undefined) {
+      setSrsData((cur) => {
+        const restored = { ...cur };
+        if (prev.srsSnapshot === null) delete restored[prev.card.id];
+        else restored[prev.card.id] = prev.srsSnapshot;
+        saveLS(LS.SRS, restored);
+        return restored;
+      });
+    }
+  };
+
   // ── 액션 처리 ─────────────────────────────────────────────────
   const handleAction = (actionType) => {
     if (queue.length === 0) return;
@@ -359,7 +400,7 @@ export default function App() {
     setHcTimeLeft(null);
     setAnimateCard(true);
 
-    // 시간 초과 플래그 스냅샷 (item 9)
+    // 시간 초과 플래그 스냅샷
     const timedOut = overTimeRef.current;
     overTimeRef.current = false;
 
@@ -368,10 +409,18 @@ export default function App() {
       let newQueue    = queue.slice(1);
       let newMastered = [...mastered];
 
-      if (timedOut) {
-        // ── 시간 초과: 큐 맨 끝으로 이동 (item 9)
+      // ── 히스토리 기록 (되돌리기용) ────────────────────────
+      setHistoryStack((s) => [...s, {
+        card: current,
+        mastered: [...mastered],
+        failCount: { ...failCount },
+        srsSnapshot: srsData[current.id] ?? null,
+      }]);
+
+      if (timedOut && actionType === 'know') {
+        // ── 시간 초과 + 알아요: 큐 맨 끝으로 이동 (SRS 미갱신)
         newQueue = [...newQueue, current];
-        showToast('시간 초과 — 카드 맨 끝으로 이동됨');
+        showToast('시간 초과 — 카드 보류됨');
 
       } else if (actionType === 'know') {
         // ── 1회 즉시 마스터 (item 2)
@@ -491,9 +540,11 @@ export default function App() {
             currentDay={currentDay}
             dayPool={dayPreviewPool}
             selectedWordIds={selectedWordIds}
+            srsData={srsData}
             onToggle={toggleWord}
             onSelectAll={() => setSelectedWordIds(new Set(dayPreviewPool.map((w) => w.id)))}
             onDeselectAll={deselectAll}
+            onSetSelectedWordIds={setSelectedWordIds}
             onStart={startGameByDayWithSelection}
             onBack={() => setAppScreen('home')}
           />
@@ -535,7 +586,7 @@ export default function App() {
     <div className="min-h-screen bg-sky-50 flex flex-col items-center py-6 px-4 font-sans">
       {Toast}
 
-      {/* 진행 헤더: Exit 버튼 + 완료 수 (item 3 · item 8) */}
+      {/* 진행 헤더: Exit 버튼 + 완료 수 */}
       <div className="max-w-md w-full flex items-center justify-between mb-2">
         <button
           onClick={handleExit}
@@ -572,7 +623,24 @@ export default function App() {
         onCardClick={handleCardClick}
         reverseMode={settings.reverseMode}
         blindMode={settings.blindMode}
+        aiMessages={aiMessages}
+        setAiMessages={setAiMessages}
       />
+
+      {/* 되돌리기 버튼 — 카드 아래 왼쪽 */}
+      {historyStack.length > 0 && (
+        <div className="max-w-md w-full mb-1">
+          <button
+            onClick={handleUndo}
+            aria-label="이전 카드로 되돌리기"
+            title="이전 카드로 되돌리기"
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-sky-500 transition-colors px-2 py-1 rounded-lg hover:bg-sky-50"
+          >
+            <Undo2 className="w-4 h-4" />
+            <span className="font-medium">되돌리기</span>
+          </button>
+        </div>
+      )}
 
       {/* 버튼 영역 */}
       <div className="max-w-md w-full space-y-3">
