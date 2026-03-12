@@ -87,7 +87,7 @@ CATEGORY_META = {
 - 마스터 확정 시 → `nextReview` = 오늘 + [1, 3, 7]일 (`masteryCount` 기반)
 - `srsData` = localStorage `jflash_srs_v2`
 - 진행도 시각화: 카드 우상단에 3개의 점(●●○)으로 현재 masteryCount 표시
-- 수동 토글: CheckCircle2 아이콘, 확인 다이얼로그 후 3↔1 전환 (상세는 UX 섹션 참조)
+- 수동 토글: 마스터리 점(●●●) 터치 → 확인 다이얼로그 → masteryCount 3→1 (모르는 단어로만 전환 가능, 역방향 없음)
 
 ### 큐 빌드 순서
 1. 선택된 단어 필터링 → OR 태그 필터 → SRS 만기 필터 (maxCards 없음)
@@ -129,8 +129,9 @@ CATEGORY_META = {
 - **명시적 액션 버튼 (뒷면 하단)**:
   - `❌ 모름` (bg-rose-500) / `⭕ 앎` (bg-emerald-500) 양쪽 나란히 배치
   - PC·모바일 공통 사용
-- **마스터리 수동 토글**: CheckCircle2 아이콘 (카드 우상단 + DayPreviewScreen)
-  - 클릭 시 확인 다이얼로그 → 확인 후 `masteryCount`를 3(앎) 또는 1(모름)으로 전환
+- **마스터리 수동 토글**: 마스터리 점(●●●) (카드 우상단 + DayPreviewScreen)
+  - 마스터된 카드(masteryCount ≥ 3)에서만 터치 가능 → 확인 다이얼로그 → masteryCount 3→1 전환
+  - 모르는→아는 수동 전환은 없음 (학습을 통해서만 마스터 가능)
 - **PC 키보드 단축키**:
   - `↑ (ArrowUp)` / `↓ (ArrowDown)`: 카드 뒤집기 (앞↔뒤)
   - `← (ArrowLeft)`: 모르는 단어 (뒷면에서만)
