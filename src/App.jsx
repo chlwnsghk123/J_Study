@@ -332,9 +332,9 @@ export default function App() {
   useEffect(() => {
     if (!gameStarted || queue.length === 0) return;
     const onKeyDown = (e) => {
-      if (e.key === ' ') {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
-        handleFlip();   // Space = 카드 뒤집기
+        handleFlip();   // ↑/↓ = 카드 뒤집기
       }
       if (e.key === 'ArrowLeft' && showAnswer) {
         e.preventDefault();

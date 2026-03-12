@@ -81,6 +81,7 @@ function useDrag({ onSwipeLeft, onSwipeRight, enabled }) {
   const startY = useRef(null);
   const locked = useRef(false);     // 수평 드래그 확정 여부
   const cancelled = useRef(false);  // 수직 스크롤로 취소
+  const didMove = useRef(false);    // 이동 발생 여부 (클릭 방지용)
 
   const handleStart = useCallback((clientX, clientY) => {
     if (!enabled) return;
@@ -88,6 +89,7 @@ function useDrag({ onSwipeLeft, onSwipeRight, enabled }) {
     startY.current = clientY;
     locked.current = false;
     cancelled.current = false;
+    didMove.current = false;
     setIsDragging(true);
   }, [enabled]);
 
@@ -100,11 +102,12 @@ function useDrag({ onSwipeLeft, onSwipeRight, enabled }) {
     if (!locked.current) {
       if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
         cancelled.current = true;
+        didMove.current = true;  // 수직 스크롤도 이동으로 간주 (클릭 방지)
         setDragX(0);
         setIsDragging(false);
         return;
       }
-      if (Math.abs(dx) > 10) locked.current = true;
+      if (Math.abs(dx) > 10) { locked.current = true; didMove.current = true; }
     }
 
     if (locked.current) setDragX(dx);
@@ -116,11 +119,13 @@ function useDrag({ onSwipeLeft, onSwipeRight, enabled }) {
     startY.current = null;
     setIsDragging(false);
 
-    if (cancelled.current) { setDragX(0); return; }
+    if (cancelled.current) { setDragX(0); /* didMove는 유지 — click 이후 리셋 */ setTimeout(() => { didMove.current = false; }, 0); return; }
 
     if (dragX > DRAG_THRESHOLD) { onSwipeRight?.(); }
     else if (dragX < -DRAG_THRESHOLD) { onSwipeLeft?.(); }
     setDragX(0);
+    // click 이벤트는 touchend/mouseup 이후에 발생하므로 다음 틱에 리셋
+    setTimeout(() => { didMove.current = false; }, 0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragX, onSwipeLeft, onSwipeRight]);
 
@@ -141,7 +146,7 @@ function useDrag({ onSwipeLeft, onSwipeRight, enabled }) {
   const progress = Math.min(Math.abs(dragX) / DRAG_THRESHOLD, 1);
   const direction = dragX > 0 ? 'right' : dragX < 0 ? 'left' : null;
 
-  return { handlers, dragX, isDragging: isDragging && locked.current, progress, direction };
+  return { handlers, dragX, isDragging: isDragging && locked.current, progress, direction, didMove };
 }
 
 // ─── TTS 버튼 쌍 (1.0x + 0.7x 상시 배치) ────────────────────────
@@ -205,7 +210,7 @@ function CardOverlay({ word, hasPair, typeBadge, badgeText, reverseMode, blindMo
           aria-label={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
           className="p-1 rounded-lg transition-colors hover:bg-emerald-50"
         >
-          <CheckCircle2 className={`w-4 h-4 ${isMastered ? 'fill-emerald-400 text-emerald-400' : 'text-slate-300'}`} />
+          <CheckCircle2 className={`w-4 h-4 ${isMastered ? 'text-emerald-500' : 'text-slate-300'}`} />
         </button>
       </div>
     </>
@@ -490,7 +495,7 @@ export default function WordCard({
   useTTS(word.hiragana, !showAnswer);
 
   // 드래그 스와이프 (앞면/뒷면 모두 활성)
-  const { handlers: dragHandlers, dragX, isDragging, progress, direction: dragDirection } = useDrag({
+  const { handlers: dragHandlers, dragX, isDragging, progress, direction: dragDirection, didMove } = useDrag({
     onSwipeRight: () => onDragAction?.('know'),
     onSwipeLeft:  () => onDragAction?.('dontKnow'),
     enabled: true,
@@ -565,7 +570,7 @@ export default function WordCard({
             ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}
             ${!isDragging && dragX === 0 ? 'snap-back' : ''}`}
           style={isDragging ? dragStyle : {}}
-          onClick={isDragging ? undefined : onFlip}
+          onClick={(isDragging || didMove.current) ? undefined : onFlip}
         >
           {/* ── 앞면 ── */}
           <div className="flip-card-face bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col
