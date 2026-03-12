@@ -71,30 +71,74 @@ function MasteryDots({ masteryCount = 0 }) {
   return <div className="flex items-center gap-1">{dots}</div>;
 }
 
-// ─── 양방향 스와이프 훅 ─────────────────────────────────────────────
-function useSwipe({ onSwipeLeft, onSwipeRight }) {
-  const touchStartX = useRef(null);
-  const touchStartY = useRef(null);
+// ─── 드래그 스와이프 훅 (카드를 실제로 끌어서 넘기기) ────────────────
+const DRAG_THRESHOLD = 80; // 이 이상 드래그하면 액션 실행
 
-  const onTouchStart = useCallback((e) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
+function useDrag({ onSwipeLeft, onSwipeRight, enabled }) {
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(null);
+  const startY = useRef(null);
+  const locked = useRef(false);     // 수평 드래그 확정 여부
+  const cancelled = useRef(false);  // 수직 스크롤로 취소
+
+  const handleStart = useCallback((clientX, clientY) => {
+    if (!enabled) return;
+    startX.current = clientX;
+    startY.current = clientY;
+    locked.current = false;
+    cancelled.current = false;
+    setIsDragging(true);
+  }, [enabled]);
+
+  const handleMove = useCallback((clientX, clientY) => {
+    if (startX.current === null || cancelled.current) return;
+    const dx = clientX - startX.current;
+    const dy = clientY - startY.current;
+
+    // 아직 방향 미확정 시: 수직이면 취소
+    if (!locked.current) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+        cancelled.current = true;
+        setDragX(0);
+        setIsDragging(false);
+        return;
+      }
+      if (Math.abs(dx) > 10) locked.current = true;
+    }
+
+    if (locked.current) setDragX(dx);
   }, []);
 
-  const onTouchEnd = useCallback((e) => {
-    if (touchStartX.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-    touchStartX.current = null;
-    touchStartY.current = null;
-    // 수평 이동 50px 이상 + 수평이 수직보다 큰 경우
-    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
-      if (deltaX > 0) onSwipeRight?.();   // 오른쪽 = 앎
-      else onSwipeLeft?.();                // 왼쪽 = 모름
-    }
-  }, [onSwipeLeft, onSwipeRight]);
+  const handleEnd = useCallback(() => {
+    if (startX.current === null) return;
+    startX.current = null;
+    startY.current = null;
+    setIsDragging(false);
 
-  return { onTouchStart, onTouchEnd };
+    if (cancelled.current) { setDragX(0); return; }
+
+    if (dragX > DRAG_THRESHOLD) { onSwipeRight?.(); }
+    else if (dragX < -DRAG_THRESHOLD) { onSwipeLeft?.(); }
+    setDragX(0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragX, onSwipeLeft, onSwipeRight]);
+
+  const handlers = {
+    onTouchStart:  (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY),
+    onTouchMove:   (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY),
+    onTouchEnd:    handleEnd,
+    onMouseDown:   (e) => { e.preventDefault(); handleStart(e.clientX, e.clientY); },
+    onMouseMove:   (e) => { if (isDragging) handleMove(e.clientX, e.clientY); },
+    onMouseUp:     handleEnd,
+    onMouseLeave:  () => { if (isDragging) handleEnd(); },
+  };
+
+  // 드래그 진행도 (0~1, 1이면 threshold 도달)
+  const progress = Math.min(Math.abs(dragX) / DRAG_THRESHOLD, 1);
+  const direction = dragX > 0 ? 'right' : dragX < 0 ? 'left' : null;
+
+  return { handlers, dragX, isDragging: isDragging && locked.current, progress, direction };
 }
 
 // ─── TTS 버튼 쌍 (1.0x + 0.7x 상시 배치) ────────────────────────
@@ -401,6 +445,7 @@ export default function WordCard({
   word,
   showAnswer,
   animateCard,
+  slideDirection,
   selectedWordIds,
   onFlip,
   onKnow,
@@ -414,6 +459,7 @@ export default function WordCard({
 }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const [showMasteryConfirm, setShowMasteryConfirm] = useState(false);
+  const [enableFlipTransition, setEnableFlipTransition] = useState(true);
 
   const hasPair   = word.type === 'word' && word.antonymId && selectedWordIds.has(word.antonymId);
   const typeBadge = TYPE_META[word.type] ?? 'bg-slate-100 text-slate-700 border-slate-200';
@@ -424,16 +470,26 @@ export default function WordCard({
   const masteryCount = srsData[word.id]?.masteryCount ?? 0;
   const isMastered = masteryCount >= 3;
 
-  // 카드 전환 시 확인 다이얼로그 리셋
-  useEffect(() => { setShowMasteryConfirm(false); }, [word.id]);
+  // 카드 전환 시 확인 다이얼로그 리셋 + 플립 트랜지션 일시 해제
+  useEffect(() => {
+    setShowMasteryConfirm(false);
+    // 새 카드 로드 시 플립 트랜지션 비활성화 (뒤→앞 뒤집힘 방지)
+    setEnableFlipTransition(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setEnableFlipTransition(true);
+      });
+    });
+  }, [word.id]);
 
   // TTS 자동 재생: 앞면 노출 시 즉시 재생
   useTTS(word.hiragana, !showAnswer);
 
-  // 양방향 스와이프 감지 (뒷면에서만 활성)
-  const swipeHandlers = useSwipe({
+  // 드래그 스와이프 (뒷면에서만 활성)
+  const { handlers: dragHandlers, dragX, isDragging, progress, direction: dragDirection } = useDrag({
     onSwipeRight: () => { if (showAnswer && onKnow) onKnow(); },
     onSwipeLeft:  () => { if (showAnswer && onDontKnow) onDontKnow(); },
+    enabled: showAnswer,
   });
 
   const handleCheckClick = (e) => {
@@ -451,17 +507,58 @@ export default function WordCard({
     masteryCount, isMastered, onCheckClick: handleCheckClick,
   };
 
+  // 드래그 중 카드 회전 (최대 ±8도)
+  const dragRotate = isDragging ? dragX * 0.05 : 0;
+  const dragStyle = isDragging
+    ? { transform: `rotateY(180deg) translateX(${dragX}px) rotate(${dragRotate}deg)`, transition: 'none' }
+    : {};
+
   return (
     <>
       <div
-        className="max-w-md w-full mb-4 h-[480px] flip-card"
-        {...(showAnswer ? swipeHandlers : {})}
+        className="max-w-md w-full mb-4 h-[480px] flip-card relative"
+        {...(showAnswer ? dragHandlers : {})}
       >
+        {/* ── 드래그 방향 힌트 (카드 뒤에 표시) ── */}
+        {showAnswer && isDragging && progress > 0.1 && (
+          <>
+            {/* 오른쪽 = 앎 */}
+            <div
+              className="absolute inset-0 flex items-center justify-end pr-8 pointer-events-none z-0"
+              style={{ opacity: dragDirection === 'right' ? progress : 0 }}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                </div>
+                <span className="text-sm font-bold text-emerald-600">앎</span>
+              </div>
+            </div>
+            {/* 왼쪽 = 모름 */}
+            <div
+              className="absolute inset-0 flex items-center justify-start pl-8 pointer-events-none z-0"
+              style={{ opacity: dragDirection === 'left' ? progress : 0 }}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center">
+                  <XCircle className="w-8 h-8 text-rose-500" />
+                </div>
+                <span className="text-sm font-bold text-rose-600">모름</span>
+              </div>
+            </div>
+          </>
+        )}
+
         <div
-          className={`flip-card-inner ${showAnswer ? 'flipped' : ''}
-            ${animateCard ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}
-            transition-all duration-300`}
-          onClick={onFlip}
+          className={`flip-card-inner
+            ${showAnswer ? 'flipped' : ''}
+            ${enableFlipTransition && !isDragging ? 'flip-transition' : ''}
+            ${animateCard && slideDirection === 'right' ? 'slide-right' : ''}
+            ${animateCard && slideDirection === 'left' ? 'slide-left' : ''}
+            ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}
+            ${!isDragging && dragX === 0 ? 'snap-back' : ''}`}
+          style={isDragging ? dragStyle : {}}
+          onClick={isDragging ? undefined : onFlip}
         >
           {/* ── 앞면 ── */}
           <div className="flip-card-face bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col

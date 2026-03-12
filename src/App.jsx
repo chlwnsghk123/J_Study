@@ -128,6 +128,7 @@ export default function App() {
   const [showAnswer, setShowAnswer]   = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [animateCard, setAnimateCard] = useState(false);
+  const [slideDirection, setSlideDirection] = useState(null); // 'left' | 'right' | null
   const [totalActive, setTotalActive] = useState(0);
 
   // ── Toast ───────────────────────────────────────────────────
@@ -423,6 +424,7 @@ export default function App() {
     if (queue.length === 0) return;
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
+    setSlideDirection(actionType === 'know' ? 'right' : 'left');
     setAnimateCard(true);
 
     // 시간 초과 플래그 스냅샷
@@ -521,7 +523,8 @@ export default function App() {
       setMastered(newMastered);
       setShowAnswer(false);
       setAnimateCard(false);
-    }, 250);
+      setSlideDirection(null);
+    }, 200);
   };
 
   // ref 갱신 (stale closure 방지)
@@ -666,6 +669,7 @@ export default function App() {
         word={currentWord}
         showAnswer={showAnswer}
         animateCard={animateCard}
+        slideDirection={slideDirection}
         selectedWordIds={selectedWordIds}
         onFlip={handleFlip}
         onKnow={handleKnow}
