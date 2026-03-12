@@ -568,7 +568,7 @@ export default function WordCard({
             ${animateCard && slideDirection === 'right' ? (showAnswer ? 'slide-right-back' : 'slide-right-front') : ''}
             ${animateCard && slideDirection === 'left' ? (showAnswer ? 'slide-left-back' : 'slide-left-front') : ''}
             ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}
-            ${!isDragging && dragX === 0 ? 'snap-back' : ''}`}
+            ${!isDragging && dragX === 0 && enableFlipTransition ? 'snap-back' : ''}`}
           style={isDragging ? dragStyle : {}}
           onClick={(isDragging || didMove.current) ? undefined : onFlip}
         >
