@@ -496,8 +496,8 @@ export default function WordCard({
 
   // 드래그 스와이프 (앞면/뒷면 모두 활성)
   const { handlers: dragHandlers, dragX, isDragging, progress, direction: dragDirection, didMove } = useDrag({
-    onSwipeRight: () => onDragAction?.('know'),
-    onSwipeLeft:  () => onDragAction?.('dontKnow'),
+    onSwipeRight: () => { setEnableFlipTransition(false); onDragAction?.('know'); },
+    onSwipeLeft:  () => { setEnableFlipTransition(false); onDragAction?.('dontKnow'); },
     enabled: true,
   });
 
