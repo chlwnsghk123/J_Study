@@ -401,6 +401,7 @@ export default function WordCard({
   word,
   showAnswer,
   animateCard,
+  slideDirection,
   selectedWordIds,
   onFlip,
   onKnow,
@@ -414,6 +415,7 @@ export default function WordCard({
 }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const [showMasteryConfirm, setShowMasteryConfirm] = useState(false);
+  const [enableFlipTransition, setEnableFlipTransition] = useState(true);
 
   const hasPair   = word.type === 'word' && word.antonymId && selectedWordIds.has(word.antonymId);
   const typeBadge = TYPE_META[word.type] ?? 'bg-slate-100 text-slate-700 border-slate-200';
@@ -424,8 +426,17 @@ export default function WordCard({
   const masteryCount = srsData[word.id]?.masteryCount ?? 0;
   const isMastered = masteryCount >= 3;
 
-  // 카드 전환 시 확인 다이얼로그 리셋
-  useEffect(() => { setShowMasteryConfirm(false); }, [word.id]);
+  // 카드 전환 시 확인 다이얼로그 리셋 + 플립 트랜지션 일시 해제
+  useEffect(() => {
+    setShowMasteryConfirm(false);
+    // 새 카드 로드 시 플립 트랜지션 비활성화 (뒤→앞 뒤집힘 방지)
+    setEnableFlipTransition(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setEnableFlipTransition(true);
+      });
+    });
+  }, [word.id]);
 
   // TTS 자동 재생: 앞면 노출 시 즉시 재생
   useTTS(word.hiragana, !showAnswer);
@@ -458,9 +469,12 @@ export default function WordCard({
         {...(showAnswer ? swipeHandlers : {})}
       >
         <div
-          className={`flip-card-inner ${showAnswer ? 'flipped' : ''}
-            ${animateCard ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}
-            transition-all duration-300`}
+          className={`flip-card-inner
+            ${showAnswer ? 'flipped' : ''}
+            ${enableFlipTransition ? 'flip-transition' : ''}
+            ${animateCard && slideDirection === 'right' ? 'slide-right' : ''}
+            ${animateCard && slideDirection === 'left' ? 'slide-left' : ''}
+            ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}`}
           onClick={onFlip}
         >
           {/* ── 앞면 ── */}
