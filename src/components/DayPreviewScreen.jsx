@@ -1,32 +1,45 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, Square, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, Square } from 'lucide-react';
 import { CATEGORY_META } from '../data';
 
-// ─── 타입별 섹션 헤더 ────────────────────────────────────────────
-function SectionHeader({ label, count, badge }) {
+// ─── 소형 마스터리 점 (3개) ────────────────────────────────────────
+function MiniMasteryDots({ masteryCount = 0 }) {
   return (
-    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg mb-2 ${badge}`}>
-      <span className="text-xs font-bold">{label}</span>
-      <span className="text-xs font-medium opacity-70">{count}개</span>
+    <div className="flex items-center gap-0.5">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className={`inline-block w-1.5 h-1.5 rounded-full ${
+            i < masteryCount ? 'bg-emerald-400' : 'bg-slate-200'
+          }`}
+        />
+      ))}
     </div>
   );
 }
 
-// ─── 단어 행 (체크박스 포함) ─────────────────────────────────────
-function WordRow({ word, isSelected, onToggle, isMastered, onToggleMastery }) {
+// ─── 단어 행 (간소화) ─────────────────────────────────────────────
+function WordRow({ word, isSelected, onToggle, isMastered, masteryCount, onToggleMastery }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const catMeta   = CATEGORY_META[word.type];
-  const badgeText = word.type === 'word' ? (word.tags?.[0] ?? '단어') : catMeta?.label;
+  const catMeta = CATEGORY_META[word.type];
+
+  // 타입별 색상 인디케이터
+  const typeColor = word.type === 'word'
+    ? 'bg-sky-400'
+    : word.type === 'pattern'
+      ? 'bg-violet-400'
+      : 'bg-emerald-400';
 
   return (
-    <div className={`relative w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all ${
+    <div className={`relative flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-all ${
       isSelected
-        ? 'border-sky-300 bg-sky-50'
-        : 'border-slate-100 bg-white opacity-50 hover:opacity-75'
+        ? 'border-sky-200 bg-sky-50/70'
+        : 'border-slate-100 bg-white opacity-60 hover:opacity-80'
     }`}>
+      {/* 체크박스 + pron + meaning */}
       <button
         onClick={() => onToggle(word.id)}
-        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+        className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
       >
         <span className={`shrink-0 ${isSelected ? 'text-sky-500' : 'text-slate-300'}`}>
           {isSelected
@@ -34,30 +47,36 @@ function WordRow({ word, isSelected, onToggle, isMastered, onToggleMastery }) {
             : <Square className="w-4 h-4" />
           }
         </span>
-        <span className="font-bold text-slate-800 text-sm truncate flex-1 min-w-0">
+        <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${typeColor}`} />
+        <span className="font-bold text-slate-800 text-sm truncate min-w-0" style={{ flex: '0 1 auto', maxWidth: '45%' }}>
           {word.pron}
         </span>
-        <span className="text-xs text-slate-500 truncate flex-1 min-w-0">
+        <span className="text-xs text-slate-400 truncate flex-1 min-w-0">
           {word.meaning}
         </span>
-        <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-semibold ${catMeta?.badge ?? ''}`}>
-          {badgeText}
-        </span>
-      </button>
-      <button
-        onClick={() => setShowConfirm(true)}
-        title={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
-        aria-label={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
-        className="shrink-0 p-1 rounded-lg transition-colors hover:bg-emerald-50"
-      >
-        <CheckCircle2 className={`w-3.5 h-3.5 ${isMastered ? 'text-emerald-500' : 'text-slate-300'}`} />
       </button>
 
-      {/* 확인 다이얼로그 */}
+      {/* 마스터리 점 (마스터된 것만 터치 가능) */}
+      {isMastered ? (
+        <button
+          onClick={() => setShowConfirm(true)}
+          title="모르는 단어로 변경"
+          aria-label="모르는 단어로 변경"
+          className="shrink-0 p-1 rounded-lg transition-colors hover:bg-emerald-50"
+        >
+          <MiniMasteryDots masteryCount={Math.min(masteryCount, 3)} />
+        </button>
+      ) : (
+        <div className="shrink-0 p-1">
+          <MiniMasteryDots masteryCount={Math.min(masteryCount, 3)} />
+        </div>
+      )}
+
+      {/* 확인 다이얼로그 (마스터→모르는 전용) */}
       {showConfirm && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-xl">
           <span className="text-xs text-slate-600 font-medium mr-2">
-            {isMastered ? '모르는 단어로?' : '아는 단어로?'}
+            모르는 단어로?
           </span>
           <button
             onClick={() => setShowConfirm(false)}
@@ -106,7 +125,7 @@ function AccordionSection({ title, count, defaultOpen, children }) {
         <span className="text-xs font-bold text-slate-600">{title}</span>
         <span className="text-xs text-slate-400 font-medium">{count}개</span>
       </button>
-      {open && <div className="space-y-1.5">{children}</div>}
+      {open && <div className="space-y-1">{children}</div>}
     </div>
   );
 }
@@ -136,16 +155,15 @@ export default function DayPreviewScreen({
 
   // ── SRS 기반 아는/모르는 단어 분류 ────────────────────────
   const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 3;
+  const getMasteryCount = (w) => srsData[w.id]?.masteryCount ?? 0;
 
   // ── 필터 적용 함수 ────────────────────────────────────────
   const applyFilters = (include, word, pattern, sentence) => {
     const poolIds = new Set();
     dayPool.forEach((w) => {
-      // 타입 필터
       if (w.type === 'word' && !word) return;
       if (w.type === 'pattern' && !pattern) return;
       if (w.type === 'sentence' && !sentence) return;
-      // 아는 단어 필터
       if (!include && isKnown(w)) return;
       poolIds.add(w.id);
     });
@@ -170,23 +188,16 @@ export default function DayPreviewScreen({
     applyFilters(includeKnown, nextWord, nextPattern, nextSentence);
   };
 
-  // ── 타입별 + 아는/모르는 분류 ─────────────────────────────
-  const unknownWords     = dayPool.filter((w) => w.type === 'word' && !isKnown(w));
-  const knownWords       = dayPool.filter((w) => w.type === 'word' && isKnown(w));
-  const unknownPatterns  = dayPool.filter((w) => w.type === 'pattern' && !isKnown(w));
-  const knownPatterns    = dayPool.filter((w) => w.type === 'pattern' && isKnown(w));
-  const unknownSentences = dayPool.filter((w) => w.type === 'sentence' && !isKnown(w));
-  const knownSentences   = dayPool.filter((w) => w.type === 'sentence' && isKnown(w));
-
-  const totalKnown   = knownWords.length + knownPatterns.length + knownSentences.length;
-  const totalUnknown = unknownWords.length + unknownPatterns.length + unknownSentences.length;
+  // ── 모르는/아는 분류 (타입 구분 없이 단일 리스트) ──────────
+  const unknownItems = dayPool.filter((w) => !isKnown(w));
+  const knownItems   = dayPool.filter((w) => isKnown(w));
 
   return (
     <div className="min-h-screen bg-sky-50 flex flex-col items-center py-8 px-4 font-sans">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border-t-8 border-sky-400">
 
         {/* 헤더 */}
-        <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-3 px-5 pt-5 pb-4">
           <button
             onClick={onBack}
             aria-label="돌아가기"
@@ -195,131 +206,88 @@ export default function DayPreviewScreen({
             <ChevronLeft className="w-4 h-4" /> 돌아가기
           </button>
           <div className="flex-1 text-center">
-            <h2 className="text-base font-extrabold text-slate-800">Day {currentDay} 단어 선택</h2>
+            <h2 className="text-base font-extrabold text-slate-800">Day {currentDay}</h2>
           </div>
           <span className="text-sm font-bold text-sky-600 whitespace-nowrap">
             {selectedCount} / {totalCount}
           </span>
         </div>
 
-        {/* 필터 칩 영역 */}
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 flex-wrap">
-          <FilterChip
-            label={`아는 단어 포함 (${totalKnown})`}
-            active={includeKnown}
-            onClick={handleToggleKnown}
-          />
-          <FilterChip
-            label="단어"
-            active={filterWord}
-            onClick={() => handleToggleType('word')}
-          />
-          <FilterChip
-            label="패턴"
-            active={filterPattern}
-            onClick={() => handleToggleType('pattern')}
-          />
-          <FilterChip
-            label="통문장"
-            active={filterSentence}
-            onClick={() => handleToggleType('sentence')}
-          />
-        </div>
-
-        {/* 전체 선택 / 해제 버튼 */}
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100">
-          <button
-            onClick={onSelectAll}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <CheckSquare className="w-3.5 h-3.5" /> 전체 선택
-          </button>
-          <button
-            onClick={onDeselectAll}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <Square className="w-3.5 h-3.5" /> 전체 해제
-          </button>
-          <span className="ml-auto text-[10px] text-slate-400">
-            {selectedCount === 0 ? '단어를 선택해주세요' : `${selectedCount}장 선택됨`}
-          </span>
+        {/* 필터 + 전체선택/해제 통합 영역 */}
+        <div className="px-5 pb-3 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <FilterChip
+              label={`아는 단어 포함 (${knownItems.length})`}
+              active={includeKnown}
+              onClick={handleToggleKnown}
+            />
+            <FilterChip
+              label="단어"
+              active={filterWord}
+              onClick={() => handleToggleType('word')}
+            />
+            <FilterChip
+              label="패턴"
+              active={filterPattern}
+              onClick={() => handleToggleType('pattern')}
+            />
+            <FilterChip
+              label="통문장"
+              active={filterSentence}
+              onClick={() => handleToggleType('sentence')}
+            />
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                onClick={onSelectAll}
+                className="text-[11px] font-semibold text-slate-500 hover:text-sky-600 px-2 py-1 rounded transition-colors"
+              >
+                전체선택
+              </button>
+              <span className="text-slate-300">|</span>
+              <button
+                onClick={onDeselectAll}
+                className="text-[11px] font-semibold text-slate-500 hover:text-sky-600 px-2 py-1 rounded transition-colors"
+              >
+                전체해제
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* 단어 목록 스크롤 영역 */}
-        <div className="overflow-y-auto max-h-[55vh] px-4 py-3 space-y-4">
+        <div className="overflow-y-auto max-h-[55vh] px-4 py-3 space-y-3 border-t border-slate-100">
 
-          {/* ── 모르는 단어 영역 (기본 펼침) ── */}
-          {totalUnknown > 0 && (
-            <AccordionSection title="모르는 단어" count={totalUnknown} defaultOpen={true}>
-              {/* 단어 */}
-              {unknownWords.length > 0 && (
-                <div className="mb-3">
-                  <SectionHeader label="단어" count={unknownWords.length} badge="bg-sky-50 text-sky-700" />
-                  <div className="space-y-1.5">
-                    {unknownWords.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* 패턴 */}
-              {unknownPatterns.length > 0 && (
-                <div className="mb-3">
-                  <SectionHeader label="패턴" count={unknownPatterns.length} badge="bg-violet-50 text-violet-700" />
-                  <div className="space-y-1.5">
-                    {unknownPatterns.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* 통문장 */}
-              {unknownSentences.length > 0 && (
-                <div className="mb-3">
-                  <SectionHeader label="통문장" count={unknownSentences.length} badge="bg-emerald-50 text-emerald-700" />
-                  <div className="space-y-1.5">
-                    {unknownSentences.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* ── 모르는 단어 (기본 펼침) ── */}
+          {unknownItems.length > 0 && (
+            <AccordionSection title="모르는 단어" count={unknownItems.length} defaultOpen={true}>
+              {unknownItems.map((word) => (
+                <WordRow
+                  key={word.id}
+                  word={word}
+                  isSelected={selectedWordIds.has(word.id)}
+                  onToggle={onToggle}
+                  isMastered={false}
+                  masteryCount={getMasteryCount(word)}
+                  onToggleMastery={onToggleMastery}
+                />
+              ))}
             </AccordionSection>
           )}
 
-          {/* ── 아는 단어 영역 (기본 접힘) ── */}
-          {totalKnown > 0 && (
-            <AccordionSection title="이미 아는 단어" count={totalKnown} defaultOpen={false}>
-              {knownWords.length > 0 && (
-                <div className="mb-3">
-                  <SectionHeader label="단어" count={knownWords.length} badge="bg-sky-50 text-sky-700" />
-                  <div className="space-y-1.5">
-                    {knownWords.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {knownPatterns.length > 0 && (
-                <div className="mb-3">
-                  <SectionHeader label="패턴" count={knownPatterns.length} badge="bg-violet-50 text-violet-700" />
-                  <div className="space-y-1.5">
-                    {knownPatterns.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {knownSentences.length > 0 && (
-                <div className="mb-3">
-                  <SectionHeader label="통문장" count={knownSentences.length} badge="bg-emerald-50 text-emerald-700" />
-                  <div className="space-y-1.5">
-                    {knownSentences.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* ── 아는 단어 (기본 접힘) ── */}
+          {knownItems.length > 0 && (
+            <AccordionSection title="아는 단어" count={knownItems.length} defaultOpen={false}>
+              {knownItems.map((word) => (
+                <WordRow
+                  key={word.id}
+                  word={word}
+                  isSelected={selectedWordIds.has(word.id)}
+                  onToggle={onToggle}
+                  isMastered={true}
+                  masteryCount={getMasteryCount(word)}
+                  onToggleMastery={onToggleMastery}
+                />
+              ))}
             </AccordionSection>
           )}
         </div>

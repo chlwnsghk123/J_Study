@@ -202,17 +202,22 @@ function CardOverlay({ word, hasPair, typeBadge, badgeText, reverseMode, blindMo
         )}
       </div>
 
-      {/* 우상단: 마스터리 진행 + 체크 토글 */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-        <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
-        <button
-          onClick={onCheckClick}
-          title={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
-          aria-label={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
-          className="p-1 rounded-lg transition-colors hover:bg-emerald-50"
-        >
-          <CheckCircle2 className={`w-4 h-4 ${isMastered ? 'text-emerald-500' : 'text-slate-300'}`} />
-        </button>
+      {/* 우상단: 마스터리 진행 점 (마스터 시 터치→모르는 단어로 변경) */}
+      <div className="absolute top-4 right-4 z-10">
+        {isMastered ? (
+          <button
+            onClick={onCheckClick}
+            title="모르는 단어로 변경"
+            aria-label="모르는 단어로 변경"
+            className="p-1 rounded-lg transition-colors hover:bg-emerald-50"
+          >
+            <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
+          </button>
+        ) : (
+          <div className="p-1">
+            <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
+          </div>
+        )}
       </div>
     </>
   );
@@ -287,8 +292,9 @@ function CardFront({ word, reverseMode, blindMode }) {
         </span>
       )}
       <h2
-        className={`${pronSize} font-black text-slate-800 mb-2 break-keep text-center
-          group-hover:scale-105 transition-transform leading-tight`}
+        className={`${pronSize} font-black text-slate-800 mb-2 break-keep break-words text-center
+          group-hover:scale-105 transition-transform leading-tight w-full`}
+        style={{ overflowWrap: 'anywhere' }}
       >
         {word.pron}
       </h2>
@@ -377,22 +383,23 @@ function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onD
   return (
     <div className="flex-1 flex flex-col items-center w-full p-5">
       <div className="flex-1 flex flex-col items-center justify-center w-full overflow-y-auto">
-        {/* 히라가나 + 정중체 인라인 + 발음 + 주요 답 */}
+        {/* 히라가나 + 발음 + 주요 답 + 정중체 */}
         <div className="w-full text-center mb-2">
-          <div className="flex items-center justify-center gap-2 mb-0.5">
-            <span className="text-slate-300 font-medium text-base break-keep">
-              {word.hiragana}
-            </span>
-            <PolitenessTag politeness={word.politeness} />
-          </div>
+          <span className="text-slate-300 font-medium text-base break-keep">
+            {word.hiragana}
+          </span>
           <span className="text-slate-400 font-medium block text-xs mb-3 break-keep">
             [{word.pron}]
           </span>
-          <h2
-            className={`${reverseMode ? pronSize : meaningSize} font-extrabold text-slate-800 break-keep leading-snug`}
-          >
-            {reverseMode ? word.pron : word.meaning}
-          </h2>
+          <div className="flex items-center justify-center gap-2">
+            <h2
+              className={`${reverseMode ? pronSize : meaningSize} font-extrabold text-slate-800 break-keep break-words leading-snug`}
+              style={{ overflowWrap: 'anywhere' }}
+            >
+              {reverseMode ? word.pron : word.meaning}
+            </h2>
+            <PolitenessTag politeness={word.politeness} />
+          </div>
         </div>
 
         {/* 문법 구조 (패턴 전용) */}
@@ -612,7 +619,7 @@ export default function WordCard({
               onClick={(e) => e.stopPropagation()}
             >
               <p className="text-sm font-semibold text-slate-700 text-center mb-4">
-                이 단어를 {isMastered ? '모르는 단어로' : '아는 단어로'} 설정하시겠습니까?
+                이 단어를 모르는 단어로 설정하시겠습니까?
               </p>
               <div className="flex gap-3">
                 <button
