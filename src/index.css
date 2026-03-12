@@ -45,3 +45,8 @@
   transform: rotateY(180deg) translateX(-60px);
   opacity: 0;
 }
+
+/* ─── 드래그 해제 후 스냅백 ──────────────────────────────────── */
+.flip-card-inner.snap-back {
+  transition: transform 0.25s ease;
+}
