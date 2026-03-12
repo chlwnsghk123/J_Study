@@ -5,7 +5,7 @@
 한자·히라가나 암기 아님 — **소리 반사 훈련**이 핵심. OPIc IM1 타겟.
 
 ## 스택
-- React 18 + Vite 5 + Tailwind CSS v3 + lucide-react
+- React 18 + Vite 5 + Tailwind CSS v3 + lucide-react + framer-motion
 - Google Cloud TTS API (`ja-JP-Neural2-B` 고정)
   - API 키: `import.meta.env.VITE_GOOGLE_TTS_API_KEY` (`.env` 파일)
 - Google Gemini API (`@google/generative-ai`, 모델: `models/gemini-3-flash-preview`)
@@ -115,7 +115,10 @@ CATEGORY_META = {
 - **드래그 스와이프 (앞면·뒷면 모두, 모바일+PC)**:
   - 카드를 손가락/마우스로 끌어서 이동 (Tinder 스타일)
   - 오른쪽 드래그 → '아는 단어(Know)' / 왼쪽 드래그 → '모르는 단어(Don't Know)'
-  - 드래그 중 방향 힌트 표시 (✓앎 / ✕모름 아이콘)
+  - **영역 기반 드래그 피드백**: 카드 뒤 배경을 좌우 반반 분할
+    - 오른쪽 절반: 초록 배경 + `⭕ 알아요` — 드래그 거리에 비례해 opacity 증가
+    - 왼쪽 절반: 빨간 배경 + `❌ 몰라요` — 드래그 거리에 비례해 opacity 증가
+    - `framer-motion`으로 부드러운 opacity 전환 (`duration: 0.1s`)
   - 임계값(80px) 미달 시 스냅백 애니메이션
   - `rotateY(180deg)` 상태에서 `translateX` 미러링 보정 (`-dragX`)
   - `touch-action: pan-y` + `e.preventDefault()` 로 브라우저 기본 스와이프(뒤로가기) 차단
@@ -271,7 +274,8 @@ CATEGORY_META = {
 ### 4. 카드 레이아웃 원칙
 
 - 카드는 **단일 집중 구조**: 한 번에 하나의 정보만 전면에 노출한다.
-- 최대 너비: `max-w-lg mx-auto` — 모바일·데스크톱 모두 중앙 정렬.
+- 최대 너비: `max-w-md mx-auto` — 모바일·데스크톱 모두 중앙 정렬.
+- 카드 높이: `h-[540px]` — 모바일에서 드래그 편의 + 텍스트 여유 공간 확보.
 - 카드 그림자: `shadow-md rounded-2xl` — 배경과 카드를 명확히 분리.
 - 앞면과 뒷면의 **카드 크기·위치가 동일**해야 전환 시 흔들림이 없다.
 - 정보 밀도: 뒷면에 요소를 추가할 때 스크롤 없이 한 화면에 담길 수 있는지 확인한다.

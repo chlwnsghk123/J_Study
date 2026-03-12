@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { Volume2, Volume1, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import { useTTS, speakText } from '../hooks/useTTS';
 import { TYPE_META, CATEGORY_META } from '../data';
@@ -528,36 +529,38 @@ export default function WordCard({
   return (
     <>
       <div
-        className="max-w-md w-full mb-4 h-[480px] flip-card relative"
+        className="max-w-md w-full mb-4 h-[540px] flip-card relative"
         {...dragHandlers}
       >
-        {/* ── 드래그 방향 힌트 (카드 뒤에 표시) ── */}
-        {isDragging && progress > 0.1 && (
+        {/* ── 드래그 방향 피드백 — 좌우 반반 분할 배경 ── */}
+        {isDragging && (
           <>
-            {/* 오른쪽 = 앎 */}
-            <div
-              className="absolute inset-0 flex items-center justify-end pr-8 pointer-events-none z-0"
-              style={{ opacity: dragDirection === 'right' ? progress : 0 }}
+            {/* 왼쪽 절반 = 모름 (빨간 계열) */}
+            <motion.div
+              className="absolute inset-y-0 left-0 w-1/2 rounded-l-3xl flex items-center justify-center pointer-events-none z-0"
+              style={{ backgroundColor: 'rgba(244, 63, 94, 0.15)' }}
+              animate={{ opacity: dragDirection === 'left' ? Math.max(progress, 0.05) : 0 }}
+              transition={{ duration: 0.1, ease: 'easeOut' }}
+              initial={{ opacity: 0 }}
             >
               <div className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-                </div>
-                <span className="text-sm font-bold text-emerald-600">앎</span>
+                <span className="text-3xl">❌</span>
+                <span className="text-base font-bold text-rose-600">몰라요</span>
               </div>
-            </div>
-            {/* 왼쪽 = 모름 */}
-            <div
-              className="absolute inset-0 flex items-center justify-start pl-8 pointer-events-none z-0"
-              style={{ opacity: dragDirection === 'left' ? progress : 0 }}
+            </motion.div>
+            {/* 오른쪽 절반 = 앎 (초록 계열) */}
+            <motion.div
+              className="absolute inset-y-0 right-0 w-1/2 rounded-r-3xl flex items-center justify-center pointer-events-none z-0"
+              style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)' }}
+              animate={{ opacity: dragDirection === 'right' ? Math.max(progress, 0.05) : 0 }}
+              transition={{ duration: 0.1, ease: 'easeOut' }}
+              initial={{ opacity: 0 }}
             >
               <div className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center">
-                  <XCircle className="w-8 h-8 text-rose-500" />
-                </div>
-                <span className="text-sm font-bold text-rose-600">모름</span>
+                <span className="text-3xl">⭕</span>
+                <span className="text-base font-bold text-emerald-600">알아요</span>
               </div>
-            </div>
+            </motion.div>
           </>
         )}
 
@@ -568,7 +571,7 @@ export default function WordCard({
             ${animateCard && slideDirection === 'right' ? (showAnswer ? 'slide-right-back' : 'slide-right-front') : ''}
             ${animateCard && slideDirection === 'left' ? (showAnswer ? 'slide-left-back' : 'slide-left-front') : ''}
             ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}
-            ${!isDragging && dragX === 0 ? 'snap-back' : ''}`}
+            ${!isDragging && dragX === 0 && enableFlipTransition ? 'snap-back' : ''}`}
           style={isDragging ? dragStyle : {}}
           onClick={(isDragging || didMove.current) ? undefined : onFlip}
         >
