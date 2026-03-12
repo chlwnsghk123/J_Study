@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Volume2, Volume1, Sparkles } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Volume2, Volume1, Sparkles, ChevronRight, Star } from 'lucide-react';
 import { useTTS, speakText } from '../hooks/useTTS';
 import { TYPE_META, CATEGORY_META } from '../data';
 import AiChatModal from './AiChatModal';
@@ -53,6 +53,47 @@ function PolitenessTag({ politeness }) {
       {politeness}
     </span>
   );
+}
+
+// ─── 마스터리 진행 표시 (●●○) ──────────────────────────────────────
+function MasteryDots({ masteryCount = 0 }) {
+  const dots = [];
+  for (let i = 0; i < 3; i++) {
+    dots.push(
+      <span
+        key={i}
+        className={`inline-block w-2 h-2 rounded-full ${
+          i < masteryCount ? 'bg-emerald-400' : 'bg-slate-200'
+        }`}
+      />
+    );
+  }
+  return <div className="flex items-center gap-1">{dots}</div>;
+}
+
+// ─── 스와이프 훅 (모바일 오른쪽 스와이프 감지) ─────────────────────
+function useSwipeRight(onSwipeRight) {
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
+
+  const onTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const onTouchEnd = useCallback((e) => {
+    if (touchStartX.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    // 오른쪽으로 50px 이상 + 수평 이동이 수직보다 큰 경우
+    if (deltaX > 50 && deltaX > deltaY) {
+      onSwipeRight();
+    }
+  }, [onSwipeRight]);
+
+  return { onTouchStart, onTouchEnd };
 }
 
 // ─── TTS 버튼 쌍 (1.0x + 0.7x 상시 배치, item 1) ────────────────
@@ -299,6 +340,9 @@ export default function WordCard({
   animateCard,
   selectedWordIds,
   onCardClick,
+  onDontKnow,
+  onToggleMastery,
+  srsData = {},
   reverseMode = false,
   blindMode   = false,
   aiMessages,
@@ -312,19 +356,30 @@ export default function WordCard({
     ? (word.tags?.[0] ?? '단어')
     : CATEGORY_META[word.type]?.label ?? word.type;
 
+  const masteryCount = srsData[word.id]?.masteryCount ?? 0;
+  const isMastered = masteryCount >= 3;
+
   // TTS 자동 재생: 앞면 노출 시 즉시 재생
   useTTS(word.hiragana, !showAnswer);
 
+  // 스와이프 감지 (뒷면에서만 활성)
+  const swipeHandlers = useSwipeRight(() => {
+    if (showAnswer && onDontKnow) onDontKnow();
+  });
+
   return (
     <>
-      <div className="max-w-md w-full mb-4 h-[480px]">
+      <div
+        className="max-w-md w-full mb-4 h-[480px]"
+        {...(showAnswer ? swipeHandlers : {})}
+      >
         <div
           className={`w-full h-full bg-white rounded-3xl shadow-xl overflow-y-auto flex flex-col
             relative border border-slate-100 transition-all duration-300
             ${animateCard ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}`}
         >
-          {/* 배지 영역 */}
-          <div className="absolute top-4 left-4 flex gap-1.5 z-10 flex-wrap max-w-[70%]">
+          {/* 배지 영역 (좌상단) */}
+          <div className="absolute top-4 left-4 flex gap-1.5 z-10 flex-wrap max-w-[60%]">
             <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-sm border ${typeBadge}`}>
               {badgeText}
             </span>
@@ -345,6 +400,19 @@ export default function WordCard({
             )}
           </div>
 
+          {/* 우상단: 마스터리 진행 + 별 토글 */}
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+            <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleMastery?.(word.id); }}
+              title={isMastered ? '마스터 해제' : '마스터 등록'}
+              aria-label={isMastered ? '마스터 해제' : '마스터 등록'}
+              className="p-1 rounded-lg transition-colors hover:bg-amber-50"
+            >
+              <Star className={`w-4 h-4 ${isMastered ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
+            </button>
+          </div>
+
           {/* 앞/뒷면 렌더링 */}
           {!showAnswer ? (
             <CardFront
@@ -361,6 +429,21 @@ export default function WordCard({
               blindMode={blindMode}
               onAiClick={() => setShowAiModal(true)}
             />
+          )}
+
+          {/* PC용 "모르는 단어" 화살표 버튼 (뒷면에서만 표시) */}
+          {showAnswer && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDontKnow?.(); }}
+              title="모르는 단어 (→)"
+              aria-label="모르는 단어"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-10
+                p-2 rounded-full bg-slate-100 text-slate-400
+                hover:bg-rose-50 hover:text-rose-500 transition-colors
+                shadow-sm border border-slate-200"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           )}
         </div>
       </div>

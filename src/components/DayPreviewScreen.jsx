@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, Square } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, Square, Star } from 'lucide-react';
 import { CATEGORY_META } from '../data';
 
 // ─── 타입별 섹션 헤더 ────────────────────────────────────────────
@@ -13,35 +13,45 @@ function SectionHeader({ label, count, badge }) {
 }
 
 // ─── 단어 행 (체크박스 포함) ─────────────────────────────────────
-function WordRow({ word, isSelected, onToggle }) {
+function WordRow({ word, isSelected, onToggle, isMastered, onToggleMastery }) {
   const catMeta   = CATEGORY_META[word.type];
   const badgeText = word.type === 'word' ? (word.tags?.[0] ?? '단어') : catMeta?.label;
 
   return (
-    <button
-      onClick={() => onToggle(word.id)}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left ${
-        isSelected
-          ? 'border-sky-300 bg-sky-50'
-          : 'border-slate-100 bg-white opacity-50 hover:opacity-75'
-      }`}
-    >
-      <span className={`shrink-0 ${isSelected ? 'text-sky-500' : 'text-slate-300'}`}>
-        {isSelected
-          ? <CheckSquare className="w-4 h-4" />
-          : <Square className="w-4 h-4" />
-        }
-      </span>
-      <span className="font-bold text-slate-800 text-sm truncate flex-1 min-w-0">
-        {word.pron}
-      </span>
-      <span className="text-xs text-slate-500 truncate flex-1 min-w-0">
-        {word.meaning}
-      </span>
-      <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-semibold ${catMeta?.badge ?? ''}`}>
-        {badgeText}
-      </span>
-    </button>
+    <div className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all ${
+      isSelected
+        ? 'border-sky-300 bg-sky-50'
+        : 'border-slate-100 bg-white opacity-50 hover:opacity-75'
+    }`}>
+      <button
+        onClick={() => onToggle(word.id)}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+      >
+        <span className={`shrink-0 ${isSelected ? 'text-sky-500' : 'text-slate-300'}`}>
+          {isSelected
+            ? <CheckSquare className="w-4 h-4" />
+            : <Square className="w-4 h-4" />
+          }
+        </span>
+        <span className="font-bold text-slate-800 text-sm truncate flex-1 min-w-0">
+          {word.pron}
+        </span>
+        <span className="text-xs text-slate-500 truncate flex-1 min-w-0">
+          {word.meaning}
+        </span>
+        <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-semibold ${catMeta?.badge ?? ''}`}>
+          {badgeText}
+        </span>
+      </button>
+      <button
+        onClick={() => onToggleMastery?.(word.id)}
+        title={isMastered ? '마스터 해제' : '마스터 등록'}
+        aria-label={isMastered ? '마스터 해제' : '마스터 등록'}
+        className="shrink-0 p-1 rounded-lg transition-colors hover:bg-amber-50"
+      >
+        <Star className={`w-3.5 h-3.5 ${isMastered ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
+      </button>
+    </div>
   );
 }
 
@@ -89,6 +99,7 @@ export default function DayPreviewScreen({
   onSelectAll,
   onDeselectAll,
   onSetSelectedWordIds,
+  onToggleMastery,
   onStart,
   onBack,
 }) {
@@ -102,7 +113,7 @@ export default function DayPreviewScreen({
   const totalCount    = dayPool.length;
 
   // ── SRS 기반 아는/모르는 단어 분류 ────────────────────────
-  const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 1;
+  const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 3;
 
   // ── 필터 적용 함수 ────────────────────────────────────────
   const applyFilters = (include, word, pattern, sentence) => {
@@ -224,7 +235,7 @@ export default function DayPreviewScreen({
                   <SectionHeader label="단어" count={unknownWords.length} badge="bg-sky-50 text-sky-700" />
                   <div className="space-y-1.5">
                     {unknownWords.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} />
+                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
                     ))}
                   </div>
                 </div>
@@ -235,7 +246,7 @@ export default function DayPreviewScreen({
                   <SectionHeader label="패턴" count={unknownPatterns.length} badge="bg-violet-50 text-violet-700" />
                   <div className="space-y-1.5">
                     {unknownPatterns.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} />
+                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
                     ))}
                   </div>
                 </div>
@@ -246,7 +257,7 @@ export default function DayPreviewScreen({
                   <SectionHeader label="통문장" count={unknownSentences.length} badge="bg-emerald-50 text-emerald-700" />
                   <div className="space-y-1.5">
                     {unknownSentences.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} />
+                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
                     ))}
                   </div>
                 </div>
@@ -262,7 +273,7 @@ export default function DayPreviewScreen({
                   <SectionHeader label="단어" count={knownWords.length} badge="bg-sky-50 text-sky-700" />
                   <div className="space-y-1.5">
                     {knownWords.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} />
+                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
                     ))}
                   </div>
                 </div>
@@ -272,7 +283,7 @@ export default function DayPreviewScreen({
                   <SectionHeader label="패턴" count={knownPatterns.length} badge="bg-violet-50 text-violet-700" />
                   <div className="space-y-1.5">
                     {knownPatterns.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} />
+                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
                     ))}
                   </div>
                 </div>
@@ -282,7 +293,7 @@ export default function DayPreviewScreen({
                   <SectionHeader label="통문장" count={knownSentences.length} badge="bg-emerald-50 text-emerald-700" />
                   <div className="space-y-1.5">
                     {knownSentences.map((word) => (
-                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} />
+                      <WordRow key={word.id} word={word} isSelected={selectedWordIds.has(word.id)} onToggle={onToggle} isMastered={isKnown(word)} onToggleMastery={onToggleMastery} />
                     ))}
                   </div>
                 </div>
