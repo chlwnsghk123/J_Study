@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
-import { Volume2, Volume1, Sparkles, ChevronRight, Star } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Volume2, Volume1, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import { useTTS, speakText } from '../hooks/useTTS';
 import { TYPE_META, CATEGORY_META } from '../data';
 import AiChatModal from './AiChatModal';
@@ -71,8 +71,8 @@ function MasteryDots({ masteryCount = 0 }) {
   return <div className="flex items-center gap-1">{dots}</div>;
 }
 
-// ─── 스와이프 훅 (모바일 오른쪽 스와이프 감지) ─────────────────────
-function useSwipeRight(onSwipeRight) {
+// ─── 양방향 스와이프 훅 ─────────────────────────────────────────────
+function useSwipe({ onSwipeLeft, onSwipeRight }) {
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
 
@@ -87,16 +87,17 @@ function useSwipeRight(onSwipeRight) {
     const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
     touchStartX.current = null;
     touchStartY.current = null;
-    // 오른쪽으로 50px 이상 + 수평 이동이 수직보다 큰 경우
-    if (deltaX > 50 && deltaX > deltaY) {
-      onSwipeRight();
+    // 수평 이동 50px 이상 + 수평이 수직보다 큰 경우
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
+      if (deltaX > 0) onSwipeRight?.();   // 오른쪽 = 앎
+      else onSwipeLeft?.();                // 왼쪽 = 모름
     }
-  }, [onSwipeRight]);
+  }, [onSwipeLeft, onSwipeRight]);
 
   return { onTouchStart, onTouchEnd };
 }
 
-// ─── TTS 버튼 쌍 (1.0x + 0.7x 상시 배치, item 1) ────────────────
+// ─── TTS 버튼 쌍 (1.0x + 0.7x 상시 배치) ────────────────────────
 function TTSButtons({ hiragana }) {
   return (
     <div className="flex items-center gap-2">
@@ -122,8 +123,50 @@ function TTSButtons({ hiragana }) {
   );
 }
 
+// ─── 카드 오버레이 (좌상단 뱃지 + 우상단 마스터리) ─────────────────
+function CardOverlay({ word, hasPair, typeBadge, badgeText, reverseMode, blindMode, masteryCount, isMastered, onCheckClick }) {
+  return (
+    <>
+      {/* 좌상단 뱃지 */}
+      <div className="absolute top-4 left-4 flex gap-1.5 z-10 flex-wrap max-w-[60%]">
+        <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-sm border ${typeBadge}`}>
+          {badgeText}
+        </span>
+        {hasPair && (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm bg-slate-50 text-slate-500 border border-slate-200">
+            반의어 쌍
+          </span>
+        )}
+        {reverseMode && (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-500 border border-blue-200">
+            리버스
+          </span>
+        )}
+        {blindMode && (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-500 border border-purple-200">
+            블라인드
+          </span>
+        )}
+      </div>
+
+      {/* 우상단: 마스터리 진행 + 체크 토글 */}
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+        <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
+        <button
+          onClick={onCheckClick}
+          title={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
+          aria-label={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
+          className="p-1 rounded-lg transition-colors hover:bg-emerald-50"
+        >
+          <CheckCircle2 className={`w-4 h-4 ${isMastered ? 'fill-emerald-400 text-emerald-400' : 'text-slate-300'}`} />
+        </button>
+      </div>
+    </>
+  );
+}
+
 // ─── 카드 앞면 ────────────────────────────────────────────────────
-function CardFront({ word, onCardClick, reverseMode, blindMode }) {
+function CardFront({ word, reverseMode, blindMode }) {
   const pronSize    = getPronSizeClass(word.pron, word.type);
   const meaningSize = getMeaningSizeClass(word.meaning, word.type);
   const catMeta     = CATEGORY_META[word.type];
@@ -131,7 +174,7 @@ function CardFront({ word, onCardClick, reverseMode, blindMode }) {
   // ── 블라인드 모드 앞면: 우상단 소형 TTS 버튼 + 전체 탭 영역 ───
   if (blindMode) {
     return (
-      <div className="flex-1 flex flex-col w-full">
+      <div className="flex-1 flex flex-col w-full cursor-pointer">
         {/* 우상단 소형 TTS 버튼 */}
         <div className="flex justify-end px-3 pt-3 gap-1">
           <button
@@ -152,15 +195,11 @@ function CardFront({ word, onCardClick, reverseMode, blindMode }) {
           </button>
         </div>
 
-        {/* 나머지 전체가 탭 트리거 */}
-        <button
-          onClick={onCardClick}
-          className="flex-1 flex flex-col items-center justify-center p-8 w-full cursor-pointer hover:bg-slate-50 transition-colors"
-        >
+        <div className="flex-1 flex flex-col items-center justify-center p-8 w-full">
           <Volume2 className="w-16 h-16 text-sky-100 mb-4" />
           <span className="text-2xl font-bold text-slate-200 select-none">탭하여 뜻 확인</span>
           <span className="text-xs text-slate-300 mt-2">화면 아무데나 탭하세요</span>
-        </button>
+        </div>
       </div>
     );
   }
@@ -168,10 +207,7 @@ function CardFront({ word, onCardClick, reverseMode, blindMode }) {
   // ── 리버스 모드: 뜻을 앞에 표시 ──────────────────────────────
   if (reverseMode) {
     return (
-      <button
-        onClick={onCardClick}
-        className="flex-1 flex flex-col items-center justify-center p-8 w-full cursor-pointer hover:bg-slate-50 transition-colors group"
-      >
+      <div className="flex-1 flex flex-col items-center justify-center p-8 w-full cursor-pointer group">
         {word.type !== 'word' && (
           <span className={`text-xs font-bold px-3 py-1 rounded-full border mb-4 ${catMeta?.badge ?? ''}`}>
             {catMeta?.label}
@@ -185,16 +221,13 @@ function CardFront({ word, onCardClick, reverseMode, blindMode }) {
         </h2>
         <span className="text-sky-400 font-semibold text-sm mb-4">탭하여 발음 확인</span>
         <TTSButtons hiragana={word.hiragana} />
-      </button>
+      </div>
     );
   }
 
   // ── 기본 모드: 발음(pron)을 앞에 표시 ────────────────────────
   return (
-    <button
-      onClick={onCardClick}
-      className="flex-1 flex flex-col items-center justify-center p-8 w-full cursor-pointer hover:bg-slate-50 transition-colors group"
-    >
+    <div className="flex-1 flex flex-col items-center justify-center p-8 w-full cursor-pointer group">
       {word.type !== 'word' && (
         <span className={`text-xs font-bold px-3 py-1 rounded-full border mb-4 ${catMeta?.badge ?? ''}`}>
           {catMeta?.label}
@@ -211,11 +244,11 @@ function CardFront({ word, onCardClick, reverseMode, blindMode }) {
       </span>
       <span className="text-sky-400 font-semibold text-sm mb-4">탭하여 뜻 확인</span>
       <TTSButtons hiragana={word.hiragana} />
-    </button>
+    </div>
   );
 }
 
-// ─── AI 질문 버튼 (뒷면 하단 우측 전용) ─────────────────────────
+// ─── AI 질문 버튼 (뒷면 하단 전용) ────────────────────────────────
 function AiButton({ onAiClick }) {
   return (
     <button
@@ -233,103 +266,133 @@ function AiButton({ onAiClick }) {
 }
 
 // ─── 카드 뒷면 ────────────────────────────────────────────────────
-function CardBack({ word, onCardClick, reverseMode, blindMode = false, onAiClick }) {
+function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onDontKnow }) {
   const pronSize    = getPronSizeClass(word.pron, word.type);
   const meaningSize = getMeaningSizeClass(word.meaning, word.type);
 
-  // ── 블라인드 모드 뒷면: hiragana(4/7) · pron(1/7) · meaning(2/7) 비율
+  // ── 블라인드 모드 뒷면
   if (blindMode) {
     const hiraSize = getBlindHiraganaSizeClass(word.hiragana);
     const meanSize = getBlindMeaningSizeClass(word.meaning);
     return (
-      <button
-        onClick={onCardClick}
-        className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-slate-50 transition-colors px-6 py-8"
-      >
-        {/* hiragana + 정중체 인라인 */}
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <p className={`${hiraSize} font-black text-slate-800 break-keep text-center leading-tight`}>
-            {word.hiragana}
+      <div className="flex-1 flex flex-col items-center w-full px-6 py-6">
+        <div className="flex-1 flex flex-col items-center justify-center w-full">
+          {/* hiragana + 정중체 인라인 */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <p className={`${hiraSize} font-black text-slate-800 break-keep text-center leading-tight`}>
+              {word.hiragana}
+            </p>
+            <PolitenessTag politeness={word.politeness} />
+          </div>
+
+          {/* pron */}
+          <p className="text-sm font-medium text-slate-400 break-keep text-center mb-3">
+            {word.pron}
           </p>
-          <PolitenessTag politeness={word.politeness} />
+
+          {/* meaning */}
+          <p className={`${meanSize} font-bold text-slate-600 break-keep text-center leading-snug mb-3`}>
+            {word.meaning}
+          </p>
+
+          {/* TTS + AI */}
+          <div className="w-full flex items-center justify-between pt-4">
+            <TTSButtons hiragana={word.hiragana} />
+            <AiButton onAiClick={onAiClick} />
+          </div>
         </div>
 
-        {/* pron: 1/7 — 가장 작은 보조 요소 */}
-        <p className="text-sm font-medium text-slate-400 break-keep text-center mb-3">
-          {word.pron}
-        </p>
-
-        {/* meaning: 2/7 — 두 번째 크기 */}
-        <p className={`${meanSize} font-bold text-slate-600 break-keep text-center leading-snug mb-3`}>
-          {word.meaning}
-        </p>
-
-        {/* 하단: 왼쪽 TTS · 오른쪽 AI */}
-        <div className="w-full flex items-center justify-between mt-auto pt-4">
-          <TTSButtons hiragana={word.hiragana} />
-          <AiButton onAiClick={onAiClick} />
+        {/* 액션 버튼 */}
+        <div className="w-full flex gap-3 pt-3 shrink-0">
+          <button
+            onClick={(e) => { e.stopPropagation(); onDontKnow?.(); }}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-bold text-base transition-all shadow-md"
+          >
+            <XCircle className="w-5 h-5" /> 모름
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onKnow?.(); }}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold text-base transition-all shadow-md"
+          >
+            <CheckCircle2 className="w-5 h-5" /> 앎
+          </button>
         </div>
-      </button>
+      </div>
     );
   }
 
   return (
-    <button
-      onClick={onCardClick}
-      className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-slate-50 transition-colors p-5"
-    >
-      {/* 히라가나 + 정중체 인라인 + 발음 + 주요 답 */}
-      <div className="w-full text-center mb-2">
-        <div className="flex items-center justify-center gap-2 mb-0.5">
-          <span className="text-slate-300 font-medium text-base break-keep">
-            {word.hiragana}
+    <div className="flex-1 flex flex-col items-center w-full p-5">
+      <div className="flex-1 flex flex-col items-center justify-center w-full overflow-y-auto">
+        {/* 히라가나 + 정중체 인라인 + 발음 + 주요 답 */}
+        <div className="w-full text-center mb-2">
+          <div className="flex items-center justify-center gap-2 mb-0.5">
+            <span className="text-slate-300 font-medium text-base break-keep">
+              {word.hiragana}
+            </span>
+            <PolitenessTag politeness={word.politeness} />
+          </div>
+          <span className="text-slate-400 font-medium block text-xs mb-3 break-keep">
+            [{word.pron}]
           </span>
-          <PolitenessTag politeness={word.politeness} />
+          <h2
+            className={`${reverseMode ? pronSize : meaningSize} font-extrabold text-slate-800 break-keep leading-snug`}
+          >
+            {reverseMode ? word.pron : word.meaning}
+          </h2>
         </div>
-        <span className="text-slate-400 font-medium block text-xs mb-3 break-keep">
-          [{word.pron}]
-        </span>
-        <h2
-          className={`${reverseMode ? pronSize : meaningSize} font-extrabold text-slate-800 break-keep leading-snug`}
+
+        {/* 문법 구조 (패턴 전용) */}
+        {word.structure && (
+          <div className="w-full bg-violet-50 border border-violet-100 rounded-2xl p-3 text-center mb-2">
+            <p className="text-xs font-bold text-violet-400 mb-1">문법 구조</p>
+            <p className="text-sm font-bold text-violet-700">{word.structure}</p>
+          </div>
+        )}
+
+        {/* 예문/상황 */}
+        <div className={`w-full p-3 rounded-2xl border text-center mb-2 ${
+          word.type === 'sentence'
+            ? 'bg-emerald-50 border-emerald-100'
+            : 'bg-slate-50 border-slate-100'
+        }`}>
+          <p className="text-xs font-bold text-slate-400 mb-1">
+            {word.type === 'sentence' ? '상황' : '예문'}
+          </p>
+          <p className="text-sm font-semibold text-slate-600 break-keep">{word.example}</p>
+        </div>
+
+        {/* 학습 포인트 */}
+        {word.description && (
+          <div className="w-full bg-amber-50 border border-amber-100 rounded-2xl p-3 text-center mb-2">
+            <p className="text-xs font-bold text-amber-400 mb-1">학습 포인트</p>
+            <p className="text-xs text-amber-700 break-keep">{word.description}</p>
+          </div>
+        )}
+
+        {/* TTS + AI */}
+        <div className="w-full flex items-center justify-between pt-1">
+          <TTSButtons hiragana={word.hiragana} />
+          <AiButton onAiClick={onAiClick} />
+        </div>
+      </div>
+
+      {/* 액션 버튼 */}
+      <div className="w-full flex gap-3 pt-3 shrink-0">
+        <button
+          onClick={(e) => { e.stopPropagation(); onDontKnow?.(); }}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-bold text-base transition-all shadow-md"
         >
-          {reverseMode ? word.pron : word.meaning}
-        </h2>
+          <XCircle className="w-5 h-5" /> 모름
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onKnow?.(); }}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-bold text-base transition-all shadow-md"
+        >
+          <CheckCircle2 className="w-5 h-5" /> 앎
+        </button>
       </div>
-
-      {/* 문법 구조 (패턴 전용) */}
-      {word.structure && (
-        <div className="w-full bg-violet-50 border border-violet-100 rounded-2xl p-3 text-center mb-2">
-          <p className="text-xs font-bold text-violet-400 mb-1">문법 구조</p>
-          <p className="text-sm font-bold text-violet-700">{word.structure}</p>
-        </div>
-      )}
-
-      {/* 예문/상황 */}
-      <div className={`w-full p-3 rounded-2xl border text-center mb-2 ${
-        word.type === 'sentence'
-          ? 'bg-emerald-50 border-emerald-100'
-          : 'bg-slate-50 border-slate-100'
-      }`}>
-        <p className="text-xs font-bold text-slate-400 mb-1">
-          {word.type === 'sentence' ? '상황' : '예문'}
-        </p>
-        <p className="text-sm font-semibold text-slate-600 break-keep">{word.example}</p>
-      </div>
-
-      {/* 학습 포인트 */}
-      {word.description && (
-        <div className="w-full bg-amber-50 border border-amber-100 rounded-2xl p-3 text-center mb-2">
-          <p className="text-xs font-bold text-amber-400 mb-1">학습 포인트</p>
-          <p className="text-xs text-amber-700 break-keep">{word.description}</p>
-        </div>
-      )}
-
-      {/* 하단: 왼쪽 TTS · 오른쪽 AI */}
-      <div className="w-full flex items-center justify-between mt-auto pt-1">
-        <TTSButtons hiragana={word.hiragana} />
-        <AiButton onAiClick={onAiClick} />
-      </div>
-    </button>
+    </div>
   );
 }
 
@@ -339,7 +402,8 @@ export default function WordCard({
   showAnswer,
   animateCard,
   selectedWordIds,
-  onCardClick,
+  onFlip,
+  onKnow,
   onDontKnow,
   onToggleMastery,
   srsData = {},
@@ -349,6 +413,7 @@ export default function WordCard({
   setAiMessages,
 }) {
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showMasteryConfirm, setShowMasteryConfirm] = useState(false);
 
   const hasPair   = word.type === 'word' && word.antonymId && selectedWordIds.has(word.antonymId);
   const typeBadge = TYPE_META[word.type] ?? 'bg-slate-100 text-slate-700 border-slate-200';
@@ -359,93 +424,101 @@ export default function WordCard({
   const masteryCount = srsData[word.id]?.masteryCount ?? 0;
   const isMastered = masteryCount >= 3;
 
+  // 카드 전환 시 확인 다이얼로그 리셋
+  useEffect(() => { setShowMasteryConfirm(false); }, [word.id]);
+
   // TTS 자동 재생: 앞면 노출 시 즉시 재생
   useTTS(word.hiragana, !showAnswer);
 
-  // 스와이프 감지 (뒷면에서만 활성)
-  const swipeHandlers = useSwipeRight(() => {
-    if (showAnswer && onDontKnow) onDontKnow();
+  // 양방향 스와이프 감지 (뒷면에서만 활성)
+  const swipeHandlers = useSwipe({
+    onSwipeRight: () => { if (showAnswer && onKnow) onKnow(); },
+    onSwipeLeft:  () => { if (showAnswer && onDontKnow) onDontKnow(); },
   });
+
+  const handleCheckClick = (e) => {
+    e.stopPropagation();
+    setShowMasteryConfirm(true);
+  };
+
+  const handleMasteryConfirm = () => {
+    onToggleMastery?.(word.id);
+    setShowMasteryConfirm(false);
+  };
+
+  const overlayProps = {
+    word, hasPair, typeBadge, badgeText, reverseMode, blindMode,
+    masteryCount, isMastered, onCheckClick: handleCheckClick,
+  };
 
   return (
     <>
       <div
-        className="max-w-md w-full mb-4 h-[480px]"
+        className="max-w-md w-full mb-4 h-[480px] flip-card"
         {...(showAnswer ? swipeHandlers : {})}
       >
         <div
-          className={`w-full h-full bg-white rounded-3xl shadow-xl overflow-y-auto flex flex-col
-            relative border border-slate-100 transition-all duration-300
-            ${animateCard ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}`}
+          className={`flip-card-inner ${showAnswer ? 'flipped' : ''}
+            ${animateCard ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}
+            transition-all duration-300`}
+          onClick={onFlip}
         >
-          {/* 배지 영역 (좌상단) */}
-          <div className="absolute top-4 left-4 flex gap-1.5 z-10 flex-wrap max-w-[60%]">
-            <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-sm border ${typeBadge}`}>
-              {badgeText}
-            </span>
-            {hasPair && (
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm bg-slate-50 text-slate-500 border border-slate-200">
-                반의어 쌍
-              </span>
-            )}
-            {reverseMode && (
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-500 border border-blue-200">
-                리버스
-              </span>
-            )}
-            {blindMode && (
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-500 border border-purple-200">
-                블라인드
-              </span>
-            )}
-          </div>
-
-          {/* 우상단: 마스터리 진행 + 별 토글 */}
-          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-            <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleMastery?.(word.id); }}
-              title={isMastered ? '마스터 해제' : '마스터 등록'}
-              aria-label={isMastered ? '마스터 해제' : '마스터 등록'}
-              className="p-1 rounded-lg transition-colors hover:bg-amber-50"
-            >
-              <Star className={`w-4 h-4 ${isMastered ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
-            </button>
-          </div>
-
-          {/* 앞/뒷면 렌더링 */}
-          {!showAnswer ? (
+          {/* ── 앞면 ── */}
+          <div className="flip-card-face bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col
+            relative border border-slate-100">
+            <CardOverlay {...overlayProps} />
             <CardFront
               word={word}
-              onCardClick={onCardClick}
               reverseMode={reverseMode}
               blindMode={blindMode}
             />
-          ) : (
+          </div>
+
+          {/* ── 뒷면 ── */}
+          <div className="flip-card-face flip-card-back bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col
+            relative border border-slate-100">
+            <CardOverlay {...overlayProps} />
             <CardBack
               word={word}
-              onCardClick={onCardClick}
               reverseMode={reverseMode}
               blindMode={blindMode}
               onAiClick={() => setShowAiModal(true)}
+              onKnow={onKnow}
+              onDontKnow={onDontKnow}
             />
-          )}
-
-          {/* PC용 "모르는 단어" 화살표 버튼 (뒷면에서만 표시) */}
-          {showAnswer && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDontKnow?.(); }}
-              title="모르는 단어 (→)"
-              aria-label="모르는 단어"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-10
-                p-2 rounded-full bg-slate-100 text-slate-400
-                hover:bg-rose-50 hover:text-rose-500 transition-colors
-                shadow-sm border border-slate-200"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          )}
+          </div>
         </div>
+
+        {/* ── 마스터리 확인 다이얼로그 ── */}
+        {showMasteryConfirm && (
+          <div
+            className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 rounded-3xl"
+            onClick={(e) => { e.stopPropagation(); setShowMasteryConfirm(false); }}
+          >
+            <div
+              className="bg-white rounded-2xl shadow-xl p-6 mx-6 max-w-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-sm font-semibold text-slate-700 text-center mb-4">
+                이 단어를 {isMastered ? '모르는 단어로' : '아는 단어로'} 설정하시겠습니까?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowMasteryConfirm(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleMasteryConfirm}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-colors"
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {showAiModal && (
