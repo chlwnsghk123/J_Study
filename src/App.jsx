@@ -586,27 +586,15 @@ export default function App() {
     <div className="min-h-screen bg-sky-50 flex flex-col items-center py-6 px-4 font-sans">
       {Toast}
 
-      {/* 진행 헤더: Exit 버튼 + 되돌리기 + 완료 수 */}
+      {/* 진행 헤더: Exit 버튼 + 완료 수 */}
       <div className="max-w-md w-full flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={handleExit}
-            aria-label="퀴즈 종료"
-            className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-rose-500 transition-colors py-1 px-2 rounded-lg hover:bg-rose-50"
-          >
-            <X className="w-4 h-4" /> 종료
-          </button>
-          {historyStack.length > 0 && (
-            <button
-              onClick={handleUndo}
-              aria-label="이전 카드로 되돌리기"
-              title="이전 카드로 되돌리기"
-              className="flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-sky-500 transition-colors py-1 px-2 rounded-lg hover:bg-sky-50"
-            >
-              <Undo2 className="w-4 h-4" /> 되돌리기
-            </button>
-          )}
-        </div>
+        <button
+          onClick={handleExit}
+          aria-label="퀴즈 종료"
+          className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-rose-500 transition-colors py-1 px-2 rounded-lg hover:bg-rose-50"
+        >
+          <X className="w-4 h-4" /> 종료
+        </button>
         <span className="text-xs text-slate-400 font-medium">
           {mastered.length} / {totalActive} 완료
         </span>
@@ -638,6 +626,21 @@ export default function App() {
         aiMessages={aiMessages}
         setAiMessages={setAiMessages}
       />
+
+      {/* 되돌리기 버튼 — 카드 아래 왼쪽 */}
+      {historyStack.length > 0 && (
+        <div className="max-w-md w-full mb-1">
+          <button
+            onClick={handleUndo}
+            aria-label="이전 카드로 되돌리기"
+            title="이전 카드로 되돌리기"
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-sky-500 transition-colors px-2 py-1 rounded-lg hover:bg-sky-50"
+          >
+            <Undo2 className="w-4 h-4" />
+            <span className="font-medium">되돌리기</span>
+          </button>
+        </div>
+      )}
 
       {/* 버튼 영역 */}
       <div className="max-w-md w-full space-y-3">
