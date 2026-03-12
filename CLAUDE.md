@@ -84,11 +84,15 @@ CATEGORY_META = {
 
 ## 핵심 알고리즘
 
-### SRS (Spaced Repetition)
-- **1회** 정답(알아요) → 마스터 즉시 확정 (구버전 2회 제거)
-- 오답(몰라요) → 큐 +10~+15번째에 재삽입
+### SRS (Spaced Repetition) + 마스터리(Mastery) 누적 시스템
+- **masteryCount ≥ 3** = '완전히 아는 단어' (DayPreviewScreen 필터 기준)
+- 제한 시간 내 정답(Know) → `masteryCount += 1`
+- 오답(Unknown) 또는 타임아웃 페널티 → `masteryCount -= 1` (최소 0)
 - 마스터 확정 시 → `nextReview` = 오늘 + [1, 3, 7]일 (`masteryCount` 기반)
 - `srsData` = localStorage `jflash_srs_v2`
+- 진행도 시각화: 카드 우상단에 3개의 점(●●○)으로 현재 masteryCount 표시
+- 수동 토글: 카드 우상단 + DayPreviewScreen 리스트 우측에 별표(★) 버튼
+  - 클릭 시 `masteryCount`를 3(앎) 또는 0(모름)으로 강제 전환
 
 ### 큐 빌드 순서
 1. 선택된 단어 필터링 → OR 태그 필터 → SRS 만기 필터 (maxCards 없음)
@@ -99,13 +103,23 @@ CATEGORY_META = {
 - `sentence/pattern` 카드 3회 이상 실패 → `componentIds`의 단어/패턴을 큐 5~10번째에 삽입
 - 슬롯 치환: `[VERB]`, `[ADJ]`, `[WORD]` → 마스터된 단어로 대체
 
-### 하드코어 타이머 + 시간 초과 자동 보류
-- `queue[0]?.id` 변경 + `showAnswer=false` 시 카운트다운 시작
-  - `word` 타입: **3초**, `pattern`/`sentence` 타입: **7초** (차등 적용)
-- 0초 → `handleActionRef.current('dontKnow')` 호출 (stale closure 방지용 ref)
-- 카드 탭 시점 기준으로 경과 시간 측정 (`cardStartTimeRef`):
-  - word > 3000ms / pattern·sentence > 7000ms 초과 → 정답이어도 카드 큐 맨 끝으로 이동 + 토스트 표시
-  - `overTimeRef`로 초과 여부 전달, `handleAction` 진입 시 즉시 소비 후 리셋
+### 하드코어 타이머 + 타임아웃 페널티
+- **하드코어 타이머** (하드코어 모드 전용):
+  - `word` 타입: **3초**, `pattern`/`sentence` 타입: **7초** 카운트다운
+  - 0초 → `handleActionRef.current('dontKnow')` 호출 (stale closure 방지용 ref)
+- **타임아웃 페널티** (일반 학습, 하드코어와 독립):
+  - 페널티 기준: `word` **8초**, `pattern` **13초**, `sentence` **17초**
+  - 기준 초과 + '알아요' → 큐 맨 끝 이동, SRS 미갱신 (masteryCount 변경 없음)
+  - 기준 내 '알아요' → 정상 마스터 처리
+
+### 디바이스별 카드 상호작용 (UX)
+- **공통 (정답 처리)**: 카드 뒷면 메인 영역 **탭/클릭** → '아는 단어'로 처리
+- **모바일 (오답 처리)**: 카드를 **오른쪽 스와이프** → '모르는 단어'로 처리
+- **PC (오답 처리)**: 카드 우측 **화살표 아이콘 버튼(ChevronRight)** 클릭 → '모르는 단어'로 처리
+- **PC 키보드 단축키**:
+  - `↓ (ArrowDown)`: 앞면→뒤집기 / 뒷면→아는 단어 (탭/클릭과 동일)
+  - `→ (ArrowRight)`: 모르는 단어 (뒷면에서만 작동, 스와이프/화살표 클릭과 동일)
+- 기존 알아요/몰라요 버튼은 제거, 카드 자체의 인터랙션으로 대체
 
 ### 43일 커리큘럼 (슬라이딩 윈도우)
 - 전체 430장을 id 오름차순으로 10개씩 → `SETS[0]~SETS[42]` (모듈 로드 시 1회 계산, 불변)

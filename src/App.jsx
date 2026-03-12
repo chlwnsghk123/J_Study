@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Clock, XCircle, X, Undo2 } from 'lucide-react';
+import { Clock, X, Undo2 } from 'lucide-react';
 import { wordData } from './data';
 import { prefetch } from './lib/googleTTS';
 import { TOTAL_DAYS, getDayBasePool } from './lib/curriculum';
@@ -327,6 +327,24 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue[0]?.id, showAnswer, gameStarted, settings.hardcoreMode]);
 
+  // ── 키보드 이벤트 (PC 방향키) ────────────────────────────────
+  useEffect(() => {
+    if (!gameStarted || queue.length === 0) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleCardClick();   // 앞면→뒤집기, 뒤면→아는 단어
+      }
+      if (e.key === 'ArrowRight' && showAnswer) {
+        e.preventDefault();
+        handleAction('dontKnow');  // 모르는 단어
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameStarted, queue.length, showAnswer]);
+
   // ── 카드 앞면 노출 시 타이머 리셋 ──────────────────────────
   useEffect(() => {
     if (!gameStarted || showAnswer || queue.length === 0) return;
@@ -365,7 +383,7 @@ export default function App() {
 
       setShowAnswer(true);
     } else {
-      handleAction('dontKnow');
+      handleAction('know');
     }
   };
 
@@ -441,9 +459,10 @@ export default function App() {
         // ── 오답 처리
         setSrsData((prev) => {
           const rec = prev[current.id] ?? { masteryCount: 0 };
+          const newCount = Math.max(rec.masteryCount - 1, 0);
           const updated = {
             ...prev,
-            [current.id]: { masteryCount: rec.masteryCount, nextReview: getSRSNextDate(0) },
+            [current.id]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },
           };
           saveLS(LS.SRS, updated);
           return updated;
@@ -501,6 +520,26 @@ export default function App() {
   // ref 갱신 (stale closure 방지)
   handleActionRef.current = handleAction;
 
+  // ── 모르는 단어 처리 (WordCard 스와이프/화살표용) ──────────────
+  const handleDontKnow = () => {
+    if (queue.length === 0 || !showAnswer) return;
+    handleAction('dontKnow');
+  };
+
+  // ── 수동 마스터 토글 (별 아이콘) ──────────────────────────────
+  const toggleMastery = (wordId) => {
+    setSrsData((prev) => {
+      const rec = prev[wordId] ?? { masteryCount: 0 };
+      const newCount = rec.masteryCount >= 3 ? 0 : 3;
+      const updated = {
+        ...prev,
+        [wordId]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },
+      };
+      saveLS(LS.SRS, updated);
+      return updated;
+    });
+  };
+
   // ── Toast UI ─────────────────────────────────────────────────
   const Toast = toastMsg ? (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg pointer-events-none whitespace-nowrap">
@@ -545,6 +584,7 @@ export default function App() {
             onSelectAll={() => setSelectedWordIds(new Set(dayPreviewPool.map((w) => w.id)))}
             onDeselectAll={deselectAll}
             onSetSelectedWordIds={setSelectedWordIds}
+            onToggleMastery={toggleMastery}
             onStart={startGameByDayWithSelection}
             onBack={() => setAppScreen('home')}
           />
@@ -621,6 +661,9 @@ export default function App() {
         animateCard={animateCard}
         selectedWordIds={selectedWordIds}
         onCardClick={handleCardClick}
+        onDontKnow={handleDontKnow}
+        onToggleMastery={toggleMastery}
+        srsData={srsData}
         reverseMode={settings.reverseMode}
         blindMode={settings.blindMode}
         aiMessages={aiMessages}
@@ -642,32 +685,6 @@ export default function App() {
         </div>
       )}
 
-      {/* 버튼 영역 */}
-      <div className="max-w-md w-full space-y-3">
-        {/* 알아요 버튼 (1회 즉시 마스터, item 2) */}
-        <button
-          disabled={!showAnswer}
-          onClick={() => handleAction('know')}
-          className={`w-full flex items-center justify-center py-4 rounded-3xl transition-all shadow-md ${
-            showAnswer
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95'
-              : 'bg-slate-200 text-slate-400 opacity-50 cursor-not-allowed'
-          }`}
-        >
-          <CheckCircle2 className="w-7 h-7 mr-2" />
-          <span className="font-bold text-xl">알아요</span>
-        </button>
-
-        {showAnswer && (
-          <button
-            onClick={() => handleAction('dontKnow')}
-            className="w-full flex items-center justify-center py-3 rounded-3xl bg-slate-100 text-slate-500 hover:bg-slate-200 active:scale-95 transition-all"
-          >
-            <XCircle className="w-5 h-5 mr-2" />
-            <span className="font-semibold">몰라요</span>
-          </button>
-        )}
-      </div>
     </div>
   );
 }
