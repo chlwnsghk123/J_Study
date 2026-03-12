@@ -50,7 +50,7 @@ function WordRow({ word, isSelected, onToggle, isMastered, onToggleMastery }) {
         aria-label={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
         className="shrink-0 p-1 rounded-lg transition-colors hover:bg-emerald-50"
       >
-        <CheckCircle2 className={`w-3.5 h-3.5 ${isMastered ? 'fill-emerald-400 text-emerald-400' : 'text-slate-300'}`} />
+        <CheckCircle2 className={`w-3.5 h-3.5 ${isMastered ? 'text-emerald-500' : 'text-slate-300'}`} />
       </button>
 
       {/* 확인 다이얼로그 */}

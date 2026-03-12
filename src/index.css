@@ -5,6 +5,7 @@
 /* ─── 3D 카드 플립 애니메이션 ─────────────────────────────────── */
 .flip-card {
   perspective: 1200px;
+  touch-action: pan-y;
 }
 
 .flip-card-inner {
@@ -34,15 +35,29 @@
 }
 
 /* ─── 카드 슬라이드 퇴장 애니메이션 ──────────────────────────── */
-.flip-card-inner.slide-right {
+/* 뒷면(flipped) 슬라이드 — rotateY(180deg)가 X축 미러링 */
+.flip-card-inner.slide-right-back {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transform: rotateY(180deg) translateX(-60px);
+  opacity: 0;
+}
+
+.flip-card-inner.slide-left-back {
   transition: transform 0.2s ease, opacity 0.2s ease;
   transform: rotateY(180deg) translateX(60px);
   opacity: 0;
 }
 
-.flip-card-inner.slide-left {
+/* 앞면 슬라이드 */
+.flip-card-inner.slide-right-front {
   transition: transform 0.2s ease, opacity 0.2s ease;
-  transform: rotateY(180deg) translateX(-60px);
+  transform: translateX(60px);
+  opacity: 0;
+}
+
+.flip-card-inner.slide-left-front {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transform: translateX(-60px);
   opacity: 0;
 }
 
