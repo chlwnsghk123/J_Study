@@ -126,7 +126,10 @@ function useDrag({ onSwipeLeft, onSwipeRight, enabled }) {
 
   const handlers = {
     onTouchStart:  (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY),
-    onTouchMove:   (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY),
+    onTouchMove:   (e) => {
+      handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      if (locked.current) e.preventDefault(); // 브라우저 기본 스와이프 차단
+    },
     onTouchEnd:    handleEnd,
     onMouseDown:   (e) => { e.preventDefault(); handleStart(e.clientX, e.clientY); },
     onMouseMove:   (e) => { if (isDragging) handleMove(e.clientX, e.clientY); },
@@ -450,6 +453,7 @@ export default function WordCard({
   onFlip,
   onKnow,
   onDontKnow,
+  onDragAction,
   onToggleMastery,
   srsData = {},
   reverseMode = false,
@@ -485,11 +489,11 @@ export default function WordCard({
   // TTS 자동 재생: 앞면 노출 시 즉시 재생
   useTTS(word.hiragana, !showAnswer);
 
-  // 드래그 스와이프 (뒷면에서만 활성)
+  // 드래그 스와이프 (앞면/뒷면 모두 활성)
   const { handlers: dragHandlers, dragX, isDragging, progress, direction: dragDirection } = useDrag({
-    onSwipeRight: () => { if (showAnswer && onKnow) onKnow(); },
-    onSwipeLeft:  () => { if (showAnswer && onDontKnow) onDontKnow(); },
-    enabled: showAnswer,
+    onSwipeRight: () => onDragAction?.('know'),
+    onSwipeLeft:  () => onDragAction?.('dontKnow'),
+    enabled: true,
   });
 
   const handleCheckClick = (e) => {
@@ -509,18 +513,21 @@ export default function WordCard({
 
   // 드래그 중 카드 회전 (최대 ±8도)
   const dragRotate = isDragging ? dragX * 0.05 : 0;
+  // rotateY(180deg) 상태에서 translateX가 미러링되므로 뒷면일 때 -dragX 보정
+  const tx = showAnswer ? -dragX : dragX;
+  const baseTransform = showAnswer ? 'rotateY(180deg) ' : '';
   const dragStyle = isDragging
-    ? { transform: `rotateY(180deg) translateX(${dragX}px) rotate(${dragRotate}deg)`, transition: 'none' }
+    ? { transform: `${baseTransform}translateX(${tx}px) rotate(${dragRotate}deg)`, transition: 'none' }
     : {};
 
   return (
     <>
       <div
         className="max-w-md w-full mb-4 h-[480px] flip-card relative"
-        {...(showAnswer ? dragHandlers : {})}
+        {...dragHandlers}
       >
         {/* ── 드래그 방향 힌트 (카드 뒤에 표시) ── */}
-        {showAnswer && isDragging && progress > 0.1 && (
+        {isDragging && progress > 0.1 && (
           <>
             {/* 오른쪽 = 앎 */}
             <div
@@ -553,8 +560,8 @@ export default function WordCard({
           className={`flip-card-inner
             ${showAnswer ? 'flipped' : ''}
             ${enableFlipTransition && !isDragging ? 'flip-transition' : ''}
-            ${animateCard && slideDirection === 'right' ? 'slide-right' : ''}
-            ${animateCard && slideDirection === 'left' ? 'slide-left' : ''}
+            ${animateCard && slideDirection === 'right' ? (showAnswer ? 'slide-right-back' : 'slide-right-front') : ''}
+            ${animateCard && slideDirection === 'left' ? (showAnswer ? 'slide-left-back' : 'slide-left-front') : ''}
             ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}
             ${!isDragging && dragX === 0 ? 'snap-back' : ''}`}
           style={isDragging ? dragStyle : {}}

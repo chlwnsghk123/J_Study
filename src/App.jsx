@@ -389,10 +389,28 @@ export default function App() {
     setShowAnswer((prev) => !prev);
   };
 
-  // ── 아는 단어 처리 (WordCard 버튼/스와이프/키보드용) ──────────
+  // ── 아는 단어 처리 (WordCard 버튼/키보드용, 뒷면에서만) ──────
   const handleKnow = () => {
     if (!showAnswer || queue.length === 0) return;
     handleAction('know');
+  };
+
+  // ── 드래그 액션 처리 (앞면/뒷면 모두, 드래그 전용) ──────────
+  const handleDragAction = (actionType) => {
+    if (queue.length === 0) return;
+    // 앞면이면 오버타임 체크 (handleFlip의 앞→뒤 로직 동일)
+    if (!showAnswer) {
+      clearInterval(hcRef.current);
+      setHcTimeLeft(null);
+      if (cardStartTimeRef.current) {
+        const t = queue[0].type;
+        const threshold = t === 'word' ? 8000 : t === 'pattern' ? 13000 : 17000;
+        if (Date.now() - cardStartTimeRef.current > threshold) {
+          overTimeRef.current = true;
+        }
+      }
+    }
+    handleAction(actionType);
   };
 
   // ── 이전 카드 되돌리기 ───────────────────────────────────────
@@ -674,6 +692,7 @@ export default function App() {
         onFlip={handleFlip}
         onKnow={handleKnow}
         onDontKnow={handleDontKnow}
+        onDragAction={handleDragAction}
         onToggleMastery={toggleMastery}
         srsData={srsData}
         reverseMode={settings.reverseMode}
