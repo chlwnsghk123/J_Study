@@ -443,7 +443,7 @@ export default function App() {
           const rec = prev[current.id] ?? { masteryCount: 0 };
           const updated = {
             ...prev,
-            [current.id]: { masteryCount: rec.masteryCount, nextReview: getSRSNextDate(0) },
+            [current.id]: { masteryCount: 0, nextReview: getSRSNextDate(0) },
           };
           saveLS(LS.SRS, updated);
           return updated;
