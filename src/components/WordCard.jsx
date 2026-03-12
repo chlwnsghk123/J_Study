@@ -303,6 +303,8 @@ export default function WordCard({
   onCardClick,
   reverseMode = false,
   blindMode   = false,
+  aiMessages,
+  setAiMessages,
 }) {
   const [showAiModal, setShowAiModal] = useState(false);
 
@@ -369,6 +371,8 @@ export default function WordCard({
         <AiChatModal
           currentCard={word}
           onClose={() => setShowAiModal(false)}
+          messages={aiMessages}
+          setMessages={setAiMessages}
         />
       )}
     </>
