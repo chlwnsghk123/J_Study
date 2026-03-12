@@ -327,17 +327,21 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue[0]?.id, showAnswer, gameStarted, settings.hardcoreMode]);
 
-  // ── 키보드 이벤트 (PC 방향키) ────────────────────────────────
+  // ── 키보드 이벤트 (PC 단축키) ────────────────────────────────
   useEffect(() => {
     if (!gameStarted || queue.length === 0) return;
     const onKeyDown = (e) => {
-      if (e.key === 'ArrowDown') {
+      if (e.key === ' ') {
         e.preventDefault();
-        handleCardClick();   // 앞면→뒤집기, 뒤면→아는 단어
+        handleFlip();   // Space = 카드 뒤집기
+      }
+      if (e.key === 'ArrowLeft' && showAnswer) {
+        e.preventDefault();
+        handleAction('dontKnow');  // ← = 모르는 단어
       }
       if (e.key === 'ArrowRight' && showAnswer) {
         e.preventDefault();
-        handleAction('dontKnow');  // 모르는 단어
+        handleAction('know');  // → = 아는 단어
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -365,13 +369,13 @@ export default function App() {
     prefetch(nextTexts);
   }, [queue[0]?.id, gameStarted]);
 
-  // ── 카드 클릭 ────────────────────────────────────────────────
-  const handleCardClick = () => {
+  // ── 카드 뒤집기 (Flip) — 탭/클릭은 뒤집기만 수행 ─────────────
+  const handleFlip = () => {
     if (!showAnswer) {
+      // 앞→뒤: 하드코어 타이머 정지 + 오버타임 체크
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
 
-      // 시간 초과 체크 — 페널티 기준 (word=8초, pattern=13초, sentence=17초)
       if (cardStartTimeRef.current && queue.length > 0) {
         const t = queue[0].type;
         const threshold = t === 'word' ? 8000 : t === 'pattern' ? 13000 : 17000;
@@ -380,11 +384,14 @@ export default function App() {
           overTimeRef.current = true;
         }
       }
-
-      setShowAnswer(true);
-    } else {
-      handleAction('know');
     }
+    setShowAnswer((prev) => !prev);
+  };
+
+  // ── 아는 단어 처리 (WordCard 버튼/스와이프/키보드용) ──────────
+  const handleKnow = () => {
+    if (!showAnswer || queue.length === 0) return;
+    handleAction('know');
   };
 
   // ── 이전 카드 되돌리기 ───────────────────────────────────────
@@ -526,11 +533,11 @@ export default function App() {
     handleAction('dontKnow');
   };
 
-  // ── 수동 마스터 토글 (별 아이콘) ──────────────────────────────
+  // ── 수동 마스터 토글 (체크 아이콘, 확인 다이얼로그 경유) ─────
   const toggleMastery = (wordId) => {
     setSrsData((prev) => {
       const rec = prev[wordId] ?? { masteryCount: 0 };
-      const newCount = rec.masteryCount >= 3 ? 0 : 3;
+      const newCount = rec.masteryCount >= 3 ? 1 : 3;  // 아는→모르는: 3→1
       const updated = {
         ...prev,
         [wordId]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },
@@ -660,7 +667,8 @@ export default function App() {
         showAnswer={showAnswer}
         animateCard={animateCard}
         selectedWordIds={selectedWordIds}
-        onCardClick={handleCardClick}
+        onFlip={handleFlip}
+        onKnow={handleKnow}
         onDontKnow={handleDontKnow}
         onToggleMastery={toggleMastery}
         srsData={srsData}

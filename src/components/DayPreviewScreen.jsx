@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, Square, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, Square, CheckCircle2 } from 'lucide-react';
 import { CATEGORY_META } from '../data';
 
 // ─── 타입별 섹션 헤더 ────────────────────────────────────────────
@@ -14,11 +14,12 @@ function SectionHeader({ label, count, badge }) {
 
 // ─── 단어 행 (체크박스 포함) ─────────────────────────────────────
 function WordRow({ word, isSelected, onToggle, isMastered, onToggleMastery }) {
+  const [showConfirm, setShowConfirm] = useState(false);
   const catMeta   = CATEGORY_META[word.type];
   const badgeText = word.type === 'word' ? (word.tags?.[0] ?? '단어') : catMeta?.label;
 
   return (
-    <div className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all ${
+    <div className={`relative w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all ${
       isSelected
         ? 'border-sky-300 bg-sky-50'
         : 'border-slate-100 bg-white opacity-50 hover:opacity-75'
@@ -44,13 +45,34 @@ function WordRow({ word, isSelected, onToggle, isMastered, onToggleMastery }) {
         </span>
       </button>
       <button
-        onClick={() => onToggleMastery?.(word.id)}
-        title={isMastered ? '마스터 해제' : '마스터 등록'}
-        aria-label={isMastered ? '마스터 해제' : '마스터 등록'}
-        className="shrink-0 p-1 rounded-lg transition-colors hover:bg-amber-50"
+        onClick={() => setShowConfirm(true)}
+        title={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
+        aria-label={isMastered ? '모르는 단어로 변경' : '아는 단어로 변경'}
+        className="shrink-0 p-1 rounded-lg transition-colors hover:bg-emerald-50"
       >
-        <Star className={`w-3.5 h-3.5 ${isMastered ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
+        <CheckCircle2 className={`w-3.5 h-3.5 ${isMastered ? 'fill-emerald-400 text-emerald-400' : 'text-slate-300'}`} />
       </button>
+
+      {/* 확인 다이얼로그 */}
+      {showConfirm && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-xl">
+          <span className="text-xs text-slate-600 font-medium mr-2">
+            {isMastered ? '모르는 단어로?' : '아는 단어로?'}
+          </span>
+          <button
+            onClick={() => setShowConfirm(false)}
+            className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold mr-1 transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={() => { onToggleMastery?.(word.id); setShowConfirm(false); }}
+            className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors"
+          >
+            확인
+          </button>
+        </div>
+      )}
     </div>
   );
 }
