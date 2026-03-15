@@ -15,6 +15,7 @@ const LS = {
   SETTINGS:   'jflash_settings_v2',
   SRS:        'jflash_srs_v2',
   CURRICULUM: 'jflash_curriculum_v1',
+  SESSION:    'jflash_session_v1',
 };
 
 function loadLS(key, def) {
@@ -109,17 +110,37 @@ export default function App() {
 
   // ── 화면 상태 ─────────────────────────────────────────────
   // 'home' | 'browse' | 'day-preview'
-  const [appScreen, setAppScreen] = useState('home');
+  const [appScreen, setAppScreen] = useState(() => {
+    const session = loadLS(LS.SESSION, {});
+    return session.appScreen ?? 'home';
+  });
 
   // ── 선택 상태 ───────────────────────────────────────────────
   const [selectedWordIds, setSelectedWordIds] = useState(() => {
+    const session = loadLS(LS.SESSION, {});
+    if (session.selectedWordIds?.length > 0) return new Set(session.selectedWordIds);
     const day = loadLS(LS.CURRICULUM, { currentDay: 1 }).currentDay ?? 1;
     return new Set(getDayBasePool(day).map((w) => w.id));
   });
   const [selectedTags, setSelectedTags] = useState([]);
 
   // Day 미리보기 풀 (item 5): startGameByDay 시 계산
-  const [dayPreviewPool, setDayPreviewPool] = useState([]);
+  const [dayPreviewPool, setDayPreviewPool] = useState(() => {
+    const session = loadLS(LS.SESSION, {});
+    if (session.appScreen === 'day-preview' && session.dayPreviewPoolIds?.length > 0) {
+      return wordData.filter((w) => session.dayPreviewPoolIds.includes(w.id));
+    }
+    return [];
+  });
+
+  // ── 세션 상태 자동 저장 ──────────────────────────────────
+  useEffect(() => {
+    saveLS(LS.SESSION, {
+      appScreen,
+      selectedWordIds: [...selectedWordIds],
+      dayPreviewPoolIds: dayPreviewPool.map((w) => w.id),
+    });
+  }, [appScreen, selectedWordIds, dayPreviewPool]);
 
   // ── 게임 상태 ─────────────────────────────────────────────
   const [queue, setQueue]         = useState([]);
@@ -148,6 +169,29 @@ export default function App() {
   // ── 시간 초과 시스템 refs (item 9) ──────────────────────────
   const cardStartTimeRef = useRef(null); // 앞면 노출 시각
   const overTimeRef      = useRef(false); // 초과 플래그
+
+  // ── 전체 초기화 ─────────────────────────────────────────────
+  const handleResetAll = () => {
+    // localStorage 전체 삭제
+    Object.values(LS).forEach((key) => { try { localStorage.removeItem(key); } catch {} });
+    // 상태 초기화
+    setSettings({ ...DEFAULT_SETTINGS });
+    setSrsData({});
+    setCurrentDay(1);
+    setSelectedWordIds(new Set(getDayBasePool(1).map((w) => w.id)));
+    setAppScreen('home');
+    setDayPreviewPool([]);
+    setGameStarted(false);
+    setQueue([]);
+    setMastered([]);
+    setFailCount({});
+    setShowAnswer(false);
+    setHistoryStack([]);
+    setAiMessages([]);
+    clearInterval(hcRef.current);
+    setHcTimeLeft(null);
+    overTimeRef.current = false;
+  };
 
   // ── Toast 헬퍼 ───────────────────────────────────────────────
   const showToast = (msg) => {
@@ -256,14 +300,9 @@ export default function App() {
 
   // ── 게임 시작 — HomeScreen (Day N 시작 → day-preview로 이동) ─
   const startGameByDay = () => {
-    const basePool    = getDayBasePool(currentDay);
-    const allPatterns = wordData.filter((w) => w.type === 'pattern');
-    let pool = [...basePool];
-
-    if (allPatterns.length > 0) {
-      const rp = allPatterns[Math.floor(Math.random() * allPatterns.length)];
-      if (!pool.find((w) => w.id === rp.id)) pool.push(rp);
-    }
+    const basePool = getDayBasePool(currentDay);
+    // 패턴(pattern) 제외 — 단어 + 통문장만
+    const pool = basePool.filter((w) => w.type !== 'pattern');
 
     setDayPreviewPool(pool);
     setSelectedWordIds(new Set(pool.map((w) => w.id)));
@@ -498,38 +537,43 @@ export default function App() {
         const currentFail = (failCount[current.id] ?? 0) + 1;
         setFailCount((p) => ({ ...p, [current.id]: currentFail }));
 
-        // 반의어 함께 재삽입
-        let antonym = null;
-        if (current.type === 'word' && current.antonymId && selectedWordIds.has(current.antonymId)) {
-          const antId = current.antonymId;
-          const mIdx  = newMastered.findIndex((w) => w.id === antId);
-          if (mIdx !== -1) antonym = newMastered.splice(mIdx, 1)[0];
-          else {
-            const qIdx = newQueue.findIndex((w) => w.id === antId);
-            if (qIdx !== -1) antonym = newQueue.splice(qIdx, 1)[0];
-          }
-        }
-
-        // 의존성 주입: 3회 이상 실패 → componentIds를 큐 5~10번째에 삽입
-        if (currentFail >= 3 && current.componentIds?.length > 0) {
-          current.componentIds.forEach((cid) => {
-            const comp = wordData.find((w) => w.id === cid);
-            if (comp && !newQueue.find((w) => w.id === cid)) {
-              const filled = fillSlots(comp, newMastered);
-              const at = Math.min(Math.floor(Math.random() * 6) + 5, newQueue.length);
-              newQueue = [...newQueue.slice(0, at), filled, ...newQueue.slice(at)];
+        // ── 3회 이상 실패 → pass (재삽입 없이 건너뛰기)
+        if (currentFail >= 3) {
+          showToast('3회 오답 — 다음 카드로 넘어갑니다');
+        } else {
+          // 반의어 함께 재삽입
+          let antonym = null;
+          if (current.type === 'word' && current.antonymId && selectedWordIds.has(current.antonymId)) {
+            const antId = current.antonymId;
+            const mIdx  = newMastered.findIndex((w) => w.id === antId);
+            if (mIdx !== -1) antonym = newMastered.splice(mIdx, 1)[0];
+            else {
+              const qIdx = newQueue.findIndex((w) => w.id === antId);
+              if (qIdx !== -1) antonym = newQueue.splice(qIdx, 1)[0];
             }
-          });
-        }
+          }
 
-        // 현재 카드 재삽입 (+3~+5)
-        const insertAt = Math.min(Math.floor(Math.random() * 3) + 3, newQueue.length);
-        newQueue = [
-          ...newQueue.slice(0, insertAt),
-          current,
-          ...(antonym ? [antonym] : []),
-          ...newQueue.slice(insertAt),
-        ];
+          // 의존성 주입: componentIds를 큐 5~10번째에 삽입
+          if (current.componentIds?.length > 0) {
+            current.componentIds.forEach((cid) => {
+              const comp = wordData.find((w) => w.id === cid);
+              if (comp && !newQueue.find((w) => w.id === cid)) {
+                const filled = fillSlots(comp, newMastered);
+                const at = Math.min(Math.floor(Math.random() * 6) + 5, newQueue.length);
+                newQueue = [...newQueue.slice(0, at), filled, ...newQueue.slice(at)];
+              }
+            });
+          }
+
+          // 현재 카드 재삽입 (+3~+5)
+          const insertAt = Math.min(Math.floor(Math.random() * 3) + 3, newQueue.length);
+          newQueue = [
+            ...newQueue.slice(0, insertAt),
+            current,
+            ...(antonym ? [antonym] : []),
+            ...newQueue.slice(insertAt),
+          ];
+        }
       }
 
       // 슬롯 치환: 큐 첫 번째 카드에 적용
@@ -631,6 +675,7 @@ export default function App() {
           onSettingsChange={updateSettings}
           onStart={startGameByDay}
           onShowBrowse={() => setAppScreen('browse')}
+          onResetAll={handleResetAll}
         />
       </>
     );
