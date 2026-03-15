@@ -7,7 +7,7 @@ import AiChatModal from './AiChatModal';
 
 // ─── 동적 폰트 사이즈 ────────────────────────────────────────────
 function getPronSizeClass(pron, type) {
-  const len = pron?.length ?? 0;
+  const len = (pron?.replace(/\*\*/g, '') ?? '').length;
   if (type === 'word') {
     if (len <= 4)  return 'text-6xl';
     if (len <= 7)  return 'text-5xl';
@@ -41,6 +41,23 @@ function getBlindMeaningSizeClass(meaning) {
   if (len <= 10) return 'text-2xl';
   if (len <= 18) return 'text-xl';
   return 'text-lg';
+}
+
+// ─── 통문장 발음 강조 렌더러 (**조사/어미** → bold+색상) ─────────────
+function PronText({ text, className = '' }) {
+  if (!text || !text.includes('**')) {
+    return <span className={className}>{text}</span>;
+  }
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**')
+          ? <span key={i} className="font-black text-sky-600">{part.slice(2, -2)}</span>
+          : part
+      )}
+    </span>
+  );
 }
 
 // ─── 정중체 뱃지 ──────────────────────────────────────────────────
@@ -296,7 +313,7 @@ function CardFront({ word, reverseMode, blindMode }) {
           group-hover:scale-105 transition-transform leading-tight w-full`}
         style={{ overflowWrap: 'anywhere' }}
       >
-        {word.pron}
+        {word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron}
       </h2>
       <span className="text-lg font-medium text-slate-300 mb-6 text-center">
         {word.hiragana}
@@ -346,7 +363,7 @@ function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onD
 
           {/* pron */}
           <p className="text-sm font-medium text-slate-400 break-keep text-center mb-3">
-            {word.pron}
+            {word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron}
           </p>
 
           {/* meaning */}
@@ -389,14 +406,16 @@ function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onD
             {word.hiragana}
           </span>
           <span className="text-slate-400 font-medium block text-xs mb-3 break-keep">
-            [{word.pron}]
+            [{word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron}]
           </span>
           <div className="flex items-center justify-center gap-2">
             <h2
               className={`${reverseMode ? pronSize : meaningSize} font-extrabold text-slate-800 break-keep break-words leading-snug`}
               style={{ overflowWrap: 'anywhere' }}
             >
-              {reverseMode ? word.pron : word.meaning}
+              {reverseMode
+                ? (word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron)
+                : word.meaning}
             </h2>
             <PolitenessTag politeness={word.politeness} />
           </div>

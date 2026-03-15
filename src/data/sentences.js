@@ -12,7 +12,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '처음 뵙겠습니다.',
     hiragana: 'はじめまして。',
-    pron: '하지메마시테.',
+    pron: '하지메**마시테**.',
     example: '첫 만남 인사의 시작',
     description: '자기소개 첫 마디. 반드시 외워야 하는 인사 표현.',
     componentIds: [73]
@@ -25,7 +25,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '저는 김민수라고 합니다.',
     hiragana: 'わたしはキムミンスともうします。',
-    pron: '와타시와 키무민스토 모-시마스.',
+    pron: '와타시**와** 키무민스**토** 모-시**마스**.',
     example: '자기소개에서 이름을 말할 때',
     description: '자기소개 이름 표현. もうします는 いいます의 겸양어.',
     componentIds: [277]
@@ -38,7 +38,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '한국에서 왔습니다.',
     hiragana: 'かんこくからきました。',
-    pron: '칸코쿠카라 키마시타.',
+    pron: '칸코쿠**카라** 키**마시타**.',
     example: '출신지를 말할 때',
     description: '출신 표현. ~카라 키마시타(~에서 왔습니다).',
     componentIds: [4, 243]
@@ -51,7 +51,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '회사원입니다.',
     hiragana: 'かいしゃいんです。',
-    pron: '카이샤인데스.',
+    pron: '카이샤인**데스**.',
     example: '직업을 말할 때',
     description: '직업 소개. 카이샤인(회사원). ~데스로 마무리.',
     componentIds: [66]
@@ -64,7 +64,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '취미는 영화 감상입니다.',
     hiragana: 'しゅみはえいがかんしょうです。',
-    pron: '슈미와 에-가칸쇼-데스.',
+    pron: '슈미**와** 에-가칸쇼-**데스**.',
     example: '취미를 말할 때',
     description: '취미 소개 기본형. 슈미와 ~데스.',
     componentIds: [57]
@@ -77,7 +77,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '잘 부탁드립니다.',
     hiragana: 'よろしくおねがいします。',
-    pron: '요로시쿠 오네가이시마스.',
+    pron: '요로시쿠 오네가이시**마스**.',
     example: '자기소개 마무리 인사',
     description: '자기소개 마무리 필수. 모든 인사 상황에 사용.',
     componentIds: [237]
@@ -90,7 +90,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '서울에 살고 있습니다.',
     hiragana: 'ソウルにすんでいます。',
-    pron: '소우루니 순데이마스.',
+    pron: '소우루**니** 순데이**마스**.',
     example: '거주지를 말할 때',
     description: '거주 표현. 순데이마스(살고 있습니다). て형+います.',
     componentIds: [127, 247]
@@ -103,7 +103,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '일본어를 공부하고 있습니다.',
     hiragana: 'にほんごをべんきょうしています。',
-    pron: '니혼고오 벤쿄-시테이마스.',
+    pron: '니혼고**오** 벤쿄-시테이**마스**.',
     example: '학습 상태를 말할 때',
     description: '현재 진행 표현. 벤쿄-시테이마스.',
     componentIds: [52, 247]
@@ -116,7 +116,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '가족은 4명입니다.',
     hiragana: 'かぞくはよにんです。',
-    pron: '카조쿠와 요닌데스.',
+    pron: '카조쿠**와** 요닌**데스**.',
     example: '가족 수를 말할 때',
     description: '가족 소개. 닌(명) 카운터 사용.',
     componentIds: []
@@ -129,7 +129,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '요리하는 것을 좋아합니다.',
     hiragana: 'りょうりするのがすきです。',
-    pron: '료-리스루노가 스키데스.',
+    pron: '료-리스루**노가** 스키**데스**.',
     example: '취미·좋아하는 것을 말할 때',
     description: '~노가 스키(~하는 것을 좋아한다). 취미 표현 확장.',
     componentIds: [23, 36]
@@ -142,7 +142,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '지난달에 일본에 온 적이 있습니다.',
     hiragana: 'せんげつにほんにきたことがあります。',
-    pron: '셍게츠 니혼니 키타 코토가 아리마스.',
+    pron: '셍게츠 니혼**니** 키타 코토**가** 아리**마스**.',
     example: '경험을 말할 때',
     description: '경험 표현. ~타 코토가 아리마스. OPIc 빈출.',
     componentIds: [4, 245]
@@ -155,7 +155,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '주말에는 보통 산책합니다.',
     hiragana: 'しゅうまつはたいていさんぽします。',
-    pron: '슈-마츠와 타이테- 산포시마스.',
+    pron: '슈-마츠**와** 타이테- 산포시**마스**.',
     example: '주말 루틴을 말할 때',
     description: '습관 표현. 타이테-(보통). 일상 소개.',
     componentIds: [18]
@@ -168,7 +168,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '일본 문화에 관심이 있습니다.',
     hiragana: 'にほんのぶんかにきょうみがあります。',
-    pron: '니혼노 분카니 쿄-미가 아리마스.',
+    pron: '니혼**노** 분카**니** 쿄-미**가** 아리**마스**.',
     example: '관심사를 말할 때',
     description: '관심 표현. 쿄-미가 아루(관심이 있다).',
     componentIds: [239]
@@ -181,7 +181,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '올해 30살입니다.',
     hiragana: 'ことしさんじゅっさいです。',
-    pron: '코토시 산줏사이데스.',
+    pron: '코토시 산줏사이**데스**.',
     example: '나이를 말할 때',
     description: '나이 표현. ~사이데스(~살입니다).',
     componentIds: []
@@ -194,7 +194,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '일본어를 잘하고 싶습니다.',
     hiragana: 'にほんごがじょうずになりたいです。',
-    pron: '니혼고가 죠-즈니 나리타이데스.',
+    pron: '니혼고**가** 죠-즈**니** 나리타이**데스**.',
     example: '목표를 말할 때',
     description: '목표·희망 표현. ~니 나리타이(~이 되고 싶다).',
     componentIds: [144, 235]
@@ -207,7 +207,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: 'IT 회사에서 프로그래머로 일하고 있습니다.',
     hiragana: 'ITかいしゃでプログラマーとしてはたらいています。',
-    pron: '아이티-카이샤데 프로구라마-토시테 하타라이테이마스.',
+    pron: '아이티-카이샤**데** 프로구라마-**토시테** 하타라이테이**마스**.',
     example: '직업을 자세히 말할 때',
     description: '직업 상세 설명. ~토시테(~로서). 비즈니스 소개.',
     componentIds: [66, 247]
@@ -220,7 +220,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '한국 음식 중에서 비빔밥을 제일 좋아합니다.',
     hiragana: 'かんこくりょうりのなかでビビンバがいちばんすきです。',
-    pron: '칸코쿠료-리노 나카데 비빈바가 이치방 스키데스.',
+    pron: '칸코쿠료-리**노** 나카**데** 비빈바**가** 이치방 스키**데스**.',
     example: '음식 선호도를 말할 때',
     description: '비교 최상급. ~노 나카데 ~가 이치방. 문화 소개.',
     componentIds: [36, 274]
@@ -233,7 +233,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '매일 30분씩 일본어를 공부하고 있습니다.',
     hiragana: 'まいにちさんじゅっぷんずつにほんごをべんきょうしています。',
-    pron: '마이니치 산줍푼즈츠 니혼고오 벤쿄-시테이마스.',
+    pron: '마이니치 산줍푼즈츠 니혼고**오** 벤쿄-시테이**마스**.',
     example: '학습 습관을 말할 때',
     description: '습관+진행 표현. 즈츠(~씩). 학습 루틴.',
     componentIds: [52, 247]
@@ -246,7 +246,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '언젠가 일본에서 일하고 싶습니다.',
     hiragana: 'いつかにほんではたらきたいです。',
-    pron: '이츠카 니혼데 하타라키타이데스.',
+    pron: '이츠카 니혼**데** 하타라키타이**데스**.',
     example: '꿈·목표를 말할 때',
     description: '미래 희망 표현. 이츠카(언젠가). ~타이데스.',
     componentIds: [66, 235]
@@ -259,7 +259,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '한국에 오시면 안내해 드리겠습니다.',
     hiragana: 'かんこくにきたらあんないします。',
-    pron: '칸코쿠니 키타라 안나이시마스.',
+    pron: '칸코쿠**니** 키**타라** 안나이시**마스**.',
     example: '상대를 초대할 때',
     description: '조건+의향 표현. ~타라(~하면). 친교 마무리.',
     componentIds: [4, 139, 259]
@@ -274,7 +274,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '저기요, 역은 어디입니까?',
     hiragana: 'すみません、えきはどこですか。',
-    pron: '스미마셍, 에키와 도코데스카?',
+    pron: '스미마셍, 에키**와** 도코**데스카**?',
     example: '모르는 길을 처음 물을 때',
     description: '스미마셍으로 시작하면 더 정중. 도코데스카 패턴.',
     componentIds: [241]
@@ -287,7 +287,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '화장실은 어디에 있습니까?',
     hiragana: 'トイレはどこにありますか。',
-    pron: '토이레와 도코니 아리마스카?',
+    pron: '토이레**와** 도코**니** 아리**마스카**?',
     example: '화장실 위치를 물을 때',
     description: '도코니 아리마스카 패턴. 관광 최빈출.',
     componentIds: [239, 241]
@@ -300,7 +300,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 근처에 편의점이 있습니까?',
     hiragana: 'このちかくにコンビニがありますか。',
-    pron: '코노 치카쿠니 콘비니가 아리마스카?',
+    pron: '코노 치카쿠**니** 콘비니**가** 아리**마스카**?',
     example: '주변 시설을 물을 때',
     description: '치카쿠니(근처에) + 아리마스카 패턴.',
     componentIds: [239, 242]
@@ -313,7 +313,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '여기서 도쿄역까지 어떻게 갑니까?',
     hiragana: 'ここからとうきょうえきまでどうやっていきますか。',
-    pron: '코코카라 토-쿄-에키마데 도-얏테 이키마스카?',
+    pron: '코코**카라** 토-쿄-에키**마데** 도-얏테 이키**마스카**?',
     example: '이동 방법을 물을 때',
     description: '카라~마데(~에서~까지) + 도-얏테(어떻게) 패턴.',
     componentIds: [3]
@@ -326,7 +326,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '오른쪽으로 도세요.',
     hiragana: 'みぎにまがってください。',
-    pron: '미기니 마갓테 쿠다사이.',
+    pron: '미기**니** 마갓테 **쿠다사이**.',
     example: '길 안내를 받을 때',
     description: '미기(오른쪽) + 마가루(돌다) + 테쿠다사이.',
     componentIds: [11, 232]
@@ -339,7 +339,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '곧장 가면 왼쪽에 있습니다.',
     hiragana: 'まっすぐいくとひだりにあります。',
-    pron: '맛스구 이쿠토 히다리니 아리마스.',
+    pron: '맛스구 이쿠**토** 히다리**니** 아리**마스**.',
     example: '길 안내를 받을 때',
     description: '맛스구(곧장) + 이쿠토(가면) + 히다리(왼쪽). 길 안내 정형.',
     componentIds: [3, 239]
@@ -352,7 +352,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '걸어서 몇 분 걸립니까?',
     hiragana: 'あるいてなんぷんかかりますか。',
-    pron: '아루이테 난푼 카카리마스카?',
+    pron: '아루이테 난푼 카카리**마스카**?',
     example: '소요 시간을 물을 때',
     description: '아루이테(걸어서) + 난푼(몇 분) + 카카루(걸리다).',
     componentIds: [1]
@@ -365,7 +365,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '길을 잃었습니다. 도와주세요.',
     hiragana: 'みちにまよいました。たすけてください。',
-    pron: '미치니 마요이마시타. 타스케테 쿠다사이.',
+    pron: '미치**니** 마요이**마시타**. 타스케테 **쿠다사이**.',
     example: '길을 잃었을 때 도움 요청',
     description: '미치니 마요우(길을 잃다). 긴급 표현.',
     componentIds: [137, 232]
@@ -378,7 +378,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 버스는 신주쿠에 갑니까?',
     hiragana: 'このバスはしんじゅくにいきますか。',
-    pron: '코노 바스와 신주쿠니 이키마스카?',
+    pron: '코노 바스**와** 신주쿠**니** 이키**마스카**?',
     example: '버스 행선지를 확인할 때',
     description: '교통 확인 패턴. ~니 이키마스카(~에 갑니까).',
     componentIds: [3]
@@ -391,7 +391,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '시부야에서 갈아타 주세요.',
     hiragana: 'しぶやでのりかえてください。',
-    pron: '시부야데 노리카에테 쿠다사이.',
+    pron: '시부야**데** 노리카에테 **쿠다사이**.',
     example: '환승 안내를 받을 때',
     description: '노리카에루(갈아타다) + 테쿠다사이.',
     componentIds: [20, 232]
@@ -404,7 +404,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '지도를 보여주시겠습니까?',
     hiragana: 'ちずをみせていただけますか。',
-    pron: '치즈오 미세테 이타다케마스카?',
+    pron: '치즈**오** 미세테 이타다케**마스카**?',
     example: '지도를 부탁할 때',
     description: '미세루(보여주다) + 이타다케마스카. 정중 요청.',
     componentIds: [57, 234]
@@ -417,7 +417,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '다음 역에서 내립니다.',
     hiragana: 'つぎのえきでおります。',
-    pron: '츠기노 에키데 오리마스.',
+    pron: '츠기**노** 에키**데** 오리**마스**.',
     example: '내릴 역을 알릴 때',
     description: '츠기노(다음의) + 오리루(내리다). 교통 장면.',
     componentIds: [6]
@@ -430,7 +430,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '택시를 불러주시겠습니까?',
     hiragana: 'タクシーをよんでいただけますか。',
-    pron: '타쿠시-오 욘데 이타다케마스카?',
+    pron: '타쿠시-**오** 욘데 이타다케**마스카**?',
     example: '택시를 부탁할 때',
     description: '욘데(불러서) + 이타다케마스카. 호텔 등.',
     componentIds: [234]
@@ -443,7 +443,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 주소로 가 주세요.',
     hiragana: 'このじゅうしょまでおねがいします。',
-    pron: '코노 쥬-쇼마데 오네가이시마스.',
+    pron: '코노 쥬-쇼**마데** 오네가이시**마스**.',
     example: '택시 기사에게 말할 때',
     description: '쥬-쇼(주소) + 마데(까지) + 오네가이시마스.',
     componentIds: [237]
@@ -456,7 +456,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '여기서 내려 주세요.',
     hiragana: 'ここでおろしてください。',
-    pron: '코코데 오로시테 쿠다사이.',
+    pron: '코코**데** 오로시테 **쿠다사이**.',
     example: '택시에서 내릴 때',
     description: '오로스(내리게 하다) + 테쿠다사이. 택시 장면.',
     componentIds: [232]
@@ -471,7 +471,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '2명입니다.',
     hiragana: 'ふたりです。',
-    pron: '후타리데스.',
+    pron: '후타리**데스**.',
     example: '식당 입장 시 인원을 말할 때',
     description: '입장 시 첫 마디. 후타리(2명). 히토리(1명).',
     componentIds: []
@@ -484,7 +484,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '메뉴를 주세요.',
     hiragana: 'メニューをください。',
-    pron: '메뉴-오 쿠다사이.',
+    pron: '메뉴-**오** **쿠다사이**.',
     example: '메뉴를 요청할 때',
     description: '기본 요청. をください 패턴.',
     componentIds: [231]
@@ -497,7 +497,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이것을 주세요.',
     hiragana: 'これをください。',
-    pron: '코레오 쿠다사이.',
+    pron: '코레**오** **쿠다사이**.',
     example: '메뉴를 가리키며 주문할 때',
     description: '코레(이것) + をください. 가장 쉬운 주문법.',
     componentIds: [231]
@@ -510,7 +510,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '추천 메뉴는 무엇입니까?',
     hiragana: 'おすすめはなんですか。',
-    pron: '오스스메와 난데스카?',
+    pron: '오스스메**와** 난**데스카**?',
     example: '추천을 물을 때',
     description: '오스스메(추천) + 난데스카(무엇입니까). 식당 빈출.',
     componentIds: []
@@ -523,7 +523,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '물을 주세요.',
     hiragana: 'おみずをください。',
-    pron: '오미즈오 쿠다사이.',
+    pron: '오미즈**오** **쿠다사이**.',
     example: '물을 요청할 때',
     description: '오미즈(물, 정중). をください 패턴.',
     componentIds: [231]
@@ -536,7 +536,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '잘 먹겠습니다.',
     hiragana: 'いただきます。',
-    pron: '이타다키마스.',
+    pron: '이타다키**마스**.',
     example: '식사 전 인사',
     description: '식사 전 필수 인사. 일본 문화 예절.',
     componentIds: []
@@ -549,7 +549,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '잘 먹었습니다.',
     hiragana: 'ごちそうさまでした。',
-    pron: '고치소-사마데시타.',
+    pron: '고치소-사마**데시타**.',
     example: '식사 후 인사',
     description: '식사 후 필수 인사. 식당 나갈 때도 사용.',
     componentIds: []
@@ -562,7 +562,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '계산 부탁합니다.',
     hiragana: 'おかいけいおねがいします。',
-    pron: '오카이케- 오네가이시마스.',
+    pron: '오카이케- 오네가이시**마스**.',
     example: '계산을 요청할 때',
     description: '오카이케-(계산) + 오네가이시마스. 식당 필수.',
     componentIds: [237]
@@ -575,7 +575,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '정말 맛있습니다.',
     hiragana: 'ほんとうにおいしいです。',
-    pron: '혼토-니 오이시이데스.',
+    pron: '혼토-**니** 오이시이**데스**.',
     example: '맛을 칭찬할 때',
     description: '혼토-니(정말) + 오이시이(맛있다). 감상 표현.',
     componentIds: [211]
@@ -588,7 +588,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '알레르기가 있습니다.',
     hiragana: 'アレルギーがあります。',
-    pron: '아레루기-가 아리마스.',
+    pron: '아레루기-**가** 아리**마스**.',
     example: '알레르기를 알릴 때',
     description: '건강 관련 필수 표현. 식재료 확인 전에.',
     componentIds: [239]
@@ -601,7 +601,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '매운 것은 괜찮습니까?',
     hiragana: 'からいものはだいじょうぶですか。',
-    pron: '카라이 모노와 다이죠-부데스카?',
+    pron: '카라이 모노**와** 다이죠-부**데스카**?',
     example: '음식 확인할 때',
     description: '카라이(매운) + 다이죠-부(괜찮다). 음식 확인.',
     componentIds: [214]
@@ -614,7 +614,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이것은 무엇입니까?',
     hiragana: 'これはなんですか。',
-    pron: '코레와 난데스카?',
+    pron: '코레**와** 난**데스카**?',
     example: '메뉴의 음식이 뭔지 물을 때',
     description: '코레(이것) + 난데스카(무엇). 다목적 질문.',
     componentIds: []
@@ -627,7 +627,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '덜 맵게 해주세요.',
     hiragana: 'からさひかえめにしてください。',
-    pron: '카라사 히카에메니 시테 쿠다사이.',
+    pron: '카라사 히카에메**니** 시테 **쿠다사이**.',
     example: '맵기를 조절할 때',
     description: '히카에메(적게) + 시테쿠다사이. 커스텀 주문.',
     componentIds: [232]
@@ -640,7 +640,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '카드로 결제할 수 있습니까?',
     hiragana: 'カードではらえますか。',
-    pron: '카-도데 하라에마스카?',
+    pron: '카-도**데** 하라에**마스카**?',
     example: '결제 수단을 확인할 때',
     description: '하라에루(지불 가능) + 마스카. 결제 확인.',
     componentIds: [84, 253]
@@ -653,7 +653,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '예약을 했습니다. 김이라고 합니다.',
     hiragana: 'よやくをしました。キムともうします。',
-    pron: '요야쿠오 시마시타. 키무토 모-시마스.',
+    pron: '요야쿠**오** 시**마시타**. 키무**토** 모-시**마스**.',
     example: '예약 확인할 때',
     description: '요야쿠(예약) + 시마시타. 식당 입장.',
     componentIds: [90, 243]
@@ -666,7 +666,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '포장해 주세요.',
     hiragana: 'もちかえりでおねがいします。',
-    pron: '모치카에리데 오네가이시마스.',
+    pron: '모치카에리**데** 오네가이시**마스**.',
     example: '테이크아웃을 요청할 때',
     description: '모치카에리(포장). 테이크아웃 표현.',
     componentIds: [237]
@@ -679,7 +679,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '같은 것을 하나 더 주세요.',
     hiragana: 'おなじものをもうひとつください。',
-    pron: '오나지 모노오 모- 히토츠 쿠다사이.',
+    pron: '오나지 모노**오** 모- 히토츠 **쿠다사이**.',
     example: '같은 메뉴를 추가 주문할 때',
     description: '오나지(같은) + 모- 히토츠(하나 더). 추가 주문.',
     componentIds: [231]
@@ -692,7 +692,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '주문한 것이 아직 오지 않았습니다.',
     hiragana: 'ちゅうもんしたものがまだきていません。',
-    pron: '츄-몬시타 모노가 마다 키테이마셍.',
+    pron: '츄-몬시타 모노**가** 마다 키테이**마셍**.',
     example: '주문 확인할 때',
     description: '마다(아직) + 키테이마셍(오지 않았다). 클레임.',
     componentIds: [24, 248]
@@ -705,7 +705,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 요리에는 뭐가 들어 있습니까?',
     hiragana: 'このりょうりにはなにがはいっていますか。',
-    pron: '코노 료-리니와 나니가 하잇테이마스카?',
+    pron: '코노 료-리**니와** 나니**가** 하잇테이**마스카**?',
     example: '재료를 확인할 때',
     description: '나니가(무엇이) + 하잇테이루(들어있다). 식재료 확인.',
     componentIds: [9, 247]
@@ -718,7 +718,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '여기 맥주 두 잔 주세요.',
     hiragana: 'すみません、ビールをにはいください。',
-    pron: '스미마셍, 비-루오 니하이 쿠다사이.',
+    pron: '스미마셍, 비-루**오** 니하이 **쿠다사이**.',
     example: '음료를 주문할 때',
     description: '니하이(두 잔) + 쿠다사이. 음료 주문.',
     componentIds: [231]
@@ -731,7 +731,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '금연석 부탁합니다.',
     hiragana: 'きんえんせきをおねがいします。',
-    pron: '킨엔세키오 오네가이시마스.',
+    pron: '킨엔세키**오** 오네가이시**마스**.',
     example: '좌석을 요청할 때',
     description: '킨엔세키(금연석). 기츠엔세키(흡연석)와 대비.',
     componentIds: [237]
@@ -744,7 +744,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '주문을 변경해도 됩니까?',
     hiragana: 'ちゅうもんをかえてもいいですか。',
-    pron: '츄-몬오 카에테모 이이데스카?',
+    pron: '츄-몬**오** 카에테**모** 이이**데스카**?',
     example: '주문 변경 요청할 때',
     description: '카에루(바꾸다) + 테모이이데스카(해도 됩니까).',
     componentIds: [75, 233]
@@ -757,7 +757,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '배가 불러서 더 이상 못 먹겠습니다.',
     hiragana: 'おなかがいっぱいでもうたべられません。',
-    pron: '오나카가 잇파이데 모- 타베라레마셍.',
+    pron: '오나카**가** 잇파이**데** 모- 타베라레**마셍**.',
     example: '배부름을 표현할 때',
     description: '잇파이(가득) + 타베라레나이(못 먹다). 포만 표현.',
     componentIds: [21, 252]
@@ -770,7 +770,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '영수증을 주세요.',
     hiragana: 'レシートをください。',
-    pron: '레시-토오 쿠다사이.',
+    pron: '레시-토**오** **쿠다사이**.',
     example: '영수증을 요청할 때',
     description: '레시-토(영수증) + をください. 계산 후.',
     componentIds: [231]
@@ -783,7 +783,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 가게는 몇 시까지 합니까?',
     hiragana: 'このみせはなんじまでですか。',
-    pron: '코노 미세와 난지마데데스카?',
+    pron: '코노 미세**와** 난지**마데데스카**?',
     example: '영업 시간을 물을 때',
     description: '난지(몇 시) + 마데(까지). 영업 시간 확인.',
     componentIds: []
@@ -798,7 +798,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이것은 얼마입니까?',
     hiragana: 'これはいくらですか。',
-    pron: '코레와 이쿠라데스카?',
+    pron: '코레**와** 이쿠라**데스카**?',
     example: '가격을 물을 때',
     description: '이쿠라(얼마). 쇼핑 최빈출 표현.',
     componentIds: []
@@ -811,7 +811,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '좀 더 싼 것은 없습니까?',
     hiragana: 'もうすこしやすいものはありませんか。',
-    pron: '모- 스코시 야스이 모노와 아리마셍카?',
+    pron: '모- 스코시 야스이 모노**와** 아리**마셍카**?',
     example: '더 저렴한 것을 찾을 때',
     description: '야스이(싸다) + 아리마셍카(없습니까). 가격 협상.',
     componentIds: [165]
@@ -824,7 +824,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이것을 사겠습니다.',
     hiragana: 'これをかいます。',
-    pron: '코레오 카이마스.',
+    pron: '코레**오** 카이**마스**.',
     example: '구매 의사를 밝힐 때',
     description: '카우(사다) + 마스. 구매 결정.',
     componentIds: [81]
@@ -837,7 +837,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '입어 봐도 됩니까?',
     hiragana: 'しちゃくしてもいいですか。',
-    pron: '시챠쿠시테모 이이데스카?',
+    pron: '시챠쿠시테**모** 이이**데스카**?',
     example: '시착 허가를 구할 때',
     description: '시챠쿠(시착) + 테모이이데스카. 의류 쇼핑.',
     componentIds: [86, 233]
@@ -850,7 +850,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '다른 색은 있습니까?',
     hiragana: 'ほかのいろはありますか。',
-    pron: '호카노 이로와 아리마스카?',
+    pron: '호카**노** 이로**와** 아리**마스카**?',
     example: '색상 옵션을 물을 때',
     description: '호카노(다른) + 이로(색). 옵션 확인.',
     componentIds: [239]
@@ -863,7 +863,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '좀 더 큰 사이즈는 있습니까?',
     hiragana: 'もうすこしおおきいサイズはありますか。',
-    pron: '모- 스코시 오-키이 사이즈와 아리마스카?',
+    pron: '모- 스코시 오-키이 사이즈**와** 아리**마스카**?',
     example: '사이즈를 바꿀 때',
     description: '오-키이(큰) + 사이즈. 사이즈 변경 요청.',
     componentIds: [151, 239]
@@ -876,7 +876,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '선물용으로 포장해 주세요.',
     hiragana: 'プレゼントようにつつんでください。',
-    pron: '프레젠토요-니 츠츤데 쿠다사이.',
+    pron: '프레젠토요-**니** 츠츤데 **쿠다사이**.',
     example: '선물 포장을 요청할 때',
     description: '프레젠토요-(선물용) + 츠츤데쿠다사이(포장해주세요).',
     componentIds: [89, 232]
@@ -889,7 +889,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '교환할 수 있습니까?',
     hiragana: 'こうかんできますか。',
-    pron: '코-칸 데키마스카?',
+    pron: '코-칸 데키**마스카**?',
     example: '교환 가능 여부를 물을 때',
     description: '코-칸(교환) + 데키마스카. 반품·교환.',
     componentIds: [87, 251]
@@ -902,7 +902,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '면세 됩니까?',
     hiragana: 'めんぜいになりますか。',
-    pron: '멘제-니 나리마스카?',
+    pron: '멘제-**니** 나리**마스카**?',
     example: '면세 가능 여부를 물을 때',
     description: '멘제-(면세). 관광 쇼핑 필수.',
     componentIds: []
@@ -915,7 +915,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '그냥 보고 있는 겁니다.',
     hiragana: 'みているだけです。',
-    pron: '미테이루 다케데스.',
+    pron: '미테이루 다케**데스**.',
     example: '점원에게 둘러보고 있다고 말할 때',
     description: '미테이루(보고 있다) + 다케(~만). 거절 표현.',
     componentIds: [57, 247]
@@ -928,7 +928,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '좀 조금만 깎아주세요.',
     hiragana: 'すこしまけてください。',
-    pron: '스코시 마케테 쿠다사이.',
+    pron: '스코시 마케테 **쿠다사이**.',
     example: '가격 흥정할 때',
     description: '스코시(조금) + 마케루(깎다). 시장 흥정.',
     componentIds: [92, 232]
@@ -941,7 +941,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '반품하고 싶습니다.',
     hiragana: 'へんぴんしたいです。',
-    pron: '헨핀시타이데스.',
+    pron: '헨핀시타이**데스**.',
     example: '반품을 요청할 때',
     description: '헨핀(반품) + 시타이(하고 싶다).',
     componentIds: [88, 235]
@@ -954,7 +954,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '봉투에 넣어 주세요.',
     hiragana: 'ふくろにいれてください。',
-    pron: '후쿠로니 이레테 쿠다사이.',
+    pron: '후쿠로**니** 이레테 **쿠다사이**.',
     example: '봉투를 요청할 때',
     description: '후쿠로(봉투) + 이레테쿠다사이. 편의점·쇼핑.',
     componentIds: [95, 232]
@@ -967,7 +967,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 근처에 백화점이 있습니까?',
     hiragana: 'このちかくにデパートがありますか。',
-    pron: '코노 치카쿠니 데파-토가 아리마스카?',
+    pron: '코노 치카쿠**니** 데파-토**가** 아리**마스카**?',
     example: '백화점 위치를 물을 때',
     description: '치카쿠니(근처에) + 아리마스카. 장소 문의.',
     componentIds: [239, 242]
@@ -980,7 +980,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '일본에서 인기 있는 것은 무엇입니까?',
     hiragana: 'にほんでにんきがあるものはなんですか。',
-    pron: '니혼데 닌키가 아루 모노와 난데스카?',
+    pron: '니혼**데** 닌키**가** 아루 모노**와** 난**데스카**?',
     example: '인기 상품을 물을 때',
     description: '닌키(인기) + 아루(있는). 선물 고르기.',
     componentIds: [143]
@@ -993,7 +993,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '배송해 주실 수 있습니까?',
     hiragana: 'はいそうしていただけますか。',
-    pron: '하이소-시테 이타다케마스카?',
+    pron: '하이소-시테 이타다케**마스카**?',
     example: '배송을 요청할 때',
     description: '하이소-(배송) + 이타다케마스카. 정중 요청.',
     componentIds: [93, 234]
@@ -1006,7 +1006,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '너무 비싸서 살 수 없습니다.',
     hiragana: 'たかすぎてかえません。',
-    pron: '타카스기테 카에마셍.',
+    pron: '타카스기테 카에**마셍**.',
     example: '가격이 부담될 때',
     description: '타카스기루(너무 비싸다) + 카에나이(살 수 없다).',
     componentIds: [155, 252, 275]
@@ -1019,7 +1019,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '현금으로 결제합니다.',
     hiragana: 'げんきんではらいます。',
-    pron: '겐킨데 하라이마스.',
+    pron: '겐킨**데** 하라이**마스**.',
     example: '현금 결제를 할 때',
     description: '겐킨(현금) + 하라우(지불하다). 결제.',
     componentIds: [84]
@@ -1032,7 +1032,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이것과 저것은 어떻게 다릅니까?',
     hiragana: 'これとあれはどうちがいますか。',
-    pron: '코레토 아레와 도- 치가이마스카?',
+    pron: '코레**토** 아레**와** 도- 치가이**마스카**?',
     example: '상품을 비교할 때',
     description: '치가우(다르다). 상품 비교 질문.',
     componentIds: []
@@ -1045,7 +1045,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '좀 더 생각해 보겠습니다.',
     hiragana: 'もうすこしかんがえます。',
-    pron: '모- 스코시 칸가에마스.',
+    pron: '모- 스코시 칸가에**마스**.',
     example: '구매를 보류할 때',
     description: '칸가에루(생각하다). 정중한 거절·보류.',
     componentIds: [62]
@@ -1060,7 +1060,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '신주쿠까지 표 한 장 주세요.',
     hiragana: 'しんじゅくまできっぷをいちまいください。',
-    pron: '신주쿠마데 킷푸오 이치마이 쿠다사이.',
+    pron: '신주쿠**마데** 킷푸**오** 이치마이 **쿠다사이**.',
     example: '표를 살 때',
     description: '마데(까지) + 킷푸(표) + 이치마이(한 장).',
     componentIds: [231]
@@ -1073,7 +1073,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 전철은 시부야에 갑니까?',
     hiragana: 'このでんしゃはしぶやにいきますか。',
-    pron: '코노 덴샤와 시부야니 이키마스카?',
+    pron: '코노 덴샤**와** 시부야**니** 이키**마스카**?',
     example: '행선지를 확인할 때',
     description: '덴샤(전철) + ~니 이키마스카.',
     componentIds: [3]
@@ -1086,7 +1086,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '다음 버스는 몇 시에 옵니까?',
     hiragana: 'つぎのバスはなんじにきますか。',
-    pron: '츠기노 바스와 난지니 키마스카?',
+    pron: '츠기**노** 바스**와** 난지**니** 키**마스카**?',
     example: '버스 시간을 물을 때',
     description: '츠기노(다음) + 난지니(몇 시에). 교통 확인.',
     componentIds: [4]
@@ -1099,7 +1099,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '편도입니까, 왕복입니까?',
     hiragana: 'かたみちですか、おうふくですか。',
-    pron: '카타미치데스카, 오-후쿠데스카?',
+    pron: '카타미치**데스카**, 오-후쿠**데스카**?',
     example: '표 종류를 선택할 때',
     description: '카타미치(편도) / 오-후쿠(왕복). 표 구매.',
     componentIds: []
@@ -1112,7 +1112,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '급행은 이 역에 섭니까?',
     hiragana: 'きゅうこうはこのえきにとまりますか。',
-    pron: '큐-코-와 코노 에키니 토마리마스카?',
+    pron: '큐-코-**와** 코노 에키**니** 토마리**마스카**?',
     example: '급행 정차 여부를 확인할 때',
     description: '큐-코-(급행) + 토마루(서다). 교통 확인.',
     componentIds: [12]
@@ -1125,7 +1125,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '교통카드를 어디서 살 수 있습니까?',
     hiragana: 'こうつうカードはどこでかえますか。',
-    pron: '코-츠-카-도와 도코데 카에마스카?',
+    pron: '코-츠-카-도**와** 도코**데** 카에**마스카**?',
     example: '교통카드 구매처를 물을 때',
     description: '도코데(어디서) + 카에루(살 수 있다). 관광 필수.',
     componentIds: [81, 253]
@@ -1138,7 +1138,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '전철이 늦어서 늦었습니다.',
     hiragana: 'でんしゃがおくれておそくなりました。',
-    pron: '덴샤가 오쿠레테 오소쿠 나리마시타.',
+    pron: '덴샤**가** 오쿠레테 오소쿠 나리**마시타**.',
     example: '지각 사유를 말할 때',
     description: '오쿠레루(지연되다) + 오소쿠 나루(늦다). 사과.',
     componentIds: [194, 144]
@@ -1151,7 +1151,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이 자리는 비어 있습니까?',
     hiragana: 'このせきはあいていますか。',
-    pron: '코노 세키와 아이테이마스카?',
+    pron: '코노 세키**와** 아이테이**마스카**?',
     example: '빈자리를 확인할 때',
     description: '세키(좌석) + 아이테이루(비어있다). 전철·버스.',
     componentIds: [247]
@@ -1164,7 +1164,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '종점까지 가야 합니다.',
     hiragana: 'しゅうてんまでいかなければなりません。',
-    pron: '슈-텐마데 이카나케레바 나리마셍.',
+    pron: '슈-텐**마데** 이카**나케레바** 나리**마셍**.',
     example: '종점까지의 이동을 말할 때',
     description: '슈-텐(종점) + 이카나케레바(가야). 의무 표현.',
     componentIds: [3, 255]
@@ -1177,7 +1177,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '공항까지 얼마나 걸립니까?',
     hiragana: 'くうこうまでどのくらいかかりますか。',
-    pron: '쿠-코-마데 도노쿠라이 카카리마스카?',
+    pron: '쿠-코-**마데** 도노쿠라이 카카리**마스카**?',
     example: '소요 시간을 물을 때',
     description: '도노쿠라이(얼마나) + 카카루(걸리다). 시간 확인.',
     componentIds: []
@@ -1190,7 +1190,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '잘못 탔습니다. 어떻게 하면 됩니까?',
     hiragana: 'まちがえてのりました。どうすればいいですか。',
-    pron: '마치가에테 노리마시타. 도-스레바 이이데스카?',
+    pron: '마치가에테 노리**마시타**. 도-스**레바** 이이**데스카**?',
     example: '잘못 승차했을 때',
     description: '마치가에루(틀리다) + 노루(타다). 문제 해결.',
     componentIds: [5, 260]
@@ -1203,7 +1203,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '마지막 전철은 몇 시입니까?',
     hiragana: 'しゅうでんはなんじですか。',
-    pron: '슈-덴와 난지데스카?',
+    pron: '슈-덴**와** 난지**데스카**?',
     example: '막차 시간을 물을 때',
     description: '슈-덴(막차). 밤 일정 확인 필수.',
     componentIds: []
@@ -1216,7 +1216,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '여기서 걸어서 갈 수 있습니까?',
     hiragana: 'ここからあるいていけますか。',
-    pron: '코코카라 아루이테 이케마스카?',
+    pron: '코코**카라** 아루이테 이케**마스카**?',
     example: '도보 이동 가능 여부를 물을 때',
     description: '아루이테(걸어서) + 이케루(갈 수 있다). 거리 확인.',
     componentIds: [1, 253]
@@ -1229,7 +1229,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '출구는 어느 쪽입니까?',
     hiragana: 'でぐちはどちらですか。',
-    pron: '데구치와 도치라데스카?',
+    pron: '데구치**와** 도치라**데스카**?',
     example: '출구를 찾을 때',
     description: '데구치(출구) + 도치라(어느 쪽). 역·건물.',
     componentIds: [241]
@@ -1242,7 +1242,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '짐을 보관할 곳은 있습니까?',
     hiragana: 'にもつをあずけるところはありますか。',
-    pron: '니모츠오 아즈케루 토코로와 아리마스카?',
+    pron: '니모츠**오** 아즈케루 토코로**와** 아리**마스카**?',
     example: '짐 보관소를 물을 때',
     description: '아즈케루(맡기다) + 토코로(장소). 역·호텔.',
     componentIds: [239]
@@ -1257,7 +1257,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '체크인 부탁합니다.',
     hiragana: 'チェックインおねがいします。',
-    pron: '첵쿠인 오네가이시마스.',
+    pron: '첵쿠인 오네가이시**마스**.',
     example: '호텔 체크인할 때',
     description: '첵쿠인 + 오네가이시마스. 호텔 도착 시.',
     componentIds: [133, 237]
@@ -1270,7 +1270,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '예약한 김입니다.',
     hiragana: 'よやくしたキムです。',
-    pron: '요야쿠시타 키무데스.',
+    pron: '요야쿠시타 키무**데스**.',
     example: '호텔 체크인 시 이름을 말할 때',
     description: '요야쿠시타(예약한) + 이름. 체크인.',
     componentIds: [90, 243]
@@ -1283,7 +1283,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '와이파이 비밀번호를 알려주세요.',
     hiragana: 'ワイファイのパスワードをおしえてください。',
-    pron: '와이파이노 파스와-도오 오시에테 쿠다사이.',
+    pron: '와이파이**노** 파스와-도**오** 오시에테 **쿠다사이**.',
     example: '와이파이를 물을 때',
     description: '오시에루(알려주다) + 테쿠다사이. 호텔 필수.',
     componentIds: [58, 232]
@@ -1296,7 +1296,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '에어컨이 작동하지 않습니다.',
     hiragana: 'エアコンがうごきません。',
-    pron: '에아콘가 우고키마셍.',
+    pron: '에아콘**가** 우고키**마셍**.',
     example: '시설 문제를 알릴 때',
     description: '우고쿠(작동하다) + 마셍(않다). 문제 신고.',
     componentIds: []
@@ -1309,7 +1309,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '체크아웃은 몇 시입니까?',
     hiragana: 'チェックアウトはなんじですか。',
-    pron: '첵쿠아우토와 난지데스카?',
+    pron: '첵쿠아우토**와** 난지**데스카**?',
     example: '체크아웃 시간을 확인할 때',
     description: '난지(몇 시). 호텔 기본 확인.',
     componentIds: []
@@ -1322,7 +1322,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '하루 더 묵을 수 있습니까?',
     hiragana: 'もういっぱくできますか。',
-    pron: '모- 잇파쿠 데키마스카?',
+    pron: '모- 잇파쿠 데키**마스카**?',
     example: '연박을 요청할 때',
     description: '잇파쿠(1박) + 데키마스카(가능합니까). 연장.',
     componentIds: [132, 251]
@@ -1335,7 +1335,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '방을 바꿔 주실 수 있습니까?',
     hiragana: 'へやをかえていただけますか。',
-    pron: '헤야오 카에테 이타다케마스카?',
+    pron: '헤야**오** 카에테 이타다케**마스카**?',
     example: '방 변경을 요청할 때',
     description: '헤야(방) + 카에루(바꾸다) + 이타다케마스카.',
     componentIds: [75, 234]
@@ -1348,7 +1348,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '타올을 더 주세요.',
     hiragana: 'タオルをもうすこしください。',
-    pron: '타오루오 모- 스코시 쿠다사이.',
+    pron: '타오루**오** 모- 스코시 **쿠다사이**.',
     example: '추가 물품을 요청할 때',
     description: '타오루(수건) + 모- 스코시(좀 더). 추가 요청.',
     componentIds: [231]
@@ -1361,7 +1361,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '조식은 몇 시부터입니까?',
     hiragana: 'ちょうしょくはなんじからですか。',
-    pron: '초-쇼쿠와 난지카라데스카?',
+    pron: '초-쇼쿠**와** 난지**카라데스카**?',
     example: '조식 시간을 물을 때',
     description: '초-쇼쿠(조식) + 난지카라(몇 시부터). 호텔 일정.',
     componentIds: []
@@ -1374,7 +1374,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '짐을 맡아 주시겠습니까?',
     hiragana: 'にもつをあずかっていただけますか。',
-    pron: '니모츠오 아즈캇테 이타다케마스카?',
+    pron: '니모츠**오** 아즈캇테 이타다케**마스카**?',
     example: '체크아웃 후 짐을 맡길 때',
     description: '아즈카루(맡다) + 이타다케마스카. 정중 요청.',
     componentIds: [234]
@@ -1387,7 +1387,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '근처에 좋은 레스토랑을 아십니까?',
     hiragana: 'ちかくにいいレストランをしっていますか。',
-    pron: '치카쿠니 이이 레스토랑오 싯테이마스카?',
+    pron: '치카쿠**니** 이이 레스토랑**오** 싯테이**마스카**?',
     example: '식당 추천을 부탁할 때',
     description: '싯테이루(알고 있다) + 마스카. 추천 요청.',
     componentIds: [145, 187, 242]
@@ -1400,7 +1400,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '모닝콜을 부탁합니다.',
     hiragana: 'モーニングコールをおねがいします。',
-    pron: '모-닝구코-루오 오네가이시마스.',
+    pron: '모-닝구코-루**오** 오네가이시**마스**.',
     example: '모닝콜을 요청할 때',
     description: '모-닝구코-루 + 오네가이시마스. 호텔 서비스.',
     componentIds: [237]
@@ -1413,7 +1413,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '열쇠를 방에 놓고 왔습니다.',
     hiragana: 'かぎをへやにわすれました。',
-    pron: '카기오 헤야니 와스레마시타.',
+    pron: '카기**오** 헤야**니** 와스레**마시타**.',
     example: '열쇠를 잊고 왔을 때',
     description: '카기(열쇠) + 와스레루(잊다). 트러블.',
     componentIds: [61]
@@ -1426,7 +1426,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '세탁 서비스는 있습니까?',
     hiragana: 'ランドリーサービスはありますか。',
-    pron: '란도리-사-비스와 아리마스카?',
+    pron: '란도리-사-비스**와** 아리**마스카**?',
     example: '세탁 서비스를 물을 때',
     description: '란도리-사-비스 + 아리마스카. 호텔 서비스.',
     componentIds: [239]
@@ -1439,7 +1439,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '매우 편안한 호텔이었습니다. 감사합니다.',
     hiragana: 'とてもかいてきなホテルでした。ありがとうございました。',
-    pron: '토테모 카이테키나 호테루데시타. 아리가토- 고자이마시타.',
+    pron: '토테모 카이테키**나** 호테루**데시타**. 아리가토- 고자이**마시타**.',
     example: '체크아웃 시 감사 인사',
     description: '카이테키(쾌적) + 아리가토-. 마무리 인사.',
     componentIds: []
@@ -1454,7 +1454,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '몸 상태가 안 좋습니다.',
     hiragana: 'たいちょうがわるいです。',
-    pron: '타이초-가 와루이데스.',
+    pron: '타이초-**가** 와루이**데스**.',
     example: '아플 때 상태를 말할 때',
     description: '타이초-(몸상태) + 와루이(나쁘다). 병원 첫 마디.',
     componentIds: [188]
@@ -1467,7 +1467,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '머리가 아픕니다.',
     hiragana: 'あたまがいたいです。',
-    pron: '아타마가 이타이데스.',
+    pron: '아타마**가** 이타이**데스**.',
     example: '증상을 말할 때',
     description: '아타마(머리) + 이타이(아프다). 증상 표현.',
     componentIds: []
@@ -1480,7 +1480,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '열이 있습니다.',
     hiragana: 'ねつがあります。',
-    pron: '네츠가 아리마스.',
+    pron: '네츠**가** 아리**마스**.',
     example: '발열을 알릴 때',
     description: '네츠(열) + 아리마스. 병원 빈출.',
     componentIds: [239]
@@ -1493,7 +1493,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '약을 먹어야 합니까?',
     hiragana: 'くすりをのまなければなりませんか。',
-    pron: '쿠스리오 노마나케레바 나리마셍카?',
+    pron: '쿠스리**오** 노마**나케레바** 나리**마셍카**?',
     example: '약 복용을 확인할 때',
     description: '쿠스리(약) + 노마나케레바(먹어야). 의무 질문.',
     componentIds: [22, 255]
@@ -1506,7 +1506,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '이틀 전부터 기침이 나옵니다.',
     hiragana: 'ふつかまえからせきがでます。',
-    pron: '후츠카마에카라 세키가 데마스.',
+    pron: '후츠카마에**카라** 세키**가** 데**마스**.',
     example: '증상 기간을 말할 때',
     description: '후츠카마에(이틀 전) + 카라(~부터). 증상 설명.',
     componentIds: []
@@ -1519,7 +1519,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '배가 아픕니다.',
     hiragana: 'おなかがいたいです。',
-    pron: '오나카가 이타이데스.',
+    pron: '오나카**가** 이타이**데스**.',
     example: '복통을 말할 때',
     description: '오나카(배) + 이타이(아프다). 복통.',
     componentIds: []
@@ -1532,7 +1532,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '약국은 어디에 있습니까?',
     hiragana: 'やっきょくはどこにありますか。',
-    pron: '얏쿄쿠와 도코니 아리마스카?',
+    pron: '얏쿄쿠**와** 도코**니** 아리**마스카**?',
     example: '약국 위치를 물을 때',
     description: '얏쿄쿠(약국) + 도코니 아리마스카.',
     componentIds: [239, 241]
@@ -1545,7 +1545,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '알레르기가 있어서 이 약은 먹을 수 없습니다.',
     hiragana: 'アレルギーがあるのでこのくすりはのめません。',
-    pron: '아레루기-가 아루노데 코노 쿠스리와 노메마셍.',
+    pron: '아레루기-**가** 아루**노데** 코노 쿠스리**와** 노메**마셍**.',
     example: '약 복용 불가를 알릴 때',
     description: '~노데(~이므로) + 노메나이(먹을 수 없다).',
     componentIds: [22, 252, 264]
@@ -1558,7 +1558,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '병원에 가고 싶습니다.',
     hiragana: 'びょういんにいきたいです。',
-    pron: '뵤-인니 이키타이데스.',
+    pron: '뵤-인**니** 이키타이**데스**.',
     example: '병원 방문 의향을 말할 때',
     description: '뵤-인(병원) + 이키타이(가고 싶다).',
     componentIds: [3, 235]
@@ -1571,7 +1571,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '보험증을 가지고 있습니다.',
     hiragana: 'ほけんしょうをもっています。',
-    pron: '호켄쇼-오 못테이마스.',
+    pron: '호켄쇼-**오** 못테이**마스**.',
     example: '보험증을 제시할 때',
     description: '호켄쇼-(보험증) + 못테이루(가지고 있다).',
     componentIds: [126, 247]
@@ -1584,7 +1584,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '언제쯤 나을까요?',
     hiragana: 'いつごろなおりますか。',
-    pron: '이츠고로 나오리마스카?',
+    pron: '이츠고로 나오리**마스카**?',
     example: '회복 시기를 물을 때',
     description: '이츠고로(언제쯤) + 나오루(낫다). 회복 확인.',
     componentIds: []
@@ -1597,7 +1597,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '감기약을 주세요.',
     hiragana: 'かぜぐすりをください。',
-    pron: '카제구스리오 쿠다사이.',
+    pron: '카제구스리**오** **쿠다사이**.',
     example: '약국에서 약을 살 때',
     description: '카제구스리(감기약) + 쿠다사이.',
     componentIds: [231]
@@ -1610,7 +1610,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '목이 아프고 콧물이 납니다.',
     hiragana: 'のどがいたくてはなみずがでます。',
-    pron: '노도가 이타쿠테 하나미즈가 데마스.',
+    pron: '노도**가** 이타쿠테 하나미즈**가** 데**마스**.',
     example: '복합 증상을 설명할 때',
     description: '노도(목) + 하나미즈(콧물). 증상 나열.',
     componentIds: []
@@ -1623,7 +1623,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '하루에 세 번 식후에 드세요.',
     hiragana: 'いちにちにさんかいしょくごにのんでください。',
-    pron: '이치니치니 산카이 쇼쿠고니 논데 쿠다사이.',
+    pron: '이치니치**니** 산카이 쇼쿠고**니** 논데 **쿠다사이**.',
     example: '약 복용 방법을 안내받을 때',
     description: '산카이(세 번) + 쇼쿠고(식후). 약 복용법.',
     componentIds: [22, 232]
@@ -1636,7 +1636,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '구급차를 불러 주세요!',
     hiragana: 'きゅうきゅうしゃをよんでください！',
-    pron: '큐-큐-샤오 욘데 쿠다사이!',
+    pron: '큐-큐-샤**오** 욘데 **쿠다사이**!',
     example: '긴급 상황에서',
     description: '큐-큐-샤(구급차). 긴급 표현. 반드시 암기.',
     componentIds: [232]
@@ -1651,7 +1651,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '오늘은 정말 덥네요.',
     hiragana: 'きょうはほんとうにあついですね。',
-    pron: '쿄-와 혼토-니 아츠이데스네.',
+    pron: '쿄-**와** 혼토-**니** 아츠이**데스네**.',
     example: '날씨 인사로 대화를 시작할 때',
     description: '날씨 인사 기본. 아츠이(덥다) + 네(~네요).',
     componentIds: [201]
@@ -1664,7 +1664,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '내일 비가 온다고 합니다.',
     hiragana: 'あしたあめがふるそうです。',
-    pron: '아시타 아메가 후루 소-데스.',
+    pron: '아시타 아메**가** 후루 소-**데스**.',
     example: '날씨 정보를 전달할 때',
     description: '아메가 후루(비가 오다) + 소-데스(~라 한다). 전문.',
     componentIds: [277]
@@ -1677,7 +1677,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '우산을 가져가는 편이 좋겠습니다.',
     hiragana: 'かさをもっていったほうがいいです。',
-    pron: '카사오 못테잇타 호-가 이이데스.',
+    pron: '카사**오** 못테잇타 호-**가** 이이**데스**.',
     example: '날씨 조언을 할 때',
     description: '카사(우산) + 못테이쿠(가지고 가다) + 호-가 이이.',
     componentIds: [126, 258]
@@ -1690,7 +1690,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '한국보다 일본이 더 습합니다.',
     hiragana: 'かんこくよりにほんのほうがむしあついです。',
-    pron: '칸코쿠요리 니혼노 호-가 무시아츠이데스.',
+    pron: '칸코쿠**요리** 니혼**노** 호-**가** 무시아츠이**데스**.',
     example: '날씨를 비교할 때',
     description: '~요리 ~노 호-가(~보다 ~이 더). 비교 표현.',
     componentIds: [207, 273]
@@ -1703,7 +1703,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '벚꽃은 4월이 가장 예쁩니다.',
     hiragana: 'さくらはしがつがいちばんきれいです。',
-    pron: '사쿠라와 시가츠가 이치방 키레-데스.',
+    pron: '사쿠라**와** 시가츠**가** 이치방 키레-**데스**.',
     example: '계절 정보를 말할 때',
     description: '이치방(가장) + 키레-(예쁘다). 최상급.',
     componentIds: [191, 274]
@@ -1716,7 +1716,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '시원해서 기분 좋습니다.',
     hiragana: 'すずしくてきもちがいいです。',
-    pron: '스즈시쿠테 키모치가 이이데스.',
+    pron: '스즈시쿠테 키모치**가** 이이**데스**.',
     example: '쾌적한 날씨를 말할 때',
     description: '스즈시이(시원하다) + 키모치가 이이(기분 좋다).',
     componentIds: [204, 187]
@@ -1729,7 +1729,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '눈이 많이 오고 있네요.',
     hiragana: 'ゆきがたくさんふっていますね。',
-    pron: '유키가 타쿠상 훗테이마스네.',
+    pron: '유키**가** 타쿠상 훗테이**마스네**.',
     example: '눈이 올 때',
     description: '유키(눈) + 타쿠상(많이) + 훗테이루(오고 있다).',
     componentIds: [247]
@@ -1744,7 +1744,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '내일 시간이 있습니까?',
     hiragana: 'あしたじかんがありますか。',
-    pron: '아시타 지칸가 아리마스카?',
+    pron: '아시타 지칸**가** 아리**마스카**?',
     example: '약속을 잡을 때',
     description: '지칸(시간) + 아리마스카(있습니까). 약속 첫 마디.',
     componentIds: [239]
@@ -1757,7 +1757,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '3시에 역 앞에서 만납시다.',
     hiragana: 'さんじにえきまえであいましょう。',
-    pron: '산지니 에키마에데 아이마쇼-.',
+    pron: '산지**니** 에키마에**데** 아이**마쇼-**.',
     example: '약속 장소와 시간을 정할 때',
     description: '산지(3시) + 에키마에(역 앞) + 아이마쇼-(만납시다).',
     componentIds: [96, 271]
@@ -1770,7 +1770,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '같이 밥 먹으러 가시겠어요?',
     hiragana: 'いっしょにごはんをたべにいきませんか。',
-    pron: '잇쇼니 고항오 타베니 이키마셍카?',
+    pron: '잇쇼**니** 고항**오** 타베**니** 이키**마셍카**?',
     example: '식사에 초대할 때',
     description: '잇쇼니(같이) + 타베니이쿠(먹으러 가다) + 마셍카.',
     componentIds: [21, 268, 270]
@@ -1783,7 +1783,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '죄송합니다, 그 날은 용무가 있습니다.',
     hiragana: 'すみません、そのひはようじがあります。',
-    pron: '스미마셍, 소노 히와 요-지가 아리마스.',
+    pron: '스미마셍, 소노 히**와** 요-지**가** 아리**마스**.',
     example: '약속을 거절할 때',
     description: '요-지(용무) + 아리마스. 정중한 거절.',
     componentIds: [239]
@@ -1796,7 +1796,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '약속 시간을 바꿔도 됩니까?',
     hiragana: 'やくそくのじかんをかえてもいいですか。',
-    pron: '야쿠소쿠노 지칸오 카에테모 이이데스카?',
+    pron: '야쿠소쿠**노** 지칸**오** 카에테**모** 이이**데스카**?',
     example: '약속 시간을 변경할 때',
     description: '야쿠소쿠(약속) + 카에루(바꾸다) + 테모이이데스카.',
     componentIds: [75, 100, 233]
@@ -1809,7 +1809,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '늦어서 죄송합니다.',
     hiragana: 'おくれてすみません。',
-    pron: '오쿠레테 스미마셍.',
+    pron: '오쿠레테 스미**마셍**.',
     example: '늦었을 때 사과',
     description: '오쿠레루(늦다) + 스미마셍(죄송합니다). 사과.',
     componentIds: []
@@ -1822,7 +1822,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '기대하고 있겠습니다.',
     hiragana: 'たのしみにしています。',
-    pron: '타노시미니 시테이마스.',
+    pron: '타노시미**니** 시테이**마스**.',
     example: '약속 후 기대를 표현할 때',
     description: '타노시미(기대) + 시테이마스. 약속 마무리.',
     componentIds: [45, 247]
@@ -1835,7 +1835,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '다음에 또 만납시다.',
     hiragana: 'こんどまたあいましょう。',
-    pron: '콘도 마타 아이마쇼-.',
+    pron: '콘도 마타 아이**마쇼-**.',
     example: '다음 만남을 약속할 때',
     description: '콘도(다음에) + 마타(또) + 아이마쇼-.',
     componentIds: [96, 271]
@@ -1848,7 +1848,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '토요일이 좋습니다. 일요일은 안 됩니다.',
     hiragana: 'どようびがいいです。にちようびはだめです。',
-    pron: '도요-비가 이이데스. 니치요-비와 다메데스.',
+    pron: '도요-비**가** 이이**데스**. 니치요-비**와** 다메**데스**.',
     example: '가능한 날짜를 말할 때',
     description: '이이(좋다) + 다메(안 되다). 일정 조율.',
     componentIds: [187]
@@ -1861,7 +1861,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '어디서 만날까요?',
     hiragana: 'どこであいましょうか。',
-    pron: '도코데 아이마쇼-카?',
+    pron: '도코**데** 아이**마쇼-카**?',
     example: '만남 장소를 정할 때',
     description: '도코데(어디서) + 아이마쇼-카(만날까요).',
     componentIds: [96, 271]
@@ -1876,7 +1876,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '대단히 감사합니다.',
     hiragana: 'どうもありがとうございます。',
-    pron: '도-모 아리가토- 고자이마스.',
+    pron: '도-모 아리가토- 고자이**마스**.',
     example: '감사를 표현할 때',
     description: '최정중 감사 표현. 도-모 + 아리가토- 고자이마스.',
     componentIds: []
@@ -1889,7 +1889,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '도와주셔서 감사합니다.',
     hiragana: 'たすけてくれてありがとうございます。',
-    pron: '타스케테 쿠레테 아리가토- 고자이마스.',
+    pron: '타스케테 **쿠레테** 아리가토- 고자이**마스**.',
     example: '도움에 감사할 때',
     description: '타스케루(도와주다) + 쿠레테(~해줘서) + 아리가토-.',
     componentIds: [107]
@@ -1902,7 +1902,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '정말 죄송합니다.',
     hiragana: 'ほんとうにすみません。',
-    pron: '혼토-니 스미마셍.',
+    pron: '혼토-**니** 스미**마셍**.',
     example: '진심으로 사과할 때',
     description: '혼토-니(정말) + 스미마셍. 강한 사과.',
     componentIds: []
@@ -1915,7 +1915,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '폐를 끼쳐서 죄송합니다.',
     hiragana: 'ごめいわくをおかけしてすみません。',
-    pron: '고메-와쿠오 오카케시테 스미마셍.',
+    pron: '고메-와쿠**오** 오카케시테 스미**마셍**.',
     example: '폐를 끼쳤을 때',
     description: '메-와쿠(폐) + 오카케시테(끼쳐서). 격식 사과.',
     componentIds: []
@@ -1928,7 +1928,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '가르쳐 주셔서 감사합니다.',
     hiragana: 'おしえてくれてありがとうございます。',
-    pron: '오시에테 쿠레테 아리가토- 고자이마스.',
+    pron: '오시에테 **쿠레테** 아리가토- 고자이**마스**.',
     example: '가르침에 감사할 때',
     description: '오시에루(가르치다) + 쿠레테. 학습·도움 감사.',
     componentIds: [58, 107]
@@ -1941,7 +1941,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '일본어가 서툴러서 죄송합니다.',
     hiragana: 'にほんごがへたですみません。',
-    pron: '니혼고가 헤타데 스미마셍.',
+    pron: '니혼고**가** 헤타**데** 스미**마셍**.',
     example: '언어 능력에 대해 사과할 때',
     description: '헤타(서투르다) + 스미마셍. 겸손 표현.',
     componentIds: []
@@ -1954,7 +1954,7 @@ export const sentences = [
     politeness: '정중체',
     meaning: '덕분에 도움이 됐습니다.',
     hiragana: 'おかげさまでたすかりました。',
-    pron: '오카게사마데 타스카리마시타.',
+    pron: '오카게사마**데** 타스카리**마시타**.',
     example: '도움을 받은 후 감사할 때',
     description: '오카게사마데(덕분에) + 타스카루(도움이 되다).',
     componentIds: []
