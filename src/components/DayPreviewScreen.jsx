@@ -145,9 +145,8 @@ export default function DayPreviewScreen({
   onBack,
 }) {
   // ── 필터 상태 ──────────────────────────────────────────────
-  const [includeKnown, setIncludeKnown] = useState(false);
+  const [includeKnown, setIncludeKnown] = useState(true);
   const [filterWord, setFilterWord]       = useState(true);
-  const [filterPattern, setFilterPattern] = useState(true);
   const [filterSentence, setFilterSentence] = useState(true);
 
   const selectedCount = dayPool.filter((w) => selectedWordIds.has(w.id)).length;
@@ -158,11 +157,11 @@ export default function DayPreviewScreen({
   const getMasteryCount = (w) => srsData[w.id]?.masteryCount ?? 0;
 
   // ── 필터 적용 함수 ────────────────────────────────────────
-  const applyFilters = (include, word, pattern, sentence) => {
+  const applyFilters = (include, word, sentence) => {
     const poolIds = new Set();
     dayPool.forEach((w) => {
       if (w.type === 'word' && !word) return;
-      if (w.type === 'pattern' && !pattern) return;
+      if (w.type === 'pattern') return; // 패턴 제외
       if (w.type === 'sentence' && !sentence) return;
       if (!include && isKnown(w)) return;
       poolIds.add(w.id);
@@ -174,18 +173,16 @@ export default function DayPreviewScreen({
   const handleToggleKnown = () => {
     const next = !includeKnown;
     setIncludeKnown(next);
-    applyFilters(next, filterWord, filterPattern, filterSentence);
+    applyFilters(next, filterWord, filterSentence);
   };
 
   const handleToggleType = (type) => {
-    let nextWord = filterWord, nextPattern = filterPattern, nextSentence = filterSentence;
+    let nextWord = filterWord, nextSentence = filterSentence;
     if (type === 'word') nextWord = !filterWord;
-    if (type === 'pattern') nextPattern = !filterPattern;
     if (type === 'sentence') nextSentence = !filterSentence;
     if (type === 'word') setFilterWord(nextWord);
-    if (type === 'pattern') setFilterPattern(nextPattern);
     if (type === 'sentence') setFilterSentence(nextSentence);
-    applyFilters(includeKnown, nextWord, nextPattern, nextSentence);
+    applyFilters(includeKnown, nextWord, nextSentence);
   };
 
   // ── 모르는/아는 분류 (타입 구분 없이 단일 리스트) ──────────
@@ -225,11 +222,6 @@ export default function DayPreviewScreen({
               label="단어"
               active={filterWord}
               onClick={() => handleToggleType('word')}
-            />
-            <FilterChip
-              label="패턴"
-              active={filterPattern}
-              onClick={() => handleToggleType('pattern')}
             />
             <FilterChip
               label="통문장"

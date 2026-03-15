@@ -7,7 +7,7 @@ import AiChatModal from './AiChatModal';
 
 // ─── 동적 폰트 사이즈 ────────────────────────────────────────────
 function getPronSizeClass(pron, type) {
-  const len = pron?.length ?? 0;
+  const len = (pron?.replace(/\*\*/g, '') ?? '').length;
   if (type === 'word') {
     if (len <= 4)  return 'text-6xl';
     if (len <= 7)  return 'text-5xl';
@@ -41,6 +41,23 @@ function getBlindMeaningSizeClass(meaning) {
   if (len <= 10) return 'text-2xl';
   if (len <= 18) return 'text-xl';
   return 'text-lg';
+}
+
+// ─── 통문장 발음 강조 렌더러 (**조사/어미** → bold+색상) ─────────────
+function PronText({ text, className = '' }) {
+  if (!text || !text.includes('**')) {
+    return <span className={className}>{text}</span>;
+  }
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**')
+          ? <span key={i} className="font-black text-sky-600">{part.slice(2, -2)}</span>
+          : part
+      )}
+    </span>
+  );
 }
 
 // ─── 정중체 뱃지 ──────────────────────────────────────────────────
@@ -229,35 +246,20 @@ function CardFront({ word, reverseMode, blindMode }) {
   const meaningSize = getMeaningSizeClass(word.meaning, word.type);
   const catMeta     = CATEGORY_META[word.type];
 
-  // ── 블라인드 모드 앞면: 우상단 소형 TTS 버튼 + 전체 탭 영역 ───
+  // ── 블라인드 모드 앞면: 중앙 대형 TTS 버튼 + 전체 탭 영역 ───
   if (blindMode) {
     return (
-      <div className="flex-1 flex flex-col w-full cursor-pointer">
-        {/* 우상단 소형 TTS 버튼 */}
-        <div className="flex justify-end px-3 pt-3 gap-1">
-          <button
-            onClick={(e) => { e.stopPropagation(); speakText(word.hiragana, { rate: 1.0 }); }}
-            title="일반 속도 재생"
-            aria-label="일반 속도 재생"
-            className="p-1.5 rounded-lg bg-sky-50 text-sky-400 hover:bg-sky-100 hover:text-sky-600 transition-colors"
-          >
-            <Volume2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); speakText(word.hiragana, { rate: 0.7 }); }}
-            title="천천히 재생"
-            aria-label="천천히 재생"
-            className="p-1.5 rounded-lg bg-violet-50 text-violet-400 hover:bg-violet-100 hover:text-violet-600 transition-colors"
-          >
-            <Volume1 className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="flex-1 flex flex-col items-center justify-center p-8 w-full">
-          <Volume2 className="w-16 h-16 text-sky-100 mb-4" />
-          <span className="text-2xl font-bold text-slate-200 select-none">탭하여 뜻 확인</span>
-          <span className="text-xs text-slate-300 mt-2">화면 아무데나 탭하세요</span>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 w-full cursor-pointer">
+        <button
+          onClick={(e) => { e.stopPropagation(); speakText(word.hiragana, { rate: 1.0 }); }}
+          title="다시 듣기"
+          aria-label="다시 듣기"
+          className="w-20 h-20 rounded-full bg-sky-50 text-sky-400 hover:bg-sky-100 hover:text-sky-600 active:scale-95 transition-all flex items-center justify-center mb-5 shadow-sm border border-sky-100"
+        >
+          <Volume2 className="w-10 h-10" />
+        </button>
+        <span className="text-2xl font-bold text-slate-200 select-none">탭하여 뜻 확인</span>
+        <span className="text-xs text-slate-300 mt-2">화면 아무데나 탭하세요</span>
       </div>
     );
   }
@@ -296,7 +298,7 @@ function CardFront({ word, reverseMode, blindMode }) {
           group-hover:scale-105 transition-transform leading-tight w-full`}
         style={{ overflowWrap: 'anywhere' }}
       >
-        {word.pron}
+        {word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron}
       </h2>
       <span className="text-lg font-medium text-slate-300 mb-6 text-center">
         {word.hiragana}
@@ -346,7 +348,7 @@ function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onD
 
           {/* pron */}
           <p className="text-sm font-medium text-slate-400 break-keep text-center mb-3">
-            {word.pron}
+            {word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron}
           </p>
 
           {/* meaning */}
@@ -389,14 +391,16 @@ function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onD
             {word.hiragana}
           </span>
           <span className="text-slate-400 font-medium block text-xs mb-3 break-keep">
-            [{word.pron}]
+            [{word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron}]
           </span>
           <div className="flex items-center justify-center gap-2">
             <h2
               className={`${reverseMode ? pronSize : meaningSize} font-extrabold text-slate-800 break-keep break-words leading-snug`}
               style={{ overflowWrap: 'anywhere' }}
             >
-              {reverseMode ? word.pron : word.meaning}
+              {reverseMode
+                ? (word.type === 'sentence' ? <PronText text={word.pron} /> : word.pron)
+                : word.meaning}
             </h2>
             <PolitenessTag politeness={word.politeness} />
           </div>

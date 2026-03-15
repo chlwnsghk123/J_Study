@@ -1,4 +1,5 @@
-import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight, Trash2 } from 'lucide-react';
 import { TOTAL_DAYS, getDayBasePool } from '../lib/curriculum';
 
 // ─── 토글 스위치 ─────────────────────────────────────────────────
@@ -36,14 +37,14 @@ function SettingsPanel({ settings, onSettingsChange }) {
 
 // ─── Day 선택기 ──────────────────────────────────────────────────
 function DaySelector({ currentDay, onDayChange, dayPool }) {
-  const total  = dayPool.length;
-  const wCount = dayPool.filter((w) => w.type === 'word').length;
-  const pCount = dayPool.filter((w) => w.type === 'pattern').length;
-  const sCount = dayPool.filter((w) => w.type === 'sentence').length;
+  // 패턴 제외 — 단어 + 통문장만
+  const filtered = dayPool.filter((w) => w.type !== 'pattern');
+  const total  = filtered.length;
+  const wCount = filtered.filter((w) => w.type === 'word').length;
+  const sCount = filtered.filter((w) => w.type === 'sentence').length;
 
   // 구성 비율 (inline style — Tailwind 동적 클래스 불가)
   const wPct = total > 0 ? (wCount / total) * 100 : 0;
-  const pPct = total > 0 ? (pCount / total) * 100 : 0;
   const sPct = total > 0 ? (sCount / total) * 100 : 0;
 
   return (
@@ -100,7 +101,6 @@ function DaySelector({ currentDay, onDayChange, dayPool }) {
       {/* 구성 비율 바 */}
       <div className="flex h-2 rounded-full overflow-hidden bg-slate-100 mb-2">
         {wPct > 0 && <div className="bg-sky-400 h-full" style={{ width: `${wPct}%` }} />}
-        {pPct > 0 && <div className="bg-violet-400 h-full" style={{ width: `${pPct}%` }} />}
         {sPct > 0 && <div className="bg-emerald-400 h-full" style={{ width: `${sPct}%` }} />}
       </div>
 
@@ -111,17 +111,75 @@ function DaySelector({ currentDay, onDayChange, dayPool }) {
           단어 <b>{wCount}</b>
         </span>
         <span className="flex items-center gap-1 text-xs text-slate-600">
-          <span className="w-2 h-2 rounded-full bg-violet-400 shrink-0 inline-block" />
-          패턴 <b>{pCount}</b>
-        </span>
-        <span className="flex items-center gap-1 text-xs text-slate-600">
           <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 inline-block" />
           통문장 <b>{sCount}</b>
         </span>
-        <span className="ml-auto text-[10px] font-semibold text-violet-500 whitespace-nowrap">
-          +1 중요 패턴
-        </span>
       </div>
+    </div>
+  );
+}
+
+// ─── 관리 설정 메뉴 ──────────────────────────────────────────────
+function ManageMenu({ onResetAll }) {
+  const [showMenu, setShowMenu] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleReset = () => {
+    onResetAll();
+    setShowConfirm(false);
+    setShowMenu(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowMenu(!showMenu)}
+        title="관리 설정"
+        aria-label="관리 설정"
+        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+      >
+        <Settings className="w-4 h-4" />
+      </button>
+
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setShowMenu(false)} />
+          <div className="absolute right-0 top-8 z-40 bg-white rounded-xl shadow-lg border border-slate-200 py-2 min-w-[160px]">
+            <button
+              onClick={() => { setShowMenu(false); setShowConfirm(true); }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              전체 초기화
+            </button>
+          </div>
+        </>
+      )}
+
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="text-base font-bold text-slate-800 mb-2">전체 초기화</h3>
+            <p className="text-sm text-slate-500 mb-5">
+              모든 학습 기록(SRS 데이터, 설정, 진행 상황)이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleReset}
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold text-sm transition-colors"
+              >
+                초기화
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -135,15 +193,19 @@ export default function HomeScreen({
   onSettingsChange,
   onStart,
   onShowBrowse,
+  onResetAll,
 }) {
   return (
     <div className="min-h-screen bg-sky-50 flex flex-col items-center py-8 px-4 font-sans">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-6 border-t-8 border-sky-400">
 
         {/* 헤더 */}
-        <div className="flex items-center justify-center gap-2 mb-1">
+        <div className="flex items-center justify-center gap-2 mb-1 relative">
           <BrainCircuit className="w-8 h-8 text-sky-500" />
           <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">JFlash</h1>
+          <div className="absolute right-0 top-0">
+            <ManageMenu onResetAll={onResetAll} />
+          </div>
         </div>
         <p className="text-slate-400 text-center text-xs mb-5">
           일본어 소리 반사 훈련 · 430장 · 43일 커리큘럼
