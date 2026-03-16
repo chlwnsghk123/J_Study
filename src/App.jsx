@@ -148,9 +148,6 @@ export default function App() {
   const [failCount, setFailCount] = useState({});
   const [showAnswer, setShowAnswer]   = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  const [animateCard, setAnimateCard] = useState(false);
-  const [slideDirection, setSlideDirection] = useState(null); // 'left' | 'right' | null
-  const [cardEntering, setCardEntering] = useState(false);
   const [totalActive, setTotalActive] = useState(0);
 
   // ── Toast ───────────────────────────────────────────────────
@@ -504,128 +501,114 @@ export default function App() {
     if (queue.length === 0) return;
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
-    setSlideDirection(actionType === 'know' ? 'right' : 'left');
-    setAnimateCard(true);
-
     // 시간 초과 플래그 스냅샷
     const timedOut = overTimeRef.current;
     overTimeRef.current = false;
 
-    setTimeout(() => {
-      const current   = queue[0];
-      let newQueue    = queue.slice(1);
-      let newMastered = [...mastered];
+    const current   = queue[0];
+    let newQueue    = queue.slice(1);
+    let newMastered = [...mastered];
 
-      // ── 히스토리 기록 (되돌리기용, 최대 50개) ──────────────
-      const MAX_HISTORY = 50;
-      setHistoryStack((s) => {
-        const next = [...s, {
-          card: current,
-          mastered: [...mastered],
-          failCount: { ...failCount },
-          srsSnapshot: srsData[current.id] ?? null,
-        }];
-        return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
+    // ── 히스토리 기록 (되돌리기용, 최대 50개) ──────────────
+    const MAX_HISTORY = 50;
+    setHistoryStack((s) => {
+      const next = [...s, {
+        card: current,
+        mastered: [...mastered],
+        failCount: { ...failCount },
+        srsSnapshot: srsData[current.id] ?? null,
+      }];
+      return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
+    });
+
+    if (timedOut) {
+      // ── 시간 초과: 큐 맨 끝으로 이동 (SRS 미갱신, masteryCount 유지)
+      newQueue = [...newQueue, current];
+      showToast('시간 초과 — 카드 보류됨');
+
+    } else if (actionType === 'know') {
+      // ── 1회 즉시 마스터 (item 2)
+      setSrsData((prev) => {
+        const rec = prev[current.id] ?? { masteryCount: 0 };
+        const next = {
+          masteryCount: rec.masteryCount + 1,
+          nextReview:   getSRSNextDate(rec.masteryCount + 1),
+        };
+        const updated = { ...prev, [current.id]: next };
+        saveLS(LS.SRS, updated);
+        return updated;
+      });
+      newMastered.push(current);
+      setFailCount((p) => { const n = { ...p }; delete n[current.id]; return n; });
+
+    } else {
+      // ── 오답 처리
+      setSrsData((prev) => {
+        const rec = prev[current.id] ?? { masteryCount: 0 };
+        const newCount = Math.max(rec.masteryCount - 1, 0);
+        const updated = {
+          ...prev,
+          [current.id]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },
+        };
+        saveLS(LS.SRS, updated);
+        return updated;
       });
 
-      if (timedOut) {
-        // ── 시간 초과: 큐 맨 끝으로 이동 (SRS 미갱신, masteryCount 유지)
-        newQueue = [...newQueue, current];
-        showToast('시간 초과 — 카드 보류됨');
+      const currentFail = (failCount[current.id] ?? 0) + 1;
+      setFailCount((p) => ({ ...p, [current.id]: currentFail }));
 
-      } else if (actionType === 'know') {
-        // ── 1회 즉시 마스터 (item 2)
-        setSrsData((prev) => {
-          const rec = prev[current.id] ?? { masteryCount: 0 };
-          const next = {
-            masteryCount: rec.masteryCount + 1,
-            nextReview:   getSRSNextDate(rec.masteryCount + 1),
-          };
-          const updated = { ...prev, [current.id]: next };
-          saveLS(LS.SRS, updated);
-          return updated;
-        });
-        newMastered.push(current);
-        setFailCount((p) => { const n = { ...p }; delete n[current.id]; return n; });
-
+      // ── 3회 이상 실패 → pass (재삽입 없이 건너뛰기)
+      if (currentFail >= 3) {
+        showToast('3회 오답 — 다음 카드로 넘어갑니다');
       } else {
-        // ── 오답 처리
-        setSrsData((prev) => {
-          const rec = prev[current.id] ?? { masteryCount: 0 };
-          const newCount = Math.max(rec.masteryCount - 1, 0);
-          const updated = {
-            ...prev,
-            [current.id]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },
-          };
-          saveLS(LS.SRS, updated);
-          return updated;
-        });
-
-        const currentFail = (failCount[current.id] ?? 0) + 1;
-        setFailCount((p) => ({ ...p, [current.id]: currentFail }));
-
-        // ── 3회 이상 실패 → pass (재삽입 없이 건너뛰기)
-        if (currentFail >= 3) {
-          showToast('3회 오답 — 다음 카드로 넘어갑니다');
-        } else {
-          // 반의어 함께 재삽입
-          let antonym = null;
-          if (current.type === 'word' && current.antonymId && selectedWordIds.has(current.antonymId)) {
-            const antId = current.antonymId;
-            const mIdx  = newMastered.findIndex((w) => w.id === antId);
-            if (mIdx !== -1) antonym = newMastered.splice(mIdx, 1)[0];
+        // 반의어 함께 재삽입
+        let antonym = null;
+        if (current.type === 'word' && current.antonymId && selectedWordIds.has(current.antonymId)) {
+          const antId = current.antonymId;
+          const mIdx  = newMastered.findIndex((w) => w.id === antId);
+          if (mIdx !== -1) antonym = newMastered.splice(mIdx, 1)[0];
+          else {
+            const qIdx = newQueue.findIndex((w) => w.id === antId);
+            if (qIdx !== -1) antonym = newQueue.splice(qIdx, 1)[0];
             else {
-              const qIdx = newQueue.findIndex((w) => w.id === antId);
-              if (qIdx !== -1) antonym = newQueue.splice(qIdx, 1)[0];
-              else {
-                // Fallback: 패스 등으로 세션에서 제거된 경우 wordData에서 직접 주입
-                const fromData = wordData.find((w) => w.id === antId);
-                if (fromData) antonym = fromData;
-              }
+              // Fallback: 패스 등으로 세션에서 제거된 경우 wordData에서 직접 주입
+              const fromData = wordData.find((w) => w.id === antId);
+              if (fromData) antonym = fromData;
             }
           }
-
-          // 의존성 주입: componentIds를 큐 5~10번째에 삽입
-          if (current.componentIds?.length > 0) {
-            current.componentIds.forEach((cid) => {
-              const comp = wordData.find((w) => w.id === cid);
-              if (comp && !newQueue.find((w) => w.id === cid) && !newMastered.find((w) => w.id === cid)) {
-                const filled = fillSlots(comp, newMastered);
-                const at = Math.min(Math.floor(Math.random() * 6) + 5, newQueue.length);
-                newQueue = [...newQueue.slice(0, at), filled, ...newQueue.slice(at)];
-              }
-            });
-          }
-
-          // 현재 카드 재삽입 (+3~+5)
-          const insertAt = Math.min(Math.floor(Math.random() * 3) + 3, newQueue.length);
-          newQueue = [
-            ...newQueue.slice(0, insertAt),
-            current,
-            ...(antonym ? [antonym] : []),
-            ...newQueue.slice(insertAt),
-          ];
         }
+
+        // 의존성 주입: componentIds를 큐 5~10번째에 삽입
+        if (current.componentIds?.length > 0) {
+          current.componentIds.forEach((cid) => {
+            const comp = wordData.find((w) => w.id === cid);
+            if (comp && !newQueue.find((w) => w.id === cid) && !newMastered.find((w) => w.id === cid)) {
+              const filled = fillSlots(comp, newMastered);
+              const at = Math.min(Math.floor(Math.random() * 6) + 5, newQueue.length);
+              newQueue = [...newQueue.slice(0, at), filled, ...newQueue.slice(at)];
+            }
+          });
+        }
+
+        // 현재 카드 재삽입 (+3~+5)
+        const insertAt = Math.min(Math.floor(Math.random() * 3) + 3, newQueue.length);
+        newQueue = [
+          ...newQueue.slice(0, insertAt),
+          current,
+          ...(antonym ? [antonym] : []),
+          ...newQueue.slice(insertAt),
+        ];
       }
+    }
 
-      // 슬롯 치환: 큐 첫 번째 카드에 적용
-      const filledQueue = newQueue.length > 0
-        ? [fillSlots(newQueue[0], newMastered), ...newQueue.slice(1)]
-        : newQueue;
+    // 슬롯 치환: 큐 첫 번째 카드에 적용
+    const filledQueue = newQueue.length > 0
+      ? [fillSlots(newQueue[0], newMastered), ...newQueue.slice(1)]
+      : newQueue;
 
-      setQueue(filledQueue);
-      setMastered(newMastered);
-      setShowAnswer(false);
-      setAnimateCard(false);
-      setSlideDirection(null);
-      // 새 카드 입장 애니메이션
-      setCardEntering(true);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => setCardEntering(false), 220);
-        });
-      });
-    }, 200);
+    setQueue(filledQueue);
+    setMastered(newMastered);
+    setShowAnswer(false);
   };
 
   // ref 갱신 (stale closure 방지)
@@ -642,41 +625,29 @@ export default function App() {
     if (queue.length === 0) return;
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
-    setSlideDirection('right');
-    setAnimateCard(true);
     overTimeRef.current = false;
 
-    setTimeout(() => {
-      // ── 히스토리 기록 (되돌리기용) ──────────────────────
-      const current = queue[0];
-      const MAX_HISTORY = 50;
-      setHistoryStack((s) => {
-        const next = [...s, {
-          card: current,
-          mastered: [...mastered],
-          failCount: { ...failCount },
-          srsSnapshot: srsData[current.id] ?? null,
-        }];
-        return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
-      });
+    // ── 히스토리 기록 (되돌리기용) ──────────────────────
+    const current = queue[0];
+    const MAX_HISTORY = 50;
+    setHistoryStack((s) => {
+      const next = [...s, {
+        card: current,
+        mastered: [...mastered],
+        failCount: { ...failCount },
+        srsSnapshot: srsData[current.id] ?? null,
+      }];
+      return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
+    });
 
-      const newQueue = queue.slice(1); // 큐에서 완전 제거
-      const filledQueue = newQueue.length > 0
-        ? [fillSlots(newQueue[0], mastered), ...newQueue.slice(1)]
-        : newQueue;
+    const newQueue = queue.slice(1); // 큐에서 완전 제거
+    const filledQueue = newQueue.length > 0
+      ? [fillSlots(newQueue[0], mastered), ...newQueue.slice(1)]
+      : newQueue;
 
-      showToast('패스 — 이번 학습에서 제외');
-      setQueue(filledQueue);
-      setShowAnswer(false);
-      setAnimateCard(false);
-      setSlideDirection(null);
-      setCardEntering(true);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => setCardEntering(false), 220);
-        });
-      });
-    }, 200);
+    showToast('패스 — 이번 학습에서 제외');
+    setQueue(filledQueue);
+    setShowAnswer(false);
   };
 
   // ── 수동 마스터 토글 (체크 아이콘, 확인 다이얼로그 경유) ─────
@@ -812,9 +783,6 @@ export default function App() {
       <WordCard
         word={currentWord}
         showAnswer={showAnswer}
-        animateCard={animateCard}
-        slideDirection={slideDirection}
-        cardEntering={cardEntering}
         selectedWordIds={selectedWordIds}
         onFlip={handleFlip}
         onKnow={handleKnow}

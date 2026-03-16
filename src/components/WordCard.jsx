@@ -464,9 +464,6 @@ function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onD
 export default function WordCard({
   word,
   showAnswer,
-  animateCard,
-  slideDirection,
-  cardEntering = false,
   selectedWordIds,
   onFlip,
   onKnow,
@@ -509,10 +506,10 @@ export default function WordCard({
   // TTS 자동 재생: 기본=앞면, 리버스=뒷면(일본어 표시 시)
   useTTS(word.hiragana, reverseMode ? showAnswer : !showAnswer);
 
-  // 드래그 스와이프: 왼쪽=되돌리기, 오른쪽=패스 (AI 모달 열려있을 때 비활성)
+  // 드래그 스와이프: 왼쪽=패스, 오른쪽=되돌리기 (AI 모달 열려있을 때 비활성)
   const { handlers: dragHandlers, dragX, isDragging, progress, direction: dragDirection, didMove } = useDrag({
-    onSwipeRight: () => { setEnableFlipTransition(false); onPass?.(); },
-    onSwipeLeft:  () => { setEnableFlipTransition(false); onUndo?.(); },
+    onSwipeRight: () => { setEnableFlipTransition(false); onUndo?.(); },
+    onSwipeLeft:  () => { setEnableFlipTransition(false); onPass?.(); },
     enabled: !showAiModal,
   });
 
@@ -549,7 +546,7 @@ export default function WordCard({
         {/* ── 드래그 방향 피드백 — 좌우 반반 분할 배경 ── */}
         {isDragging && (
           <>
-            {/* 왼쪽 절반 = 되돌리기 */}
+            {/* 왼쪽 절반 = 패스 */}
             <motion.div
               className="absolute inset-y-0 left-0 w-1/2 rounded-l-3xl flex items-center justify-center pointer-events-none z-0"
               style={{ backgroundColor: 'rgba(100, 116, 139, 0.12)' }}
@@ -558,11 +555,11 @@ export default function WordCard({
               initial={{ opacity: 0 }}
             >
               <div className="flex flex-col items-center gap-2">
-                <span className="text-3xl">↩️</span>
-                <span className="text-base font-bold text-slate-600">되돌리기</span>
+                <span className="text-3xl">⏭️</span>
+                <span className="text-base font-bold text-slate-600">패스</span>
               </div>
             </motion.div>
-            {/* 오른쪽 절반 = 패스 */}
+            {/* 오른쪽 절반 = 되돌리기 */}
             <motion.div
               className="absolute inset-y-0 right-0 w-1/2 rounded-r-3xl flex items-center justify-center pointer-events-none z-0"
               style={{ backgroundColor: 'rgba(100, 116, 139, 0.12)' }}
@@ -571,8 +568,8 @@ export default function WordCard({
               initial={{ opacity: 0 }}
             >
               <div className="flex flex-col items-center gap-2">
-                <span className="text-3xl">⏭️</span>
-                <span className="text-base font-bold text-slate-600">패스</span>
+                <span className="text-3xl">↩️</span>
+                <span className="text-base font-bold text-slate-600">되돌리기</span>
               </div>
             </motion.div>
           </>
@@ -581,12 +578,8 @@ export default function WordCard({
         <div
           className={`flip-card-inner
             ${showAnswer ? 'flipped' : ''}
-            ${enableFlipTransition && !isDragging && !cardEntering ? 'flip-transition' : ''}
-            ${animateCard && slideDirection === 'right' ? (showAnswer ? 'slide-right-back' : 'slide-right-front') : ''}
-            ${animateCard && slideDirection === 'left' ? (showAnswer ? 'slide-left-back' : 'slide-left-front') : ''}
-            ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}
-            ${cardEntering ? 'card-entering' : ''}
-            ${!isDragging && dragX === 0 && enableFlipTransition && !animateCard && !cardEntering ? 'snap-back' : ''}`}
+            ${enableFlipTransition && !isDragging ? 'flip-transition' : ''}
+            ${!isDragging && dragX === 0 && enableFlipTransition ? 'snap-back' : ''}`}
           style={isDragging ? dragStyle : {}}
           onClick={(isDragging || didMove.current) ? undefined : onFlip}
         >
