@@ -34,50 +34,8 @@
   transform: rotateY(180deg);
 }
 
-/* ─── 카드 슬라이드 퇴장 애니메이션 ──────────────────────────── */
-/* 뒷면(flipped) 슬라이드 — rotateY(180deg)가 X축 미러링 */
-.flip-card-inner.slide-right-back {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transform: rotateY(180deg) translateX(-60px);
-  opacity: 0;
-}
-
-.flip-card-inner.slide-left-back {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transform: rotateY(180deg) translateX(60px);
-  opacity: 0;
-}
-
-/* 앞면 슬라이드 */
-.flip-card-inner.slide-right-front {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transform: translateX(60px);
-  opacity: 0;
-}
-
-.flip-card-inner.slide-left-front {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transform: translateX(-60px);
-  opacity: 0;
-}
-
 /* ─── 드래그 해제 후 스냅백 ──────────────────────────────────── */
 .flip-card-inner.snap-back {
   transition: transform 0.25s ease;
 }
 
-/* ─── 새 카드 입장 애니메이션 ─────────────────────────────────── */
-@keyframes card-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.flip-card-inner.card-entering {
-  animation: card-enter 0.2s ease-out forwards;
-}

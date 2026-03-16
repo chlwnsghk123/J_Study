@@ -72,7 +72,7 @@ CATEGORY_META = {
 | `src/components/CompletionScreen.jsx` | 학습 완료 화면 — 완료 메시지, 첫 화면 복귀 버튼 |
 | `src/components/ProgressBar.jsx` | 얇은 진행 바 (`h-1.5`), 마스터 수 / 전체 수 표시 |
 | `src/components/BrowseScreen.jsx` | 전체 단어 탐색 화면 |
-| `src/index.css` | Tailwind 임포트, 3D 플립 애니메이션, 슬라이드 퇴장, 드래그 스냅백, 카드 입장 애니메이션 CSS |
+| `src/index.css` | Tailwind 임포트, 3D 플립 애니메이션, 드래그 스냅백 CSS |
 | `src/data/index.js` | 전체 wordData 통합, CATEGORY_META, TYPE_META |
 | `public/` | PWA manifest, 파비콘, 앱 아이콘, OG 이미지 |
 | `index.html` | PWA 메타 태그, Open Graph, Twitter Card |
@@ -104,7 +104,7 @@ CATEGORY_META = {
 - `failCount[cardId]`로 세션 내 실패 횟수 추적, 게임 종료 시 초기화
 
 ### 패스 (스와이프 제외)
-- 오른쪽 드래그 스와이프 → 현재 카드를 이번 세션 큐에서 **완전 제거** (SRS 변경 없음)
+- 왼쪽 드래그 스와이프 → 현재 카드를 이번 세션 큐에서 **완전 제거** (SRS 변경 없음)
 - 학습 효과 없이 건너뛸 때 사용 — masteryCount, nextReview 모두 변경 없음
 - **되돌리기 가능**: 패스 시에도 `historyStack`에 기록 → 왼쪽 스와이프로 패스한 카드 복원 가능 (연속 패스도 역순 복원)
 
@@ -137,20 +137,18 @@ CATEGORY_META = {
   - 카드 전환 시 `requestAnimationFrame` 2프레임으로 플립 트랜지션 일시 해제 (뒤→앞 역재생 방지)
 - **드래그 스와이프 (앞면·뒷면 모두, 모바일+PC)**:
   - 카드를 손가락/마우스로 끌어서 이동
-  - 오른쪽 드래그 → **패스** (이번 세션에서 제외, SRS 변경 없음)
-  - 왼쪽 드래그 → **되돌리기** (이전 카드 복원, SRS 롤백, 히스토리 최대 50개)
+  - 왼쪽 드래그 → **패스** (이번 세션에서 제외, SRS 변경 없음)
+  - 오른쪽 드래그 → **되돌리기** (이전 카드 복원, SRS 롤백, 히스토리 최대 50개)
   - AI 모달 열린 상태에서 드래그 비활성
   - **영역 기반 드래그 피드백**: 카드 뒤 배경을 좌우 반반 분할
-    - 오른쪽 절반: 회색 배경 + `⏭️ 패스` — 드래그 거리에 비례해 opacity 증가
-    - 왼쪽 절반: 회색 배경 + `↩️ 되돌리기` — 드래그 거리에 비례해 opacity 증가
+    - 왼쪽 절반: 회색 배경 + `⏭️ 패스` — 드래그 거리에 비례해 opacity 증가
+    - 오른쪽 절반: 회색 배경 + `↩️ 되돌리기` — 드래그 거리에 비례해 opacity 증가
     - `framer-motion`으로 부드러운 opacity 전환 (`duration: 0.1s`)
   - 임계값(80px) 미달 시 스냅백 애니메이션
   - `rotateY(180deg)` 상태에서 `translateX` 미러링 보정 (`-dragX`)
   - `touch-action: pan-y` + `e.preventDefault()` 로 브라우저 기본 스와이프(뒤로가기) 차단
   - 드래그/스크롤 시 클릭(플립) 방지 (`didMove` ref)
-- **슬라이드 퇴장 + 입장 애니메이션**:
-  - 퇴장: 앎→오른쪽, 모름→왼쪽 슬라이드 (0.2초), 앞면/뒷면 별도 CSS 클래스 (rotateY 미러링 보정)
-  - 입장: `scale(0.92)→1` + `opacity 0→1` 페이드인 (0.2초, `card-entering` CSS 클래스)
+- **카드 전환**: 애니메이션 없음 — 다음 카드 즉시 표시 (눈 피로 방지)
 - **명시적 액션 버튼 (뒷면 하단)**:
   - `❌ 모름` (bg-rose-500) / `⭕ 앎` (bg-emerald-500) 양쪽 나란히 배치
   - PC·모바일 공통 사용
