@@ -65,8 +65,8 @@ function isDueToday(wordId, srsData) {
 function fillSlots(word, masteredWords) {
   if (!word.pron?.includes('[') && !word.hiragana?.includes('[')) return word;
 
-  const pickRandom = (arr) => arr.length
-    ? arr[Math.floor(Math.random() * arr.length)]
+  const pickByIndex = (arr, seed) => arr.length
+    ? arr[seed % arr.length]
     : null;
 
   const verbs = masteredWords.filter((w) => w.tags?.[0] === '#동사');
@@ -74,9 +74,9 @@ function fillSlots(word, masteredWords) {
 
   let pron     = word.pron ?? '';
   let hiragana = word.hiragana ?? '';
-  const v   = pickRandom(verbs);
-  const a   = pickRandom(adjs);
-  const any = pickRandom(masteredWords);
+  const v   = pickByIndex(verbs, word.id);
+  const a   = pickByIndex(adjs, word.id + 1);
+  const any = pickByIndex(masteredWords, word.id + 2);
 
   if (v)   { pron = pron.replace(/\[VERB\]/g, v.pron);   hiragana = hiragana.replace(/\[VERB\]/g, v.hiragana); }
   if (a)   { pron = pron.replace(/\[ADJ\]/g,  a.pron);   hiragana = hiragana.replace(/\[ADJ\]/g,  a.hiragana); }
@@ -170,6 +170,7 @@ export default function App() {
   // ── 시간 초과 시스템 refs (item 9) ──────────────────────────
   const cardStartTimeRef = useRef(null); // 앞면 노출 시각
   const overTimeRef      = useRef(false); // 초과 플래그
+  const answerSeenRef    = useRef(false); // 현재 카드 뒷면 열람 여부
 
   // ── 전체 초기화 ─────────────────────────────────────────────
   const handleResetAll = () => {
@@ -192,6 +193,7 @@ export default function App() {
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
     overTimeRef.current = false;
+    answerSeenRef.current = false;
   };
 
   // ── Toast 헬퍼 ───────────────────────────────────────────────
@@ -236,11 +238,19 @@ export default function App() {
   const buildQueue = (pool) => {
     let active = [...pool];
 
-    // 1. SRS 필터: 오늘 복습 예정만 (기록 충분 시)
+    // 1. SRS 필터: 오늘 복습 예정만 (기록 충분 시, 최소 5개 보장)
     const hasSRS = Object.keys(srsData).length >= 5;
     if (hasSRS) {
       const due = active.filter((w) => isDueToday(w.id, srsData));
-      if (due.length >= 3) active = due;
+      if (due.length >= 3) {
+        const MIN_POOL = 5;
+        if (due.length >= MIN_POOL) {
+          active = due;
+        } else {
+          const nonDue = shuffle(active.filter((w) => !isDueToday(w.id, srsData)));
+          active = [...due, ...nonDue.slice(0, MIN_POOL - due.length)];
+        }
+      }
     }
 
     setTotalActive(active.length);
@@ -297,6 +307,7 @@ export default function App() {
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
     overTimeRef.current = false;
+    answerSeenRef.current = false;
   };
 
   // ── 게임 시작 — HomeScreen (Day N 시작 → day-preview로 이동) ─
@@ -364,6 +375,12 @@ export default function App() {
       if (!showAnswer) setHcTimeLeft(null);
       return;
     }
+    // 이미 뒷면을 본 카드는 타이머 재시작 안 함 (뒤→앞 재플립 악용 방지)
+    if (answerSeenRef.current) {
+      clearInterval(hcRef.current);
+      setHcTimeLeft(null);
+      return;
+    }
     const duration = queue[0].type === 'word' ? 3 : 7;
     startHCTimer(duration);
     return () => clearInterval(hcRef.current);
@@ -399,8 +416,9 @@ export default function App() {
     overTimeRef.current = false;
   }, [queue[0]?.id, showAnswer, gameStarted]);
 
-  // ── 카드 전환 시 AI 채팅 기록 초기화 ──────────────────────
+  // ── 카드 전환 시 answerSeen 리셋 + AI 채팅 기록 초기화 ───
   useEffect(() => {
+    answerSeenRef.current = false;
     setAiMessages([]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue[0]?.id]);
@@ -418,6 +436,7 @@ export default function App() {
       // 앞→뒤: 하드코어 타이머 정지 + 오버타임 체크
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
+      answerSeenRef.current = true;
 
       if (cardStartTimeRef.current && queue.length > 0) {
         const t = queue[0].type;
@@ -467,6 +486,7 @@ export default function App() {
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
     overTimeRef.current = false;
+    answerSeenRef.current = false;
     // SRS 롤백
     if (prev.srsSnapshot !== undefined) {
       setSrsData((cur) => {
@@ -496,13 +516,17 @@ export default function App() {
       let newQueue    = queue.slice(1);
       let newMastered = [...mastered];
 
-      // ── 히스토리 기록 (되돌리기용) ────────────────────────
-      setHistoryStack((s) => [...s, {
-        card: current,
-        mastered: [...mastered],
-        failCount: { ...failCount },
-        srsSnapshot: srsData[current.id] ?? null,
-      }]);
+      // ── 히스토리 기록 (되돌리기용, 최대 50개) ──────────────
+      const MAX_HISTORY = 50;
+      setHistoryStack((s) => {
+        const next = [...s, {
+          card: current,
+          mastered: [...mastered],
+          failCount: { ...failCount },
+          srsSnapshot: srsData[current.id] ?? null,
+        }];
+        return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
+      });
 
       if (timedOut) {
         // ── 시간 초과: 큐 맨 끝으로 이동 (SRS 미갱신, masteryCount 유지)
@@ -553,6 +577,11 @@ export default function App() {
             else {
               const qIdx = newQueue.findIndex((w) => w.id === antId);
               if (qIdx !== -1) antonym = newQueue.splice(qIdx, 1)[0];
+              else {
+                // Fallback: 패스 등으로 세션에서 제거된 경우 wordData에서 직접 주입
+                const fromData = wordData.find((w) => w.id === antId);
+                if (fromData) antonym = fromData;
+              }
             }
           }
 
@@ -560,7 +589,7 @@ export default function App() {
           if (current.componentIds?.length > 0) {
             current.componentIds.forEach((cid) => {
               const comp = wordData.find((w) => w.id === cid);
-              if (comp && !newQueue.find((w) => w.id === cid)) {
+              if (comp && !newQueue.find((w) => w.id === cid) && !newMastered.find((w) => w.id === cid)) {
                 const filled = fillSlots(comp, newMastered);
                 const at = Math.min(Math.floor(Math.random() * 6) + 5, newQueue.length);
                 newQueue = [...newQueue.slice(0, at), filled, ...newQueue.slice(at)];
@@ -618,6 +647,19 @@ export default function App() {
     overTimeRef.current = false;
 
     setTimeout(() => {
+      // ── 히스토리 기록 (되돌리기용) ──────────────────────
+      const current = queue[0];
+      const MAX_HISTORY = 50;
+      setHistoryStack((s) => {
+        const next = [...s, {
+          card: current,
+          mastered: [...mastered],
+          failCount: { ...failCount },
+          srsSnapshot: srsData[current.id] ?? null,
+        }];
+        return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
+      });
+
       const newQueue = queue.slice(1); // 큐에서 완전 제거
       const filledQueue = newQueue.length > 0
         ? [fillSlots(newQueue[0], mastered), ...newQueue.slice(1)]

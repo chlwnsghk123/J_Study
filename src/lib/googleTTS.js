@@ -11,7 +11,8 @@
 const API_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 const VOICE   = { languageCode: 'ja-JP', name: 'ja-JP-Neural2-B' };
 
-// 인메모리 캐시 (Base64 문자열)
+// 인메모리 캐시 (Base64 문자열, 최대 200개 LRU)
+const CACHE_MAX = 200;
 const audioCache = new Map();
 
 // 현재 재생 중인 Audio 인스턴스 (중복 재생 방지)
@@ -58,7 +59,13 @@ export async function fetchAudio(text, rate = 1.0) {
 
   const data = await res.json();
   const b64  = data.audioContent;
-  if (b64) audioCache.set(key, b64);
+  if (b64) {
+    audioCache.set(key, b64);
+    if (audioCache.size > CACHE_MAX) {
+      const oldest = audioCache.keys().next().value;
+      audioCache.delete(oldest);
+    }
+  }
   return b64 ?? null;
 }
 

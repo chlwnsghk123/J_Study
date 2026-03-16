@@ -97,7 +97,7 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
   const handleSheetTouchStart = (e) => {
     // 메시지 영역이 스크롤 최상단이 아니면 스와이프 무시
     const scrollArea = scrollAreaRef.current;
-    if (scrollArea && scrollArea.scrollTop > 0) return;
+    if (scrollArea && scrollArea.scrollTop > 2) return;
     dragStartY.current = e.touches[0].clientY;
     dragDeltaY.current = 0;
   };

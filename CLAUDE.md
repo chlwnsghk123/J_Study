@@ -60,7 +60,7 @@ CATEGORY_META = {
 
 | 파일 | 역할 |
 |---|---|
-| `src/lib/googleTTS.js` | TTS API 호출, 인메모리 캐싱, prefetch |
+| `src/lib/googleTTS.js` | TTS API 호출, 인메모리 LRU 캐싱 (최대 200개), prefetch |
 | `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion)` — 카드 문맥 주입형 |
 | `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 43일 커리큘럼 순수 함수 |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
@@ -93,6 +93,8 @@ CATEGORY_META = {
 
 ### 큐 빌드 순서
 1. 선택된 단어 필터링 → OR 태그 필터 → SRS 만기 필터 (maxCards 없음)
+   - SRS 필터: `srsData` 5개 이상일 때 활성화, due 카드 3개 이상이면 due 우선
+   - **최소 풀 보장**: due 카드가 3~4개일 때 non-due 카드를 보충하여 최소 5개 유지
 2. priority 1 → 2 → 3 순으로 그룹화, 각 그룹 내 Fisher-Yates 셔플
 3. `word` 타입 + `antonymId` → 반의어 쌍 묶어서 함께 배치
 
@@ -104,15 +106,24 @@ CATEGORY_META = {
 ### 패스 (스와이프 제외)
 - 오른쪽 드래그 스와이프 → 현재 카드를 이번 세션 큐에서 **완전 제거** (SRS 변경 없음)
 - 학습 효과 없이 건너뛸 때 사용 — masteryCount, nextReview 모두 변경 없음
+- **되돌리기 가능**: 패스 시에도 `historyStack`에 기록 → 왼쪽 스와이프로 패스한 카드 복원 가능 (연속 패스도 역순 복원)
 
 ### 의존성 주입
 - 오답 카드에 `componentIds`가 있으면 해당 단어/패턴을 큐 5~10번째에 삽입 (3회 pass 전까지)
+  - **중복 방지**: 큐(`newQueue`)와 마스터 목록(`newMastered`) 모두 체크하여 이미 존재하는 컴포넌트는 재삽입하지 않음
 - 슬롯 치환: `[VERB]`, `[ADJ]`, `[WORD]` → 마스터된 단어로 대체
+  - **결정적 선택**: `word.id % arr.length`로 동일 카드는 항상 같은 슬롯 필러를 받음 (비결정적 `Math.random()` 제거)
+
+### 반의어 쌍 학습
+- 오답 카드에 `antonymId`가 있으면 반의어를 함께 재삽입
+- 검색 순서: `newMastered` → `newQueue` → `wordData` (fallback)
+  - **fallback**: 패스 등으로 세션에서 제거된 반의어도 `wordData`에서 직접 가져와 쌍 학습 보장
 
 ### 하드코어 타이머 + 타임아웃 페널티
 - **하드코어 타이머** (하드코어 모드 전용):
   - `word` 타입: **3초**, `pattern`/`sentence` 타입: **7초** 카운트다운
   - 0초 → `handleActionRef.current('dontKnow')` 호출 (stale closure 방지용 ref)
+  - **재플립 방지**: `answerSeenRef`로 뒷면 열람 추적 → 뒤→앞 재플립 시 타이머 재시작 차단 (악용 방지)
 - **타임아웃 페널티** (일반 학습, 하드코어와 독립):
   - 페널티 기준: `word` **8초**, `pattern` **13초**, `sentence` **17초**
   - 기준 초과 → know/dontKnow 무관하게 큐 맨 끝 이동, SRS 미갱신 (masteryCount 변경 없음)
@@ -127,7 +138,7 @@ CATEGORY_META = {
 - **드래그 스와이프 (앞면·뒷면 모두, 모바일+PC)**:
   - 카드를 손가락/마우스로 끌어서 이동
   - 오른쪽 드래그 → **패스** (이번 세션에서 제외, SRS 변경 없음)
-  - 왼쪽 드래그 → **되돌리기** (이전 카드 복원, SRS 롤백)
+  - 왼쪽 드래그 → **되돌리기** (이전 카드 복원, SRS 롤백, 히스토리 최대 50개)
   - AI 모달 열린 상태에서 드래그 비활성
   - **영역 기반 드래그 피드백**: 카드 뒤 배경을 좌우 반반 분할
     - 오른쪽 절반: 회색 배경 + `⏭️ 패스` — 드래그 거리에 비례해 opacity 증가
@@ -172,13 +183,14 @@ CATEGORY_META = {
 2. `TTSButtons` — 듣기(1.0x) / 천천히(0.7x) 버튼 쌍, 카드 앞면·뒷면 모두 상시 노출
 3. **블라인드 모드 앞면**: 느리게 재생 버튼 없음, 일반 재생 버튼(`w-20 h-20`)을 화면 중앙에 크게 배치
 4. 프리패치: `queue[0]?.id` 변경 시 다음 5개 카드 1.0x + 0.7x 백그라운드 캐싱
+5. **캐시 관리**: 인메모리 Map 최대 200개 LRU — 초과 시 가장 오래된 항목 evict
 
 ### AI Q&A 흐름
 1. 카드 뒷면 하단 우측 `AI 질문` 버튼 → `AiChatModal` 오픈
 2. `askAI(currentCard, userQuestion)` — 카드 객체를 시스템 프롬프트에 주입
 3. Gemini 응답 → `MarkdownText` 컴포넌트로 렌더링 (`**굵게**`, `*기울임*`, `` `코드` ``, 불릿, 줄바꿈)
 4. `currentCard.id` 변경 시 채팅 기록 초기화
-5. **스와이프 다운 닫기**: 메시지 영역 최상단에서 80px 이상 아래로 스와이프 시 모달 닫힘 (스냅백 포함)
+5. **스와이프 다운 닫기**: 메시지 영역 최상단(`scrollTop ≤ 2px`)에서 80px 이상 아래로 스와이프 시 모달 닫힘 (스냅백 포함)
 6. AI 모달 열린 상태에서 카드 드래그 스와이프 비활성
 
 ### 세션 상태 자동 저장 (새로고침 유지)
@@ -313,6 +325,7 @@ CATEGORY_META = {
 - 카드 그림자: `shadow-md rounded-2xl` — 배경과 카드를 명확히 분리.
 - 앞면과 뒷면의 **카드 크기·위치가 동일**해야 전환 시 흔들림이 없다.
 - 정보 밀도: 뒷면에 요소를 추가할 때 스크롤 없이 한 화면에 담길 수 있는지 확인한다.
+- **블라인드 모드 뒷면**: `overflow-y-auto` 적용 — 긴 텍스트도 스크롤로 접근 가능.
 - 카드 뒷면 하단 고정 레이아웃: **왼쪽 = TTS 버튼 쌍**, **오른쪽 = AI 질문 버튼**
 
 ### 5. 버튼·인터랙션 원칙
