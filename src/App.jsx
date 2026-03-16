@@ -647,6 +647,19 @@ export default function App() {
     overTimeRef.current = false;
 
     setTimeout(() => {
+      // ── 히스토리 기록 (되돌리기용) ──────────────────────
+      const current = queue[0];
+      const MAX_HISTORY = 50;
+      setHistoryStack((s) => {
+        const next = [...s, {
+          card: current,
+          mastered: [...mastered],
+          failCount: { ...failCount },
+          srsSnapshot: srsData[current.id] ?? null,
+        }];
+        return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
+      });
+
       const newQueue = queue.slice(1); // 큐에서 완전 제거
       const filledQueue = newQueue.length > 0
         ? [fillSlots(newQueue[0], mastered), ...newQueue.slice(1)]
