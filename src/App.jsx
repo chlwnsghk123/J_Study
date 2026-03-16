@@ -150,6 +150,7 @@ export default function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [animateCard, setAnimateCard] = useState(false);
   const [slideDirection, setSlideDirection] = useState(null); // 'left' | 'right' | null
+  const [cardEntering, setCardEntering] = useState(false);
   const [totalActive, setTotalActive] = useState(0);
 
   // ── Toast ───────────────────────────────────────────────────
@@ -501,8 +502,8 @@ export default function App() {
         srsSnapshot: srsData[current.id] ?? null,
       }]);
 
-      if (timedOut && actionType === 'know') {
-        // ── 시간 초과 + 알아요: 큐 맨 끝으로 이동 (SRS 미갱신)
+      if (timedOut) {
+        // ── 시간 초과: 큐 맨 끝으로 이동 (SRS 미갱신, masteryCount 유지)
         newQueue = [...newQueue, current];
         showToast('시간 초과 — 카드 보류됨');
 
@@ -586,6 +587,13 @@ export default function App() {
       setShowAnswer(false);
       setAnimateCard(false);
       setSlideDirection(null);
+      // 새 카드 입장 애니메이션
+      setCardEntering(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => setCardEntering(false), 220);
+        });
+      });
     }, 200);
   };
 
@@ -596,6 +604,35 @@ export default function App() {
   const handleDontKnow = () => {
     if (queue.length === 0 || !showAnswer) return;
     handleAction('dontKnow');
+  };
+
+  // ── 패스 (효력 없이 건너뛰기) ──────────────────────────────────
+  const handlePass = () => {
+    if (queue.length === 0) return;
+    clearInterval(hcRef.current);
+    setHcTimeLeft(null);
+    setSlideDirection('right');
+    setAnimateCard(true);
+    overTimeRef.current = false;
+
+    setTimeout(() => {
+      const current = queue[0];
+      const newQueue = [...queue.slice(1), current]; // 맨 끝으로 이동
+      const filledQueue = newQueue.length > 0
+        ? [fillSlots(newQueue[0], mastered), ...newQueue.slice(1)]
+        : newQueue;
+
+      setQueue(filledQueue);
+      setShowAnswer(false);
+      setAnimateCard(false);
+      setSlideDirection(null);
+      setCardEntering(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => setCardEntering(false), 220);
+        });
+      });
+    }, 200);
   };
 
   // ── 수동 마스터 토글 (체크 아이콘, 확인 다이얼로그 경유) ─────
@@ -733,11 +770,14 @@ export default function App() {
         showAnswer={showAnswer}
         animateCard={animateCard}
         slideDirection={slideDirection}
+        cardEntering={cardEntering}
         selectedWordIds={selectedWordIds}
         onFlip={handleFlip}
         onKnow={handleKnow}
         onDontKnow={handleDontKnow}
         onDragAction={handleDragAction}
+        onPass={handlePass}
+        onUndo={handleUndo}
         onToggleMastery={toggleMastery}
         srsData={srsData}
         reverseMode={settings.reverseMode}

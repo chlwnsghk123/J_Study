@@ -51,6 +51,10 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
   const [loading, setLoading]   = useState(false);
   const bottomRef               = useRef(null);
   const inputRef                = useRef(null);
+  const sheetRef                = useRef(null);
+  const dragStartY              = useRef(null);
+  const dragDeltaY              = useRef(0);
+  const scrollAreaRef           = useRef(null);
 
   // 새 메시지마다 스크롤 하단 이동
   useEffect(() => {
@@ -89,6 +93,44 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
     }
   };
 
+  // ── 스와이프 다운으로 닫기 ──────────────────────────────────────
+  const handleSheetTouchStart = (e) => {
+    // 메시지 영역이 스크롤 최상단이 아니면 스와이프 무시
+    const scrollArea = scrollAreaRef.current;
+    if (scrollArea && scrollArea.scrollTop > 0) return;
+    dragStartY.current = e.touches[0].clientY;
+    dragDeltaY.current = 0;
+  };
+
+  const handleSheetTouchMove = (e) => {
+    if (dragStartY.current === null) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    dragDeltaY.current = dy;
+    // 아래로 드래그 시 시트를 따라 이동
+    if (dy > 0 && sheetRef.current) {
+      sheetRef.current.style.transform = `translateY(${dy}px)`;
+      sheetRef.current.style.transition = 'none';
+    }
+  };
+
+  const handleSheetTouchEnd = () => {
+    if (dragStartY.current === null) return;
+    const dy = dragDeltaY.current;
+    dragStartY.current = null;
+    if (dy > 80) {
+      // 충분히 아래로 드래그 → 닫기
+      if (sheetRef.current) {
+        sheetRef.current.style.transition = 'transform 0.2s ease';
+        sheetRef.current.style.transform = 'translateY(100%)';
+      }
+      setTimeout(onClose, 200);
+    } else if (sheetRef.current) {
+      // 스냅백
+      sheetRef.current.style.transition = 'transform 0.2s ease';
+      sheetRef.current.style.transform = 'translateY(0)';
+    }
+  };
+
   return (
     /* 오버레이 */
     <div
@@ -99,7 +141,13 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* 바텀 시트 */}
-      <div className="relative bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-[75vh]">
+      <div
+        ref={sheetRef}
+        className="relative bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-[75vh]"
+        onTouchStart={handleSheetTouchStart}
+        onTouchMove={handleSheetTouchMove}
+        onTouchEnd={handleSheetTouchEnd}
+      >
 
         {/* 헤더 */}
         <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100 shrink-0">
@@ -118,7 +166,7 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
         </div>
 
         {/* 메시지 영역 */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+        <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
           {messages.length === 0 && (
             <p className="text-center text-xs text-slate-400 py-6">
               이 카드에 대해 궁금한 점을 질문해 보세요.
