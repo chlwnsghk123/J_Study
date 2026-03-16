@@ -466,11 +466,14 @@ export default function WordCard({
   showAnswer,
   animateCard,
   slideDirection,
+  cardEntering = false,
   selectedWordIds,
   onFlip,
   onKnow,
   onDontKnow,
   onDragAction,
+  onPass,
+  onUndo,
   onToggleMastery,
   srsData = {},
   reverseMode = false,
@@ -503,14 +506,14 @@ export default function WordCard({
     });
   }, [word.id]);
 
-  // TTS 자동 재생: 앞면 노출 시 즉시 재생
-  useTTS(word.hiragana, !showAnswer);
+  // TTS 자동 재생: 기본=앞면, 리버스=뒷면(일본어 표시 시)
+  useTTS(word.hiragana, reverseMode ? showAnswer : !showAnswer);
 
-  // 드래그 스와이프 (앞면/뒷면 모두 활성)
+  // 드래그 스와이프: 왼쪽=되돌리기, 오른쪽=패스 (AI 모달 열려있을 때 비활성)
   const { handlers: dragHandlers, dragX, isDragging, progress, direction: dragDirection, didMove } = useDrag({
-    onSwipeRight: () => { setEnableFlipTransition(false); onDragAction?.('know'); },
-    onSwipeLeft:  () => { setEnableFlipTransition(false); onDragAction?.('dontKnow'); },
-    enabled: true,
+    onSwipeRight: () => { setEnableFlipTransition(false); onPass?.(); },
+    onSwipeLeft:  () => { setEnableFlipTransition(false); onUndo?.(); },
+    enabled: !showAiModal,
   });
 
   const handleCheckClick = (e) => {
@@ -546,30 +549,30 @@ export default function WordCard({
         {/* ── 드래그 방향 피드백 — 좌우 반반 분할 배경 ── */}
         {isDragging && (
           <>
-            {/* 왼쪽 절반 = 모름 (빨간 계열) */}
+            {/* 왼쪽 절반 = 되돌리기 */}
             <motion.div
               className="absolute inset-y-0 left-0 w-1/2 rounded-l-3xl flex items-center justify-center pointer-events-none z-0"
-              style={{ backgroundColor: 'rgba(244, 63, 94, 0.15)' }}
+              style={{ backgroundColor: 'rgba(100, 116, 139, 0.12)' }}
               animate={{ opacity: dragDirection === 'left' ? Math.max(progress, 0.05) : 0 }}
               transition={{ duration: 0.1, ease: 'easeOut' }}
               initial={{ opacity: 0 }}
             >
               <div className="flex flex-col items-center gap-2">
-                <span className="text-3xl">❌</span>
-                <span className="text-base font-bold text-rose-600">몰라요</span>
+                <span className="text-3xl">↩️</span>
+                <span className="text-base font-bold text-slate-600">되돌리기</span>
               </div>
             </motion.div>
-            {/* 오른쪽 절반 = 앎 (초록 계열) */}
+            {/* 오른쪽 절반 = 패스 */}
             <motion.div
               className="absolute inset-y-0 right-0 w-1/2 rounded-r-3xl flex items-center justify-center pointer-events-none z-0"
-              style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)' }}
+              style={{ backgroundColor: 'rgba(100, 116, 139, 0.12)' }}
               animate={{ opacity: dragDirection === 'right' ? Math.max(progress, 0.05) : 0 }}
               transition={{ duration: 0.1, ease: 'easeOut' }}
               initial={{ opacity: 0 }}
             >
               <div className="flex flex-col items-center gap-2">
-                <span className="text-3xl">⭕</span>
-                <span className="text-base font-bold text-emerald-600">알아요</span>
+                <span className="text-3xl">⏭️</span>
+                <span className="text-base font-bold text-slate-600">패스</span>
               </div>
             </motion.div>
           </>
@@ -578,11 +581,12 @@ export default function WordCard({
         <div
           className={`flip-card-inner
             ${showAnswer ? 'flipped' : ''}
-            ${enableFlipTransition && !isDragging ? 'flip-transition' : ''}
+            ${enableFlipTransition && !isDragging && !cardEntering ? 'flip-transition' : ''}
             ${animateCard && slideDirection === 'right' ? (showAnswer ? 'slide-right-back' : 'slide-right-front') : ''}
             ${animateCard && slideDirection === 'left' ? (showAnswer ? 'slide-left-back' : 'slide-left-front') : ''}
             ${animateCard && !slideDirection ? 'scale-95 opacity-50' : ''}
-            ${!isDragging && dragX === 0 && enableFlipTransition ? 'snap-back' : ''}`}
+            ${cardEntering ? 'card-entering' : ''}
+            ${!isDragging && dragX === 0 && enableFlipTransition && !animateCard && !cardEntering ? 'snap-back' : ''}`}
           style={isDragging ? dragStyle : {}}
           onClick={(isDragging || didMove.current) ? undefined : onFlip}
         >
