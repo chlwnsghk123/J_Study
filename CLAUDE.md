@@ -64,14 +64,15 @@ CATEGORY_META = {
 | `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion)` — 카드 문맥 주입형 |
 | `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 43일 커리큘럼 순수 함수 |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
-| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스 |
-| `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글 |
+| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 |
+| `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅: 좌=되돌리기/우=패스), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글, 입장 애니메이션 |
 | `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 관리 설정 메뉴(전체 초기화), 탐색 모드 |
 | `src/components/DayPreviewScreen.jsx` | Day 미리보기 — 단어 체크박스 선택, 퀴즈 시작 |
-| `src/components/AiChatModal.jsx` | AI 질문 바텀시트 — 채팅 UI, 마크다운 렌더러, 카드 변경 시 기록 초기화 |
+| `src/components/AiChatModal.jsx` | AI 질문 바텀시트 — 채팅 UI, 마크다운 렌더러, 카드 변경 시 기록 초기화, 스와이프 다운 닫기 |
+| `src/components/CompletionScreen.jsx` | 학습 완료 화면 — 완료 메시지, 첫 화면 복귀 버튼 |
 | `src/components/ProgressBar.jsx` | 얇은 진행 바 (`h-1.5`), 마스터 수 / 전체 수 표시 |
 | `src/components/BrowseScreen.jsx` | 전체 단어 탐색 화면 |
-| `src/index.css` | Tailwind 임포트, 3D 플립 애니메이션, 슬라이드 퇴장, 드래그 스냅백 CSS |
+| `src/index.css` | Tailwind 임포트, 3D 플립 애니메이션, 슬라이드 퇴장, 드래그 스냅백, 카드 입장 애니메이션 CSS |
 | `src/data/index.js` | 전체 wordData 통합, CATEGORY_META, TYPE_META |
 | `public/` | PWA manifest, 파비콘, 앱 아이콘, OG 이미지 |
 | `index.html` | PWA 메타 태그, Open Graph, Twitter Card |
@@ -83,7 +84,8 @@ CATEGORY_META = {
 ### SRS (Spaced Repetition) + 마스터리(Mastery) 누적 시스템
 - **masteryCount ≥ 3** = '완전히 아는 단어' (DayPreviewScreen 필터 기준)
 - 제한 시간 내 정답(Know) → `masteryCount += 1`
-- 오답(Unknown) 또는 타임아웃 페널티 → `masteryCount -= 1` (최소 0)
+- 오답(Unknown) → `masteryCount -= 1` (최소 0)
+- 타임아웃(시간 초과) → `masteryCount` 변경 없음, 큐 맨 끝으로 이동
 - 마스터 확정 시 → `nextReview` = 오늘 + [1, 3, 7]일 (`masteryCount` 기반)
 - `srsData` = localStorage `jflash_srs_v2`
 - 진행도 시각화: 카드 우상단에 3개의 점(●●○)으로 현재 masteryCount 표시
@@ -99,6 +101,10 @@ CATEGORY_META = {
 - 토스트 메시지: "3회 오답 — 다음 카드로 넘어갑니다"
 - `failCount[cardId]`로 세션 내 실패 횟수 추적, 게임 종료 시 초기화
 
+### 패스 (스와이프 제외)
+- 오른쪽 드래그 스와이프 → 현재 카드를 이번 세션 큐에서 **완전 제거** (SRS 변경 없음)
+- 학습 효과 없이 건너뛸 때 사용 — masteryCount, nextReview 모두 변경 없음
+
 ### 의존성 주입
 - 오답 카드에 `componentIds`가 있으면 해당 단어/패턴을 큐 5~10번째에 삽입 (3회 pass 전까지)
 - 슬롯 치환: `[VERB]`, `[ADJ]`, `[WORD]` → 마스터된 단어로 대체
@@ -109,8 +115,9 @@ CATEGORY_META = {
   - 0초 → `handleActionRef.current('dontKnow')` 호출 (stale closure 방지용 ref)
 - **타임아웃 페널티** (일반 학습, 하드코어와 독립):
   - 페널티 기준: `word` **8초**, `pattern` **13초**, `sentence` **17초**
-  - 기준 초과 + '알아요' → 큐 맨 끝 이동, SRS 미갱신 (masteryCount 변경 없음)
+  - 기준 초과 → know/dontKnow 무관하게 큐 맨 끝 이동, SRS 미갱신 (masteryCount 변경 없음)
   - 기준 내 '알아요' → 정상 마스터 처리
+  - 기준 내 '모름' → `masteryCount -= 1` (최소 0)
 
 ### 디바이스별 카드 상호작용 (UX)
 - **탭/클릭 = 카드 뒤집기(Flip)만**: 정답/오답 처리 없음, 앞↔뒤 토글
@@ -118,19 +125,21 @@ CATEGORY_META = {
   - 양면 동시 DOM 존재, `backface-visibility: hidden`으로 뒷면 숨김
   - 카드 전환 시 `requestAnimationFrame` 2프레임으로 플립 트랜지션 일시 해제 (뒤→앞 역재생 방지)
 - **드래그 스와이프 (앞면·뒷면 모두, 모바일+PC)**:
-  - 카드를 손가락/마우스로 끌어서 이동 (Tinder 스타일)
-  - 오른쪽 드래그 → '아는 단어(Know)' / 왼쪽 드래그 → '모르는 단어(Don't Know)'
+  - 카드를 손가락/마우스로 끌어서 이동
+  - 오른쪽 드래그 → **패스** (이번 세션에서 제외, SRS 변경 없음)
+  - 왼쪽 드래그 → **되돌리기** (이전 카드 복원, SRS 롤백)
+  - AI 모달 열린 상태에서 드래그 비활성
   - **영역 기반 드래그 피드백**: 카드 뒤 배경을 좌우 반반 분할
-    - 오른쪽 절반: 초록 배경 + `⭕ 알아요` — 드래그 거리에 비례해 opacity 증가
-    - 왼쪽 절반: 빨간 배경 + `❌ 몰라요` — 드래그 거리에 비례해 opacity 증가
+    - 오른쪽 절반: 회색 배경 + `⏭️ 패스` — 드래그 거리에 비례해 opacity 증가
+    - 왼쪽 절반: 회색 배경 + `↩️ 되돌리기` — 드래그 거리에 비례해 opacity 증가
     - `framer-motion`으로 부드러운 opacity 전환 (`duration: 0.1s`)
   - 임계값(80px) 미달 시 스냅백 애니메이션
   - `rotateY(180deg)` 상태에서 `translateX` 미러링 보정 (`-dragX`)
   - `touch-action: pan-y` + `e.preventDefault()` 로 브라우저 기본 스와이프(뒤로가기) 차단
   - 드래그/스크롤 시 클릭(플립) 방지 (`didMove` ref)
-  - 앞면 드래그 시 오버타임 체크 후 바로 앎/모름 처리 (`onDragAction`)
-- **슬라이드 퇴장 애니메이션**: 앎→오른쪽, 모름→왼쪽 (0.2초)
-  - 앞면/뒷면 별도 CSS 클래스 (rotateY 미러링 보정)
+- **슬라이드 퇴장 + 입장 애니메이션**:
+  - 퇴장: 앎→오른쪽, 모름→왼쪽 슬라이드 (0.2초), 앞면/뒷면 별도 CSS 클래스 (rotateY 미러링 보정)
+  - 입장: `scale(0.92)→1` + `opacity 0→1` 페이드인 (0.2초, `card-entering` CSS 클래스)
 - **명시적 액션 버튼 (뒷면 하단)**:
   - `❌ 모름` (bg-rose-500) / `⭕ 앎` (bg-emerald-500) 양쪽 나란히 배치
   - PC·모바일 공통 사용
@@ -151,11 +160,15 @@ CATEGORY_META = {
 
 ### Day 미리보기 플로우
 1. `startGameByDay(day)` → `dayPreviewPool` + `selectedWordIds` 세팅 → `appScreen = 'day-preview'`
+   - **디폴트: 아는 단어(masteryCount ≥ 3) 제외** — 초기 선택에서 마스터 단어 자동 필터링
 2. `DayPreviewScreen` — 체크박스로 개별 카드 선택/해제, 전체 선택/해제
+   - "아는 단어 포함" 필터칩: 기본 OFF, 토글로 포함/제외 전환
 3. "퀴즈 시작" → `startGameByDayWithSelection()` → `_launchGame()`
 
 ### TTS 흐름
-1. `useTTS(hiragana, !showAnswer)` — 카드 앞면 노출 시 자동 재생 (모드 무관)
+1. `useTTS(hiragana, reverseMode ? showAnswer : !showAnswer)` — 일본어(hiragana) 표시 면에서 자동 재생
+   - 기본 모드: 앞면(발음 표시) 노출 시 재생
+   - 리버스 모드: 뒷면(일본어 표시) 노출 시 재생
 2. `TTSButtons` — 듣기(1.0x) / 천천히(0.7x) 버튼 쌍, 카드 앞면·뒷면 모두 상시 노출
 3. **블라인드 모드 앞면**: 느리게 재생 버튼 없음, 일반 재생 버튼(`w-20 h-20`)을 화면 중앙에 크게 배치
 4. 프리패치: `queue[0]?.id` 변경 시 다음 5개 카드 1.0x + 0.7x 백그라운드 캐싱
@@ -165,6 +178,8 @@ CATEGORY_META = {
 2. `askAI(currentCard, userQuestion)` — 카드 객체를 시스템 프롬프트에 주입
 3. Gemini 응답 → `MarkdownText` 컴포넌트로 렌더링 (`**굵게**`, `*기울임*`, `` `코드` ``, 불릿, 줄바꿈)
 4. `currentCard.id` 변경 시 채팅 기록 초기화
+5. **스와이프 다운 닫기**: 메시지 영역 최상단에서 80px 이상 아래로 스와이프 시 모달 닫힘 (스냅백 포함)
+6. AI 모달 열린 상태에서 카드 드래그 스와이프 비활성
 
 ### 세션 상태 자동 저장 (새로고침 유지)
 - `jflash_session_v1`에 `appScreen`, `selectedWordIds`, `dayPreviewPoolIds` 저장

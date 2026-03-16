@@ -149,8 +149,13 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
         onTouchEnd={handleSheetTouchEnd}
       >
 
+        {/* 드래그 핸들 */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
+          <div className="w-10 h-1 rounded-full bg-slate-300" />
+        </div>
+
         {/* 헤더 */}
-        <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-slate-100 shrink-0">
+        <div className="flex items-center gap-2 px-5 pt-1 pb-3 border-b border-slate-100 shrink-0">
           <Sparkles className="w-4 h-4 text-violet-500" />
           <span className="font-bold text-slate-700 text-sm">AI 질문</span>
           <span className="ml-1 text-xs text-slate-400 truncate flex-1 min-w-0">

@@ -145,7 +145,7 @@ export default function DayPreviewScreen({
   onBack,
 }) {
   // ── 필터 상태 ──────────────────────────────────────────────
-  const [includeKnown, setIncludeKnown] = useState(true);
+  const [includeKnown, setIncludeKnown] = useState(false);
   const [filterWord, setFilterWord]       = useState(true);
   const [filterSentence, setFilterSentence] = useState(true);
 

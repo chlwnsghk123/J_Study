@@ -306,7 +306,9 @@ export default function App() {
     const pool = basePool.filter((w) => w.type !== 'pattern');
 
     setDayPreviewPool(pool);
-    setSelectedWordIds(new Set(pool.map((w) => w.id)));
+    // 아는 단어 제외가 디폴트 — masteryCount >= 3인 단어는 초기 선택에서 제외
+    const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 3;
+    setSelectedWordIds(new Set(pool.filter((w) => !isKnown(w)).map((w) => w.id)));
     setAppScreen('day-preview');
   };
 
@@ -606,7 +608,7 @@ export default function App() {
     handleAction('dontKnow');
   };
 
-  // ── 패스 (효력 없이 건너뛰기) ──────────────────────────────────
+  // ── 패스 (이번 세션에서 완전 제외) ─────────────────────────────
   const handlePass = () => {
     if (queue.length === 0) return;
     clearInterval(hcRef.current);
@@ -616,12 +618,12 @@ export default function App() {
     overTimeRef.current = false;
 
     setTimeout(() => {
-      const current = queue[0];
-      const newQueue = [...queue.slice(1), current]; // 맨 끝으로 이동
+      const newQueue = queue.slice(1); // 큐에서 완전 제거
       const filledQueue = newQueue.length > 0
         ? [fillSlots(newQueue[0], mastered), ...newQueue.slice(1)]
         : newQueue;
 
+      showToast('패스 — 이번 학습에서 제외');
       setQueue(filledQueue);
       setShowAnswer(false);
       setAnimateCard(false);
