@@ -337,7 +337,7 @@ function CardBack({ word, reverseMode, blindMode = false, onAiClick, onKnow, onD
     const meanSize = getBlindMeaningSizeClass(word.meaning);
     return (
       <div className="flex-1 flex flex-col items-center w-full px-6 py-6">
-        <div className="flex-1 flex flex-col items-center justify-center w-full">
+        <div className="flex-1 flex flex-col items-center justify-center w-full overflow-y-auto">
           {/* hiragana + 정중체 인라인 */}
           <div className="flex items-center justify-center gap-2 mb-3">
             <p className={`${hiraSize} font-black text-slate-800 break-keep text-center leading-tight`}>
