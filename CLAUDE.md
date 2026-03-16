@@ -64,9 +64,9 @@ CATEGORY_META = {
 | `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion)` — 카드 문맥 주입형 |
 | `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 43일 커리큘럼 순수 함수 |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
-| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트 |
+| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스 |
 | `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글 |
-| `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 탐색 모드 |
+| `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 관리 설정 메뉴(전체 초기화), 탐색 모드 |
 | `src/components/DayPreviewScreen.jsx` | Day 미리보기 — 단어 체크박스 선택, 퀴즈 시작 |
 | `src/components/AiChatModal.jsx` | AI 질문 바텀시트 — 채팅 UI, 마크다운 렌더러, 카드 변경 시 기록 초기화 |
 | `src/components/ProgressBar.jsx` | 얇은 진행 바 (`h-1.5`), 마스터 수 / 전체 수 표시 |
@@ -94,8 +94,13 @@ CATEGORY_META = {
 2. priority 1 → 2 → 3 순으로 그룹화, 각 그룹 내 Fisher-Yates 셔플
 3. `word` 타입 + `antonymId` → 반의어 쌍 묶어서 함께 배치
 
+### 3회 오답 패스
+- 동일 카드를 세션 내에서 3회 이상 '모름' → 큐에 재삽입하지 않고 자동 pass
+- 토스트 메시지: "3회 오답 — 다음 카드로 넘어갑니다"
+- `failCount[cardId]`로 세션 내 실패 횟수 추적, 게임 종료 시 초기화
+
 ### 의존성 주입
-- `sentence/pattern` 카드 3회 이상 실패 → `componentIds`의 단어/패턴을 큐 5~10번째에 삽입
+- 오답 카드에 `componentIds`가 있으면 해당 단어/패턴을 큐 5~10번째에 삽입 (3회 pass 전까지)
 - 슬롯 치환: `[VERB]`, `[ADJ]`, `[WORD]` → 마스터된 단어로 대체
 
 ### 하드코어 타이머 + 타임아웃 페널티
@@ -140,8 +145,8 @@ CATEGORY_META = {
 ### 43일 커리큘럼 (슬라이딩 윈도우)
 - 전체 430장을 id 오름차순으로 10개씩 → `SETS[0]~SETS[42]` (모듈 로드 시 1회 계산, 불변)
 - Day별 풀: Day 1 = Set 1, Day 2 = Set 1-2, Day N≥3 = Set(N-2)~Set(N)
-- 각 Day 시작 시 `patterns.js` 전체에서 무작위 1개 '중요 패턴' 자동 추가
-- `getDayBasePool(day)` — 순수 함수, 랜덤 패턴 미포함 (UI 미리보기용)
+- **패턴(pattern) UI에서 제외**: Day 시작 시 `type !== 'pattern'` 필터 적용 (데이터 파일은 유지)
+- `getDayBasePool(day)` — 순수 함수 (UI 미리보기용)
 - `currentDay` 변경 → `DayPreviewScreen` 경유 → `selectedWordIds` 동기화
 
 ### Day 미리보기 플로우
@@ -152,7 +157,8 @@ CATEGORY_META = {
 ### TTS 흐름
 1. `useTTS(hiragana, !showAnswer)` — 카드 앞면 노출 시 자동 재생 (모드 무관)
 2. `TTSButtons` — 듣기(1.0x) / 천천히(0.7x) 버튼 쌍, 카드 앞면·뒷면 모두 상시 노출
-3. 프리패치: `queue[0]?.id` 변경 시 다음 5개 카드 1.0x + 0.7x 백그라운드 캐싱
+3. **블라인드 모드 앞면**: 느리게 재생 버튼 없음, 일반 재생 버튼(`w-20 h-20`)을 화면 중앙에 크게 배치
+4. 프리패치: `queue[0]?.id` 변경 시 다음 5개 카드 1.0x + 0.7x 백그라운드 캐싱
 
 ### AI Q&A 흐름
 1. 카드 뒷면 하단 우측 `AI 질문` 버튼 → `AiChatModal` 오픈
@@ -160,12 +166,24 @@ CATEGORY_META = {
 3. Gemini 응답 → `MarkdownText` 컴포넌트로 렌더링 (`**굵게**`, `*기울임*`, `` `코드` ``, 불릿, 줄바꿈)
 4. `currentCard.id` 변경 시 채팅 기록 초기화
 
+### 세션 상태 자동 저장 (새로고침 유지)
+- `jflash_session_v1`에 `appScreen`, `selectedWordIds`, `dayPreviewPoolIds` 저장
+- `appScreen`, `selectedWordIds`, `dayPreviewPool` 변경 시 `useEffect`로 자동 저장
+- 새로고침 후: 마지막 화면(home/browse/day-preview)과 선택 상태 복원
+- 게임 진행 중(`gameStarted`)은 저장하지 않음 — 새로고침 시 홈으로 복귀
+
+### 전체 초기화
+- HomeScreen 헤더 우상단 톱니바퀴(⚙) → 드롭다운 메뉴 → "전체 초기화"
+- 경고 다이얼로그: "모든 학습 기록이 영구적으로 삭제됩니다. 되돌릴 수 없습니다."
+- 실행 시: `LS` 내 모든 키 삭제 + 모든 상태를 기본값으로 초기화
+
 ### localStorage 키 목록
 | 키 | 내용 |
 |---|---|
 | `jflash_settings_v2` | reverseMode, blindMode, hardcoreMode |
 | `jflash_srs_v2` | { [wordId]: { masteryCount, nextReview } } |
 | `jflash_curriculum_v1` | { currentDay: number } — 현재 학습 Day (1~43) |
+| `jflash_session_v1` | { appScreen, selectedWordIds, dayPreviewPoolIds } — 세션 상태 (새로고침 복원용) |
 
 ---
 
