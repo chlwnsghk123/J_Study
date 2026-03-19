@@ -130,7 +130,10 @@ CATEGORY_META = {
 - **탭/클릭 = 카드 뒤집기(Flip)만**: 정답/오답 처리 없음, 앞↔뒤 토글
 - **3D 플립 애니메이션**: CSS `rotateY(180deg)` + `backface-visibility: hidden` (0.5초)
   - 양면 동시 DOM 존재, `backface-visibility: hidden`으로 뒷면 숨김
-  - 카드 전환 시 `requestAnimationFrame` 2프레임으로 플립 트랜지션 일시 해제 (뒤→앞 역재생 방지)
+  - **탭 플립(앞↔뒤)**: 항상 0.5초 애니메이션 — `enableFlipTransition` 초기값 `true`
+  - **카드 전환(다음 카드)**: 항상 애니메이션 없이 즉시 표시
+    - 렌더 중 `isCardTransition` 동기 감지 (`prevWordIdRef !== word.id`)로 해당 렌더에서 `flip-transition` CSS 클래스 차단
+    - 2프레임 `requestAnimationFrame` 후 트랜지션 재활성화 (다음 탭 플립용)
 - **드래그 스와이프 (앞면·뒷면 모두, 모바일+PC)**:
   - 카드를 손가락/마우스로 끌어서 이동
   - 왼쪽 드래그 → **패스** (이번 세션에서 제외, SRS 변경 없음)
