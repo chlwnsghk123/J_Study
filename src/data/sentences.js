@@ -28,7 +28,6 @@ export const sentences = [
     pron: '모우 이치도 잇테 **쿠다사이**.',
     example: '상대 말을 못 알아들었을 때',
     description: '가장 중요한 생존 표현. 이것만 알아도 대화가 끊기지 않는다.',
-    componentIds: [31, 232]
   },
   {
     id: 282, type: 'sentence', priority: 1,
@@ -39,7 +38,6 @@ export const sentences = [
     pron: '유쿠리 오네가이시**마스**.',
     example: '상대가 너무 빨리 말할 때',
     description: '유쿠리(천천히). 속도 조절 요청.',
-    componentIds: [236]
   },
   {
     id: 283, type: 'sentence', priority: 1,
@@ -50,7 +48,6 @@ export const sentences = [
     pron: '이마**노** 도유- 이미**데스카**?',
     example: '모르는 단어가 나왔을 때',
     description: '이마노(지금 거) + 도유- 이미(무슨 뜻). 의미 확인.',
-    componentIds: [163, 221]
   },
   {
     id: 284, type: 'sentence', priority: 1,
@@ -61,7 +58,6 @@ export const sentences = [
     pron: '니혼고**데** 난테 이우**노**?',
     example: '한국어는 아는데 일본어를 모를 때',
     description: '이우(말하다) + 노(~거야?). 단어를 물어보는 표현.',
-    componentIds: [222, 31]
   },
   {
     id: 285, type: 'sentence', priority: 1,
@@ -72,7 +68,6 @@ export const sentences = [
     pron: '코레 난테 요무**노**?',
     example: '간판·메뉴의 한자를 못 읽을 때',
     description: '요무(읽다). 아사쿠사 간판, 메뉴판에서 자주 쓸 표현.',
-    componentIds: [35]
   },
   {
     id: 286, type: 'sentence', priority: 1,
@@ -83,7 +78,6 @@ export const sentences = [
     pron: '와카리**마시타**.',
     example: '상대 말을 이해했을 때',
     description: '이해 확인. 대화 중 가장 자주 쓰는 응답 중 하나.',
-    componentIds: [43, 242]
   },
   {
     id: 287, type: 'sentence', priority: 1,
@@ -94,7 +88,6 @@ export const sentences = [
     pron: '와카리**마셍**.',
     example: '상대 말을 이해 못 했을 때',
     description: '모를 때 솔직하게. 이 뒤에 되묻기 표현을 붙이면 완벽.',
-    componentIds: [43]
   },
   {
     id: 288, type: 'sentence', priority: 1,
@@ -105,7 +98,6 @@ export const sentences = [
     pron: '에-토...',
     example: '대답을 생각할 시간이 필요할 때',
     description: '시간 벌기 필러. 침묵보다 에-토가 훨씬 자연스럽다.',
-    componentIds: []
   },
   {
     id: 289, type: 'sentence', priority: 1,
@@ -116,7 +108,6 @@ export const sentences = [
     pron: '쵸토 맛테 **쿠다사이**.',
     example: '시간이 필요하거나 멈춰달라고 할 때',
     description: '쵸토(잠깐) + 맛테(기다려). 만능 대기 요청.',
-    componentIds: [41, 232]
   },
   {
     id: 290, type: 'sentence', priority: 1,
@@ -127,7 +118,6 @@ export const sentences = [
     pron: '이미**가** 와카리**마셍**.',
     example: '단어는 들었는데 뜻을 모를 때',
     description: '이미(뜻) + 와카라나이. 287번보다 구체적인 표현.',
-    componentIds: [221, 43]
   },
   {
     id: 291, type: 'sentence', priority: 1,
@@ -138,7 +128,6 @@ export const sentences = [
     pron: '모우 스코시 칸탄**니** 잇테 **쿠다사이**.',
     example: '설명이 너무 어려울 때',
     description: '칸탄니(간단하게). 유쿠리(282)와 세트로 암기.',
-    componentIds: [113, 31, 232]
   },
   {
     id: 292, type: 'sentence', priority: 1,
@@ -149,7 +138,6 @@ export const sentences = [
     pron: '난토 이이**마시타카**?',
     example: '못 들었을 때 되묻기',
     description: '281번의 정중 변형. 난토(뭐라고) + 이이마시타카.',
-    componentIds: [31, 242]
   },
   {
     id: 293, type: 'sentence', priority: 1,
@@ -160,7 +148,6 @@ export const sentences = [
     pron: '소렛테 도유- 코토?',
     example: '문맥은 알겠는데 정확한 뜻이 모호할 때',
     description: '소렛테(그거) + 도유- 코토(무슨 말). 캐주얼 되묻기.',
-    componentIds: [224]
   },
   {
     id: 294, type: 'sentence', priority: 2,
@@ -171,7 +158,6 @@ export const sentences = [
     pron: '니혼고**가** 마다 헤타**데** 스미**마셍**.',
     example: '대화 초반에 양해를 구할 때',
     description: '마다(아직) + 헤타(서투르다). 겸손 표현이자 안전장치.',
-    componentIds: [222, 115]
   },
   {
     id: 295, type: 'sentence', priority: 2,
@@ -182,7 +168,6 @@ export const sentences = [
     pron: '칸지**가** 요메**마셍**.',
     example: '메뉴·표지판의 한자를 못 읽을 때',
     description: '요메나이(읽을 수 없다). 285번(이거 어떻게 읽어?)과 세트.',
-    componentIds: [223, 35]
   },
   {
     id: 296, type: 'sentence', priority: 2,
@@ -193,7 +178,6 @@ export const sentences = [
     pron: '코레**와** 니혼고**데** 난**데스카**?',
     example: '사물을 가리키며 이름을 물을 때',
     description: '284번의 정중 버전. 물건을 가리키며 쓰기 좋다.',
-    componentIds: [222]
   },
   {
     id: 297, type: 'sentence', priority: 2,
@@ -204,7 +188,6 @@ export const sentences = [
     pron: '앗테이**마스카**?',
     example: '내가 말한 일본어가 맞는지 확인할 때',
     description: '앗테이루(맞다). 발음·단어 선택 확인용.',
-    componentIds: []
   },
   {
     id: 298, type: 'sentence', priority: 2,
@@ -215,7 +198,6 @@ export const sentences = [
     pron: '코-유- 코토**데스카**?',
     example: '내가 이해한 게 맞는지 확인할 때',
     description: '코-유-(이런) + 코토(것). 이해 확인.',
-    componentIds: [224]
   },
   {
     id: 299, type: 'sentence', priority: 2,
@@ -226,7 +208,6 @@ export const sentences = [
     pron: '이치카 상, 오시에테!',
     example: '이치카 상에게 뭔가 물어볼 때',
     description: '오시에루(가르치다/알려주다)의 테형. 친근한 요청.',
-    componentIds: [34]
   },
   {
     id: 300, type: 'sentence', priority: 2,
@@ -237,7 +218,6 @@ export const sentences = [
     pron: '스미마셍, 모우 쵸토 유쿠리...',
     example: '말이 빠르고 복잡할 때',
     description: '282번의 캐주얼 변형. 말끝을 흐리면 부드러운 뉘앙스.',
-    componentIds: []
   },
 
   // ── 반응/맞장구 (301-320) ──
@@ -250,7 +230,6 @@ export const sentences = [
     pron: '소우**데스네**.',
     example: '상대 의견에 동의할 때',
     description: '가장 기본적인 맞장구. 거의 매 대화마다 쓴다.',
-    componentIds: []
   },
   {
     id: 302, type: 'sentence', priority: 1,
@@ -261,7 +240,6 @@ export const sentences = [
     pron: '나루호도.',
     example: '새로운 걸 이해했을 때',
     description: '이해·납득의 맞장구. 격식 상관없이 사용 가능.',
-    componentIds: []
   },
   {
     id: 303, type: 'sentence', priority: 1,
@@ -272,7 +250,6 @@ export const sentences = [
     pron: '헤-, 소우난**데스카**.',
     example: '새로운 정보에 가볍게 놀랄 때',
     description: '헤-(감탄) + 소우난데스카. 가벼운 놀라움.',
-    componentIds: []
   },
   {
     id: 304, type: 'sentence', priority: 1,
@@ -283,7 +260,6 @@ export const sentences = [
     pron: '스고이**데스네**!',
     example: '감탄·칭찬할 때',
     description: '스고이(대단한). 풍경·음식·이야기 모든 상황에서 쓰임.',
-    componentIds: [106]
   },
   {
     id: 305, type: 'sentence', priority: 1,
@@ -294,7 +270,6 @@ export const sentences = [
     pron: '이이**데스네**!',
     example: '상대 제안·이야기에 긍정할 때',
     description: '이이(좋은) + 데스네. 제안에 동의할 때도 사용.',
-    componentIds: [101]
   },
   {
     id: 306, type: 'sentence', priority: 1,
@@ -305,7 +280,6 @@ export const sentences = [
     pron: '혼토-**데스카**?',
     example: '놀라거나 확인할 때',
     description: '혼토-(진짜) + 데스카. 놀라움 + 확인.',
-    componentIds: []
   },
   {
     id: 307, type: 'sentence', priority: 1,
@@ -316,7 +290,6 @@ export const sentences = [
     pron: '타노시소우!',
     example: '상대가 재미있는 계획을 말했을 때',
     description: '타노시이(즐거운) + 소우(~겠다). 기대감 표현.',
-    componentIds: [103]
   },
   {
     id: 308, type: 'sentence', priority: 1,
@@ -327,7 +300,6 @@ export const sentences = [
     pron: '소레 이이**네**!',
     example: '상대 제안에 찬성할 때',
     description: '이이(좋은) + 네(~네). 가벼운 동의·찬성.',
-    componentIds: [101]
   },
   {
     id: 309, type: 'sentence', priority: 2,
@@ -338,7 +310,6 @@ export const sentences = [
     pron: '와타시**모** 소우 오모이**마스**.',
     example: '상대 의견에 동의할 때',
     description: '오모우(생각하다). 공감 표현.',
-    componentIds: [44]
   },
   {
     id: 310, type: 'sentence', priority: 2,
@@ -349,7 +320,6 @@ export const sentences = [
     pron: '타시카니!',
     example: '상대 말에 강하게 동의할 때',
     description: '타시카니(확실히). 짧고 강한 동의. 젊은 층 자주 사용.',
-    componentIds: []
   },
   {
     id: 311, type: 'sentence', priority: 2,
@@ -360,7 +330,6 @@ export const sentences = [
     pron: '오모시로이!',
     example: '재미있는 이야기·상황에 반응할 때',
     description: '오모시로이(재미있다). 이야기·장소·체험 모두 사용.',
-    componentIds: [105]
   },
   {
     id: 312, type: 'sentence', priority: 2,
@@ -371,7 +340,6 @@ export const sentences = [
     pron: '소우소우.',
     example: '상대 말에 공감하며 맞장구칠 때',
     description: '소우(그래)를 반복. 가벼운 동의 맞장구.',
-    componentIds: []
   },
   {
     id: 313, type: 'sentence', priority: 2,
@@ -382,7 +350,6 @@ export const sentences = [
     pron: '우라야마시이!',
     example: '상대의 좋은 경험에 부러움을 표할 때',
     description: '우라야마시이(부럽다). 감정 표현 맞장구.',
-    componentIds: [108]
   },
   {
     id: 314, type: 'sentence', priority: 2,
@@ -393,7 +360,6 @@ export const sentences = [
     pron: '얍파리!',
     example: '예상대로였을 때',
     description: '얍파리(역시). 예상 적중·납득 맞장구.',
-    componentIds: []
   },
   {
     id: 315, type: 'sentence', priority: 2,
@@ -404,7 +370,6 @@ export const sentences = [
     pron: '에-, 우소!',
     example: '크게 놀랐을 때',
     description: '우소(거짓말). 놀라움이 강할 때. 친한 사이에서.',
-    componentIds: []
   },
   {
     id: 316, type: 'sentence', priority: 2,
@@ -415,7 +380,6 @@ export const sentences = [
     pron: '소레**와** 시라나캇타.',
     example: '새로운 사실을 알았을 때',
     description: '시라나캇타(몰랐다). 나루호도(302)보다 놀라움이 큰 뉘앙스.',
-    componentIds: [46]
   },
   {
     id: 317, type: 'sentence', priority: 2,
@@ -426,7 +390,6 @@ export const sentences = [
     pron: '와타시**모** 오나지**데스**.',
     example: '취향·경험이 같을 때',
     description: '오나지(같은). 공통점 발견 시 거리감 축소.',
-    componentIds: []
   },
   {
     id: 318, type: 'sentence', priority: 2,
@@ -437,7 +400,6 @@ export const sentences = [
     pron: '소레**와** 타이헨**데스네**.',
     example: '상대의 어려운 경험에 공감할 때',
     description: '타이헨(힘든). 공감 맞장구. 위로 뉘앙스.',
-    componentIds: [117]
   },
   {
     id: 319, type: 'sentence', priority: 2,
@@ -448,7 +410,6 @@ export const sentences = [
     pron: '마지데?',
     example: '놀라움을 캐주얼하게 표현할 때',
     description: '마지(マジ, 진짜). 306번(혼토-데스카)의 캐주얼 버전.',
-    componentIds: []
   },
   {
     id: 320, type: 'sentence', priority: 2,
@@ -459,7 +420,6 @@ export const sentences = [
     pron: '오이시소우!',
     example: '음식을 보거나 음식 이야기할 때',
     description: '오이시이(맛있는) + 소우(~겠다). 음식 장면 필수 반응.',
-    componentIds: [135]
   },
 
   // ── 감정/의견 (321-335) ──
@@ -472,7 +432,6 @@ export const sentences = [
     pron: '타노시이!',
     example: '함께 놀면서 즐거울 때',
     description: '타노시이(즐거운). 가장 기본적인 긍정 감정 표현.',
-    componentIds: [103]
   },
   {
     id: 322, type: 'sentence', priority: 1,
@@ -483,7 +442,6 @@ export const sentences = [
     pron: '츠카레**마시타**.',
     example: '많이 걸어서 힘들 때',
     description: '츠카레루(지치다). 아사쿠사→스카이트리 걸으면 반드시 쓸 표현.',
-    componentIds: [27, 242]
   },
   {
     id: 323, type: 'sentence', priority: 1,
@@ -494,7 +452,6 @@ export const sentences = [
     pron: '오나카 스이타.',
     example: '배가 고플 때',
     description: '오나카(배) + 스쿠(비다). 식사 타이밍 신호.',
-    componentIds: [230]
   },
   {
     id: 324, type: 'sentence', priority: 1,
@@ -505,7 +462,6 @@ export const sentences = [
     pron: '~**가** 스키**데스**.',
     example: '취향을 말할 때',
     description: '스키(좋아하는). ~에 음식·장소·취미 등 대입.',
-    componentIds: [153]
   },
   {
     id: 325, type: 'sentence', priority: 1,
@@ -516,7 +472,6 @@ export const sentences = [
     pron: '~시테미타이.',
     example: '새로운 체험을 하고 싶을 때',
     description: '시테미루(해보다) + 타이(~하고 싶다). 희망·호기심 표현.',
-    componentIds: [235]
   },
   {
     id: 326, type: 'sentence', priority: 2,
@@ -527,7 +482,6 @@ export const sentences = [
     pron: '쵸토 무즈카시이**데스**.',
     example: '일본어가 어렵거나 뭔가 힘들 때',
     description: '무즈카시이(어려운). 일본어·길찾기·선택 등 다목적.',
-    componentIds: [112]
   },
   {
     id: 327, type: 'sentence', priority: 2,
@@ -538,7 +492,6 @@ export const sentences = [
     pron: '우레시이!',
     example: '좋은 일이 있을 때, 만나서 반가울 때',
     description: '우레시이(기쁜). 만남·선물·좋은 소식에 사용.',
-    componentIds: [104]
   },
   {
     id: 328, type: 'sentence', priority: 2,
@@ -549,7 +502,6 @@ export const sentences = [
     pron: '키모치이이.',
     example: '날씨가 좋거나 쾌적할 때',
     description: '키모치(기분) + 이이(좋다). 날씨·공간·경험.',
-    componentIds: [101]
   },
   {
     id: 329, type: 'sentence', priority: 2,
@@ -560,7 +512,6 @@ export const sentences = [
     pron: '쵸토 사무이**데스네**.',
     example: '밖에서 걸을 때 추우면',
     description: '사무이(춥다). 스카이트리 전망대는 바람이 차다.',
-    componentIds: [130]
   },
   {
     id: 330, type: 'sentence', priority: 2,
@@ -571,7 +522,6 @@ export const sentences = [
     pron: '오나카 잇파이.',
     example: '많이 먹은 후',
     description: '잇파이(가득). 323번(오나카 스이타)의 반대.',
-    componentIds: [230]
   },
   {
     id: 331, type: 'sentence', priority: 2,
@@ -582,7 +532,6 @@ export const sentences = [
     pron: '노도 카와이타.',
     example: '많이 걸어서 목이 마를 때',
     description: '노도(목) + 카와쿠(마르다). 음료 마시러 가자는 신호.',
-    componentIds: []
   },
   {
     id: 332, type: 'sentence', priority: 2,
@@ -593,7 +542,6 @@ export const sentences = [
     pron: '모우 스코시 이타이.',
     example: '좋은 장소에서 더 머물고 싶을 때',
     description: '이루(있다) + 타이(~싶다). 스카이트리 전망대 등에서.',
-    componentIds: []
   },
   {
     id: 333, type: 'sentence', priority: 2,
@@ -604,7 +552,6 @@ export const sentences = [
     pron: '쵸토 야스미타이.',
     example: '피곤해서 쉬자고 제안할 때',
     description: '야스무(쉬다) + 타이. 322번(츠카레마시타)과 세트.',
-    componentIds: [23, 235]
   },
   {
     id: 334, type: 'sentence', priority: 2,
@@ -615,7 +562,6 @@ export const sentences = [
     pron: '스고쿠 타노시캇타**데스**.',
     example: '하루를 마무리하며',
     description: '스고쿠(정말) + 타노시캇타(즐거웠다). 마무리 감상.',
-    componentIds: [106, 103]
   },
   {
     id: 335, type: 'sentence', priority: 2,
@@ -626,7 +572,6 @@ export const sentences = [
     pron: '~**가** 키니나루.',
     example: '가게·음식·장소가 눈에 띌 때',
     description: '키니나루(신경쓰이다/궁금하다). 흥미·관심 표현.',
-    componentIds: [51]
   },
 
   // ── 감사/사과/기본인사 (336-350) ──
@@ -639,7 +584,6 @@ export const sentences = [
     pron: '도-모 아리가토- 고자이**마스**.',
     example: '도움을 받거나 감사할 때',
     description: '최정중 감사. 처음 만나는 사람·가게 직원 등에게.',
-    componentIds: []
   },
   {
     id: 337, type: 'sentence', priority: 1,
@@ -650,7 +594,6 @@ export const sentences = [
     pron: '아리가토-!',
     example: '이치카 상에게 가볍게 감사할 때',
     description: '336번의 캐주얼 버전. 친한 사이에서는 이쪽이 자연스럽다.',
-    componentIds: []
   },
   {
     id: 338, type: 'sentence', priority: 1,
@@ -661,7 +604,6 @@ export const sentences = [
     pron: '스미**마셍**.',
     example: '사과·양해·말 걸기 모두 사용',
     description: '사과뿐 아니라 길을 물을 때, 부탁할 때도 쓰는 만능 표현.',
-    componentIds: []
   },
   {
     id: 339, type: 'sentence', priority: 1,
@@ -672,7 +614,6 @@ export const sentences = [
     pron: '고멘**네**.',
     example: '이치카 상에게 가볍게 사과할 때',
     description: '고멘(미안) + 네(~해). 친한 사이 가벼운 사과.',
-    componentIds: []
   },
   {
     id: 340, type: 'sentence', priority: 1,
@@ -683,7 +624,6 @@ export const sentences = [
     pron: '오시에테 **쿠레테** 아리가토- 고자이**마스**.',
     example: '이치카 상이 일본어·길 등을 알려줬을 때',
     description: '오시에루(가르치다) + 쿠레테(~해줘서). 이치카 상에게 자주 쓸 표현.',
-    componentIds: [34, 59]
   },
   {
     id: 341, type: 'sentence', priority: 1,
@@ -694,7 +634,6 @@ export const sentences = [
     pron: '하지메**마시테**.',
     example: '이치카 상과 첫 만남에서',
     description: '첫 만남 인사 첫 마디. 반드시 외워야 할 인사.',
-    componentIds: []
   },
   {
     id: 342, type: 'sentence', priority: 1,
@@ -705,7 +644,6 @@ export const sentences = [
     pron: '요로시쿠 오네가이시**마스**.',
     example: '자기소개 마무리, 부탁할 때',
     description: '만능 마무리 인사. 모든 인사 상황에 쓸 수 있다.',
-    componentIds: [236]
   },
   {
     id: 343, type: 'sentence', priority: 2,
@@ -716,7 +654,6 @@ export const sentences = [
     pron: '오쿠레테 스미**마셍**.',
     example: '약속에 늦었을 때',
     description: '오쿠레루(늦다) + 스미마셍. 약속 장면 필수.',
-    componentIds: [28]
   },
   {
     id: 344, type: 'sentence', priority: 2,
@@ -727,7 +664,6 @@ export const sentences = [
     pron: '오마타세시**마시타**.',
     example: '상대를 기다리게 했을 때',
     description: '343번보다 격식 있는 사과. 가게에서도 자주 들리는 표현.',
-    componentIds: [41]
   },
   {
     id: 345, type: 'sentence', priority: 2,
@@ -738,7 +674,6 @@ export const sentences = [
     pron: '오카게**데** 타스캇타!',
     example: '이치카 상이 도움을 줬을 때',
     description: '오카게데(덕분에) + 타스카루(도움이 되다). 감사+구체적 상황.',
-    componentIds: [63]
   },
   {
     id: 346, type: 'sentence', priority: 2,
@@ -749,7 +684,6 @@ export const sentences = [
     pron: '다이죠-부**데스**.',
     example: '상대가 사과하거나 걱정할 때',
     description: '다이죠-부(괜찮다). 사과 받기·거절·안심 모두 사용.',
-    componentIds: [116]
   },
   {
     id: 347, type: 'sentence', priority: 2,
@@ -760,7 +694,6 @@ export const sentences = [
     pron: '키니시나이**데**.',
     example: '상대가 미안해할 때 괜찮다고 할 때',
     description: '키니스루(신경쓰다) + 나이데(~하지 마). 346번보다 캐주얼.',
-    componentIds: [50]
   },
   {
     id: 348, type: 'sentence', priority: 2,
@@ -771,7 +704,6 @@ export const sentences = [
     pron: '쿄-**와** 아리가토-!',
     example: '하루 끝에 헤어지며',
     description: '하루 마무리 감사. 헤어질 때 필수.',
-    componentIds: [164]
   },
   {
     id: 349, type: 'sentence', priority: 2,
@@ -782,7 +714,6 @@ export const sentences = [
     pron: '마타 아오우**네**!',
     example: '헤어질 때 다음 만남을 약속하며',
     description: '마타(또) + 아우(만나다) + 네. 재회 약속.',
-    componentIds: [40]
   },
   {
     id: 350, type: 'sentence', priority: 2,
@@ -793,7 +724,6 @@ export const sentences = [
     pron: '키오츠케테 카엣테 **쿠다사이네**.',
     example: '헤어질 때 상대를 배려하며',
     description: '키오츠케루(조심하다) + 카에루(돌아가다). 배려 인사.',
-    componentIds: [54, 8, 232]
   },
 
   // ── 만남/합류 (351-360) ──
@@ -806,7 +736,6 @@ export const sentences = [
     pron: '쥰**토** 모-시**마스**. 요로시쿠 오네가이시**마스**.',
     example: '이치카 상에게 이름을 말할 때',
     description: '모-시마스(~라고 합니다). 자기소개 이름 표현.',
-    componentIds: [210, 236]
   },
   {
     id: 352, type: 'sentence', priority: 1,
@@ -817,7 +746,6 @@ export const sentences = [
     pron: '칸코쿠**카라** 키**마시타**.',
     example: '출신을 말할 때',
     description: '카라(~에서) + 키마시타(왔습니다). 자기소개 기본.',
-    componentIds: [187, 2, 242]
   },
   {
     id: 353, type: 'sentence', priority: 1,
@@ -828,7 +756,6 @@ export const sentences = [
     pron: '아에테 우레시이**데스**.',
     example: '첫 만남에서 반가움을 표현할 때',
     description: '아에루(만날 수 있다) + 우레시이(기쁘다). 호감 표현.',
-    componentIds: [40, 104]
   },
   {
     id: 354, type: 'sentence', priority: 1,
@@ -839,7 +766,6 @@ export const sentences = [
     pron: '쿄-**와** 요로시쿠**네**!',
     example: '만나서 하루를 시작할 때',
     description: '342번의 캐주얼 버전. 함께 놀기 시작할 때.',
-    componentIds: [164]
   },
   {
     id: 355, type: 'sentence', priority: 2,
@@ -850,7 +776,6 @@ export const sentences = [
     pron: '도코**카라** 이코-카?',
     example: '만나서 동선을 정할 때',
     description: '이코우(가자) + 카(~까). 행동 개시 제안.',
-    componentIds: [1]
   },
   {
     id: 356, type: 'sentence', priority: 2,
@@ -861,7 +786,6 @@ export const sentences = [
     pron: '니혼고**오** 벤쿄-시테이**마스**.',
     example: '자기소개에서 일본어 학습을 말할 때',
     description: '벤쿄-시테이루(공부하고 있다). 대화 배경 설명.',
-    componentIds: [222, 100, 247]
   },
   {
     id: 357, type: 'sentence', priority: 2,
@@ -872,7 +796,6 @@ export const sentences = [
     pron: '니혼**와** 하지메테**데스**.',
     example: '첫 방문임을 말할 때',
     description: '하지메테(처음). 이치카 상이 안내해줄 계기.',
-    componentIds: [188]
   },
   {
     id: 358, type: 'sentence', priority: 2,
@@ -883,7 +806,6 @@ export const sentences = [
     pron: '스고쿠 타노시미**니** 시테타!',
     example: '만남을 기다려왔다는 것을 표현할 때',
     description: '타노시미니스루(기대하다). 만남 초반 분위기 업.',
-    componentIds: [103]
   },
   {
     id: 359, type: 'sentence', priority: 2,
@@ -894,7 +816,6 @@ export const sentences = [
     pron: '니혼**니** 코라레테 우레시이**데스**.',
     example: '일본 방문 기쁨을 표현할 때',
     description: '코라레루(올 수 있다) + 우레시이. 감사+기쁨.',
-    componentIds: [188, 2, 104]
   },
   {
     id: 360, type: 'sentence', priority: 2,
@@ -905,7 +826,6 @@ export const sentences = [
     pron: '쿄-**와** 텐키**가** 이이**네**!',
     example: '만나서 가볍게 날씨 인사할 때',
     description: '텐키(날씨) + 이이(좋다). 대화 시작 스몰톡.',
-    componentIds: [164, 175, 101]
   },
 
   // ── 이동/교통 (361-370) ──
@@ -918,7 +838,6 @@ export const sentences = [
     pron: '츠기**노** 에키**데** 오리**마스카**?',
     example: '이치카 상에게 내릴 역을 확인할 때',
     description: '츠기노(다음의) + 오리루(내리다). 전철 장면.',
-    componentIds: [176, 7]
   },
   {
     id: 362, type: 'sentence', priority: 1,
@@ -929,7 +848,6 @@ export const sentences = [
     pron: '아루이테 이케**마스카**?',
     example: '목적지까지 도보 가능 여부를 물을 때',
     description: '아루이테(걸어서) + 이케루(갈 수 있다). 이동 판단.',
-    componentIds: [3, 1]
   },
   {
     id: 363, type: 'sentence', priority: 1,
@@ -940,7 +858,6 @@ export const sentences = [
     pron: '도노쿠라이 카카리**마스카**?',
     example: '소요 시간을 물을 때',
     description: '도노쿠라이(얼마나) + 카카루(걸리다). 시간 확인 만능.',
-    componentIds: [62]
   },
   {
     id: 364, type: 'sentence', priority: 2,
@@ -951,7 +868,6 @@ export const sentences = [
     pron: '콧치 카나?',
     example: '방향을 확인할 때',
     description: '콧치(이쪽) + 카나(~인가). 함께 걸으며 방향 확인.',
-    componentIds: []
   },
   {
     id: 365, type: 'sentence', priority: 2,
@@ -962,7 +878,6 @@ export const sentences = [
     pron: '쵸토 야스모-카?',
     example: '많이 걸어서 쉬자고 제안할 때',
     description: '야스무(쉬다) + 오우카(~할까). 아사쿠사→스카이트리 중간.',
-    componentIds: [23]
   },
   {
     id: 366, type: 'sentence', priority: 2,
@@ -973,7 +888,6 @@ export const sentences = [
     pron: '츠기**와** 도코 이쿠?',
     example: '한 장소를 마치고 다음 목적지를 정할 때',
     description: '츠기(다음) + 도코(어디) + 이쿠(가다). 동선 전환.',
-    componentIds: [1]
   },
   {
     id: 367, type: 'sentence', priority: 2,
@@ -984,7 +898,6 @@ export const sentences = [
     pron: '코코**데** 노리카에**마스카**?',
     example: '환승 여부를 확인할 때',
     description: '노리카에루(갈아타다). 아사쿠사→오모테산도 이동 시.',
-    componentIds: [10]
   },
   {
     id: 368, type: 'sentence', priority: 2,
@@ -995,7 +908,6 @@ export const sentences = [
     pron: '타쿠시-**니** 노로-카?',
     example: '피곤하거나 먼 거리일 때',
     description: '노루(타다) + 오우카(~할까). 이동 수단 제안.',
-    componentIds: [193, 6]
   },
   {
     id: 369, type: 'sentence', priority: 2,
@@ -1006,7 +918,6 @@ export const sentences = [
     pron: '모우스구 츠쿠**요**!',
     example: '목적지에 거의 도착했을 때',
     description: '모우스구(곧) + 츠쿠(도착하다). 응원·격려.',
-    componentIds: [9]
   },
   {
     id: 370, type: 'sentence', priority: 2,
@@ -1017,7 +928,6 @@ export const sentences = [
     pron: '미치**니** 마욧타 카모.',
     example: '길을 잘못 들었을 때',
     description: '마요우(헤매다) + 카모(~일지도). 길찾기 트러블.',
-    componentIds: [177, 17]
   },
 
   // ── 구경/관광 (371-385) ──
@@ -1030,7 +940,6 @@ export const sentences = [
     pron: '스고이! 키레이!',
     example: '센소지·스카이트리 경치를 보며',
     description: '스고이(대단한) + 키레이(예쁜). 감탄 세트.',
-    componentIds: [106, 133]
   },
   {
     id: 372, type: 'sentence', priority: 1,
@@ -1041,7 +950,6 @@ export const sentences = [
     pron: '샤신 톳테**모** 이이**데스카**?',
     example: '사진 촬영 허가를 구할 때',
     description: '샤신(사진) + 토루(찍다) + 테모이이데스카. 관광 필수.',
-    componentIds: [213, 66, 233]
   },
   {
     id: 373, type: 'sentence', priority: 1,
@@ -1052,7 +960,6 @@ export const sentences = [
     pron: '잇쇼**니** 샤신 토리**마셍카**?',
     example: '이치카 상과 함께 사진을 찍자고 할 때',
     description: '잇쇼니(같이) + 토리마셍카(찍지 않을래요). 권유.',
-    componentIds: [213, 66, 275]
   },
   {
     id: 374, type: 'sentence', priority: 1,
@@ -1063,7 +970,6 @@ export const sentences = [
     pron: '코코 유-메-**나노**?',
     example: '장소에 대해 물어볼 때',
     description: '유-메-(유명한). 이치카 상에게 장소 정보 질문.',
-    componentIds: [149]
   },
   {
     id: 375, type: 'sentence', priority: 2,
@@ -1074,7 +980,6 @@ export const sentences = [
     pron: '이치카 상, 코코 키타 코토 아루?',
     example: '장소 경험을 물어볼 때',
     description: '키타 코토 아루(와본 적 있다). 경험 질문.',
-    componentIds: [2, 224, 95]
   },
   {
     id: 376, type: 'sentence', priority: 2,
@@ -1085,7 +990,6 @@ export const sentences = [
     pron: '케시키**가** 스고이**데스네**.',
     example: '스카이트리 전망대에서',
     description: '케시키(경치) + 스고이. 전망대·높은 곳 감상.',
-    componentIds: [189, 106]
   },
   {
     id: 377, type: 'sentence', priority: 2,
@@ -1096,7 +1000,6 @@ export const sentences = [
     pron: '아레 나니?',
     example: '멀리 보이는 건물·명소를 가리키며',
     description: '아레(저것) + 나니(뭐). 호기심 표현. 최단 질문.',
-    componentIds: []
   },
   {
     id: 378, type: 'sentence', priority: 2,
@@ -1107,7 +1010,6 @@ export const sentences = [
     pron: '샤신 톳테 이타다케**마스카**?',
     example: '지나가는 사람에게 사진 부탁할 때',
     description: '이타다케마스카(~해주시겠어요). 정중 요청.',
-    componentIds: [213, 66, 234]
   },
   {
     id: 379, type: 'sentence', priority: 2,
@@ -1118,7 +1020,6 @@ export const sentences = [
     pron: '와-, 히토**가** 오오이**네**.',
     example: '아사쿠사 나카미세도리에서',
     description: '히토(사람) + 오오이(많다). 관광지 공통 반응.',
-    componentIds: [207, 134]
   },
   {
     id: 380, type: 'sentence', priority: 2,
@@ -1129,7 +1030,6 @@ export const sentences = [
     pron: '코레 스고쿠 니혼**뽀이**!',
     example: '일본다운 것을 발견했을 때',
     description: '~뽀이(~스럽다). 센소지·가미나리몬 등에서.',
-    componentIds: [106, 188]
   },
   {
     id: 381, type: 'sentence', priority: 2,
@@ -1140,7 +1040,6 @@ export const sentences = [
     pron: '코코**카라** 나니**가** 미에루?',
     example: '스카이트리 전망대에서 이치카 상에게',
     description: '미에루(보이다). 전망 질문.',
-    componentIds: [65]
   },
   {
     id: 382, type: 'sentence', priority: 2,
@@ -1151,7 +1050,6 @@ export const sentences = [
     pron: '코코**니** 하잇테**모** 이이**데스카**?',
     example: '사찰·가게 등 입장 허가를 물을 때',
     description: '하이루(들어가다) + 테모이이데스카. 입장 확인.',
-    componentIds: [4, 233]
   },
   {
     id: 383, type: 'sentence', priority: 2,
@@ -1162,7 +1060,6 @@ export const sentences = [
     pron: '칸코쿠**니와** 코-유-**노** 나이**요**.',
     example: '일본만의 문화·건물을 보며',
     description: '한일 비교. 대화 소재가 되는 표현.',
-    componentIds: [187]
   },
   {
     id: 384, type: 'sentence', priority: 2,
@@ -1173,7 +1070,6 @@ export const sentences = [
     pron: '나란데루**네**... 마츠?',
     example: '인기 가게·시설 앞 줄을 보며',
     description: '나라부(줄서다) + 마츠(기다리다). 행렬 판단.',
-    componentIds: [30, 41]
   },
   {
     id: 385, type: 'sentence', priority: 2,
@@ -1184,7 +1080,6 @@ export const sentences = [
     pron: '뉴-죠-료-**와** 이쿠라**데스카**?',
     example: '스카이트리 등 유료 시설에서',
     description: '뉴-죠-료-(입장료) + 이쿠라(얼마). 티켓 구매.',
-    componentIds: [229]
   },
 
   // ── 먹기/카페 (386-400) ──
@@ -1197,7 +1092,6 @@ export const sentences = [
     pron: '나니 타베타이?',
     example: '식사 장소를 정할 때',
     description: '타베루(먹다) + 타이(~하고 싶다). 식사 대화 첫 마디.',
-    componentIds: [19, 235]
   },
   {
     id: 387, type: 'sentence', priority: 1,
@@ -1208,7 +1102,6 @@ export const sentences = [
     pron: '코레 오이시소우!',
     example: '메뉴·길거리 음식을 보며',
     description: '오이시이(맛있는) + 소우(~겠다). 나카미세 길거리 음식 등.',
-    componentIds: [135]
   },
   {
     id: 388, type: 'sentence', priority: 1,
@@ -1219,7 +1112,6 @@ export const sentences = [
     pron: '히토츠 **쿠다사이**.',
     example: '길거리 음식·가게에서 주문할 때',
     description: '히토츠(하나) + 쿠다사이. 가장 간단한 주문.',
-    componentIds: [231]
   },
   {
     id: 389, type: 'sentence', priority: 1,
@@ -1230,7 +1122,6 @@ export const sentences = [
     pron: '코레**오** **쿠다사이**.',
     example: '메뉴를 가리키며 주문할 때',
     description: '코레(이것) + 쿠다사이. 만능 주문 표현.',
-    componentIds: [231]
   },
   {
     id: 390, type: 'sentence', priority: 1,
@@ -1241,7 +1132,6 @@ export const sentences = [
     pron: '이타다키**마스**.',
     example: '식사 전 인사',
     description: '식사 전 필수 인사. 일본 문화 예절. 반드시 암기.',
-    componentIds: []
   },
   {
     id: 391, type: 'sentence', priority: 1,
@@ -1252,7 +1142,6 @@ export const sentences = [
     pron: '고치소-사마**데시타**.',
     example: '식사 후 인사',
     description: '식사 후 필수 인사. 식당 나갈 때도 사용.',
-    componentIds: []
   },
   {
     id: 392, type: 'sentence', priority: 2,
@@ -1263,7 +1152,6 @@ export const sentences = [
     pron: '이치카 상**노** 오스스메**와**?',
     example: '메뉴를 고를 때 이치카 상에게',
     description: '오스스메(추천). 상대에게 추천을 구하는 표현.',
-    componentIds: [226]
   },
   {
     id: 393, type: 'sentence', priority: 2,
@@ -1274,7 +1162,6 @@ export const sentences = [
     pron: '한분코 시요우!',
     example: '다른 메뉴를 시켜서 나눠 먹자고 할 때',
     description: '한분코(반씩 나누기). 친한 사이 식사 표현.',
-    componentIds: []
   },
   {
     id: 394, type: 'sentence', priority: 2,
@@ -1285,7 +1172,6 @@ export const sentences = [
     pron: '혼토-**니** 오이시이**데스**!',
     example: '음식 감상을 말할 때',
     description: '혼토-니(정말) + 오이시이(맛있다). 식사 중 필수 반응.',
-    componentIds: [135]
   },
   {
     id: 395, type: 'sentence', priority: 2,
@@ -1296,7 +1182,6 @@ export const sentences = [
     pron: '오카이케- 오네가이시**마스**.',
     example: '식사 후 계산할 때',
     description: '오카이케-(계산). 식당·카페 필수 표현.',
-    componentIds: [227, 236]
   },
   {
     id: 396, type: 'sentence', priority: 2,
@@ -1307,7 +1192,6 @@ export const sentences = [
     pron: '코-히- 노미**니** 이카나이?',
     example: '오모테산도에서 카페 가자고 할 때',
     description: '노미니이쿠(마시러 가다) + 이카나이?(가지 않을래?). 권유.',
-    componentIds: [199, 20, 1, 272]
   },
   {
     id: 397, type: 'sentence', priority: 2,
@@ -1318,7 +1202,6 @@ export const sentences = [
     pron: '히토쿠치 타베테**모** 이이?',
     example: '상대 음식을 한입 먹어보고 싶을 때',
     description: '히토쿠치(한입) + 타베테모이이(먹어도 돼). 친한 사이.',
-    componentIds: [19, 233]
   },
   {
     id: 398, type: 'sentence', priority: 2,
@@ -1329,7 +1212,6 @@ export const sentences = [
     pron: '코레**와** 나니**가** 하잇테이**마스카**?',
     example: '음식 재료를 확인할 때',
     description: '하잇테이루(들어있다). 알레르기·취향 확인.',
-    componentIds: [4, 247]
   },
   {
     id: 399, type: 'sentence', priority: 2,
@@ -1340,7 +1222,6 @@ export const sentences = [
     pron: '와타시**와** 코레**니** 스루.',
     example: '메뉴를 결정했을 때',
     description: '코레니스루(이걸로 하다). 주문 직전 의사결정.',
-    componentIds: [93]
   },
   {
     id: 400, type: 'sentence', priority: 2,
@@ -1351,7 +1232,6 @@ export const sentences = [
     pron: '코코 훈이키 이이**네**!',
     example: '카페·식당에 들어가서',
     description: '훈이키(분위기) + 이이(좋다). 오모테산도 카페 등.',
-    componentIds: [190, 101]
   },
 
   // ── 쇼핑/구경 (401-410) ──
@@ -1364,7 +1244,6 @@ export const sentences = [
     pron: '코레**와** 이쿠라**데스카**?',
     example: '가격을 물을 때',
     description: '이쿠라(얼마). 쇼핑 최빈출 표현.',
-    componentIds: []
   },
   {
     id: 402, type: 'sentence', priority: 2,
@@ -1375,7 +1254,6 @@ export const sentences = [
     pron: '카와이이!',
     example: '귀여운 상품·캐릭터를 보며',
     description: '카와이이(귀여운). 일본 쇼핑에서 가장 자주 쓰이는 감탄.',
-    componentIds: [107]
   },
   {
     id: 403, type: 'sentence', priority: 2,
@@ -1386,7 +1264,6 @@ export const sentences = [
     pron: '코레 이이**나**-.',
     example: '마음에 드는 물건을 발견했을 때',
     description: '이이(좋은) + 나-(감탄). 가벼운 호감 표현.',
-    componentIds: [101]
   },
   {
     id: 404, type: 'sentence', priority: 2,
@@ -1397,7 +1274,6 @@ export const sentences = [
     pron: '오미야게**니** 이이 카모.',
     example: '기념품을 고를 때',
     description: '오미야게(선물/기념품) + 카모(~일지도). 구매 고민.',
-    componentIds: [218, 101]
   },
   {
     id: 405, type: 'sentence', priority: 2,
@@ -1408,7 +1284,6 @@ export const sentences = [
     pron: '쵸토 타카이 카나.',
     example: '가격이 부담될 때',
     description: '타카이(비싼) + 카나(~인가). 가격 고민.',
-    componentIds: [138]
   },
   {
     id: 406, type: 'sentence', priority: 2,
@@ -1419,7 +1294,6 @@ export const sentences = [
     pron: '미테**모** 이이**데스카**?',
     example: '가게에서 상품을 만져보고 싶을 때',
     description: '미루(보다) + 테모이이데스카. 입장·열람 허가.',
-    componentIds: [65, 233]
   },
   {
     id: 407, type: 'sentence', priority: 2,
@@ -1430,7 +1304,6 @@ export const sentences = [
     pron: '미테이루 다케**데스**.',
     example: '점원이 다가왔을 때',
     description: '미테이루(보고 있다) + 다케(~만). 부담 없이 거절.',
-    componentIds: [65, 247]
   },
   {
     id: 408, type: 'sentence', priority: 2,
@@ -1441,7 +1314,6 @@ export const sentences = [
     pron: '코레**오** 카이**마스**.',
     example: '구매를 결정했을 때',
     description: '카우(사다). 구매 의사 표현.',
-    componentIds: [55]
   },
   {
     id: 409, type: 'sentence', priority: 2,
@@ -1452,7 +1324,6 @@ export const sentences = [
     pron: '이치카 상**와** 나니**가** 스키?',
     example: '선물을 같이 고를 때, 취향을 물을 때',
     description: '나니가 스키(뭐가 좋아). 취향 질문.',
-    componentIds: [153]
   },
   {
     id: 410, type: 'sentence', priority: 2,
@@ -1463,7 +1334,6 @@ export const sentences = [
     pron: '모우 쵸토 칸가에루.',
     example: '구매를 보류할 때',
     description: '칸가에루(생각하다). 정중한 보류.',
-    componentIds: [45]
   },
 
   // ── 일상 수다 (411-425) ──
@@ -1476,7 +1346,6 @@ export const sentences = [
     pron: '후단 나니 시테루**노**?',
     example: '이치카 상의 일상을 물어볼 때',
     description: '후단(평소) + 나니 시테루(뭐 하고 있어). 일상 질문.',
-    componentIds: [93, 247]
   },
   {
     id: 412, type: 'sentence', priority: 1,
@@ -1487,7 +1356,6 @@ export const sentences = [
     pron: '오시고토**와** 나니**오** 시테이**마스카**?',
     example: '직업을 물어볼 때',
     description: '오시고토(일, 정중). 첫 만남 대화 소재.',
-    componentIds: [211, 93, 247]
   },
   {
     id: 413, type: 'sentence', priority: 1,
@@ -1498,7 +1366,6 @@ export const sentences = [
     pron: '슈미**와** 나니?',
     example: '취미를 물어볼 때',
     description: '슈미(취미). 대화를 넓히는 기본 질문.',
-    componentIds: [212]
   },
   {
     id: 414, type: 'sentence', priority: 2,
@@ -1509,7 +1376,6 @@ export const sentences = [
     pron: '칸코쿠**니** 키타 코토 아루?',
     example: '한국 방문 경험을 물어볼 때',
     description: '키타 코토 아루(와본 적 있다). 375번과 같은 패턴.',
-    componentIds: [187, 2, 224, 95]
   },
   {
     id: 415, type: 'sentence', priority: 2,
@@ -1520,7 +1386,6 @@ export const sentences = [
     pron: '슈-마츠**와** 이츠모 나니 시테루?',
     example: '주말 루틴을 물어볼 때',
     description: '이츠모(보통/항상). 일상 대화 소재 확장.',
-    componentIds: [171, 93, 247]
   },
   {
     id: 416, type: 'sentence', priority: 2,
@@ -1531,7 +1396,6 @@ export const sentences = [
     pron: '칸코쿠**데와** ~**가** 닌키**데스**.',
     example: '한국 문화를 소개할 때',
     description: '닌키(인기). 한일 문화 비교 대화 소재.',
-    componentIds: [187, 228]
   },
   {
     id: 417, type: 'sentence', priority: 2,
@@ -1542,7 +1406,6 @@ export const sentences = [
     pron: '니혼**데** 이마 나니**가** 하얏테루?',
     example: '일본 트렌드를 물어볼 때',
     description: '하야루(유행하다). 문화 대화.',
-    componentIds: [188, 163, 39, 247]
   },
   {
     id: 418, type: 'sentence', priority: 2,
@@ -1553,7 +1416,6 @@ export const sentences = [
     pron: '칸코쿠료-리 스키?',
     example: '한국 음식 대화로 이어갈 때',
     description: '칸코쿠료-리(한국 요리). 공통 관심사 찾기.',
-    componentIds: [206, 153]
   },
   {
     id: 419, type: 'sentence', priority: 2,
@@ -1564,7 +1426,6 @@ export const sentences = [
     pron: '나니**가** 이치방 요캇타?',
     example: '하루를 돌아보며 감상을 물을 때',
     description: '이치방(가장) + 요캇타(좋았다). 마무리 대화.',
-    componentIds: [101]
   },
   {
     id: 420, type: 'sentence', priority: 2,
@@ -1575,7 +1436,6 @@ export const sentences = [
     pron: '니혼고 못토 죠-즈**니** 나리타이**데스**.',
     example: '일본어 학습 의지를 말할 때',
     description: '못토(더) + 죠-즈니 나리타이(잘하게 되고 싶다). 진심 표현.',
-    componentIds: [222, 114, 85, 235]
   },
   {
     id: 421, type: 'sentence', priority: 2,
@@ -1586,7 +1446,6 @@ export const sentences = [
     pron: '콘도**와** 도코**니** 이키타이?',
     example: '다음 만남 계획을 자연스럽게 꺼낼 때',
     description: '콘도(다음에). 재회를 전제한 질문. 관계 유지.',
-    componentIds: [172, 1, 235]
   },
   {
     id: 422, type: 'sentence', priority: 2,
@@ -1597,7 +1456,6 @@ export const sentences = [
     pron: '이치카 상**토** 하나스**토** 타노시이.',
     example: '대화가 즐겁다고 표현할 때',
     description: '하나스(말하다) + 타노시이(즐거운). 호감 표현.',
-    componentIds: [32, 103]
   },
   {
     id: 423, type: 'sentence', priority: 2,
@@ -1608,7 +1466,6 @@ export const sentences = [
     pron: '소레**와** 하지메테 시리**마시타**.',
     example: '새로운 정보를 들었을 때',
     description: '하지메테(처음) + 시루(알다). 관심 표현.',
-    componentIds: [46, 242]
   },
   {
     id: 424, type: 'sentence', priority: 2,
@@ -1619,7 +1476,6 @@ export const sentences = [
     pron: '사이킨 나니**니** 하맛테루?',
     example: '최근 관심사를 물어볼 때',
     description: '사이킨(최근) + 하마루(빠지다). 트렌드 대화.',
-    componentIds: [173, 52, 247]
   },
   {
     id: 425, type: 'sentence', priority: 2,
@@ -1630,7 +1486,6 @@ export const sentences = [
     pron: '칸코쿠고 오시에요-카?',
     example: '언어 교환을 자연스럽게 제안할 때',
     description: '오시에루(가르치다) + 요우카(~할까). 관계 깊어지는 계기.',
-    componentIds: [34]
   },
 
   // ── 알아듣기용 (426-430) ──
@@ -1643,7 +1498,6 @@ export const sentences = [
     pron: '나니**가** 타베타이?',
     example: '이치카 상이 식사 메뉴를 물어볼 때',
     description: '386번과 세트. 내가 쓸 때는 나니 타베타이, 들을 때는 나니가 타베타이.',
-    componentIds: [19, 235]
   },
   {
     id: 427, type: 'sentence', priority: 1,
@@ -1654,7 +1508,6 @@ export const sentences = [
     pron: '다이죠-부?',
     example: '이치카 상이 걱정하며 물어볼 때',
     description: '346번의 질문 버전. 피곤해 보이거나 힘들어 보일 때 듣게 됨.',
-    componentIds: [116]
   },
   {
     id: 428, type: 'sentence', priority: 1,
@@ -1665,7 +1518,6 @@ export const sentences = [
     pron: '코레 타베테 미테!',
     example: '이치카 상이 음식을 권할 때',
     description: '타베루(먹다) + 테미루(~해보다). 권유 표현을 알아들어야 반응 가능.',
-    componentIds: [19, 65]
   },
   {
     id: 429, type: 'sentence', priority: 2,
@@ -1676,7 +1528,6 @@ export const sentences = [
     pron: '츠기 도코 이쿠?',
     example: '이치카 상이 다음 행선지를 물어볼 때',
     description: '366번과 세트. 이동 전환 시 자주 듣게 될 질문.',
-    componentIds: [1]
   },
   {
     id: 430, type: 'sentence', priority: 2,
@@ -1687,6 +1538,5 @@ export const sentences = [
     pron: '타노시캇타!',
     example: '이치카 상이 헤어지며 감상을 말할 때',
     description: '334번과 세트. 이걸 알아들으면 마무리 대화가 자연스러워진다.',
-    componentIds: [103]
   }
 ];

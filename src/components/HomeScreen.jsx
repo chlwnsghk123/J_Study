@@ -208,7 +208,7 @@ export default function HomeScreen({
           </div>
         </div>
         <p className="text-slate-400 text-center text-xs mb-5">
-          일본어 소리 반사 훈련 · 430장 · 43일 커리큘럼
+          일본어 소리 반사 훈련 · 430장 · 19일 커리큘럼
         </p>
 
         {/* Day 선택기 */}
