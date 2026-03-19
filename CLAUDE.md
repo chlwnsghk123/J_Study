@@ -30,7 +30,6 @@
   description:  string,   // 학습 포인트/주의사항
   antonymId?:   number,   // 반의어 ID (word 타입 전용)
   structure?:   string,   // 문법 구조 (pattern 타입 전용)
-  componentIds?: number[], // 구성 요소 ID (sentence 타입 전용, 의존성 주입용)
 }
 ```
 
@@ -64,7 +63,7 @@ CATEGORY_META = {
 | `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion, history)` — 카드 문맥 + 대화 히스토리 주입형 |
 | `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 19일 커리큘럼 순수 함수 (단어·통문장 비율 분배) |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
-| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 (반의어 로직 제거됨) |
+| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 (반의어·의존성 주입 로직 제거됨) |
 | `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅: 좌=패스/우=되돌리기), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글(2단계), 카드 전환 시 플립 애니메이션 제거 |
 | `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 관리 설정 메뉴(전체 초기화), 탐색 모드 |
 | `src/components/DayPreviewScreen.jsx` | Day 미리보기 — 단어 체크박스 선택, 퀴즈 시작 |
@@ -106,13 +105,6 @@ CATEGORY_META = {
 - 왼쪽 드래그 스와이프 → 현재 카드를 이번 세션 큐에서 **완전 제거** (SRS 변경 없음)
 - 학습 효과 없이 건너뛸 때 사용 — masteryCount, nextReview 모두 변경 없음
 - **되돌리기 가능**: 패스 시에도 `historyStack`에 기록 → 왼쪽 스와이프로 패스한 카드 복원 가능 (연속 패스도 역순 복원)
-
-### 의존성 주입
-- 오답 카드에 `componentIds`가 있으면 해당 단어를 큐 5~10번째에 삽입 (3회 pass 전까지)
-  - **패턴 제외**: `type === 'pattern'` 카드는 의존성 주입에서 제외 (커리큘럼과 일관성 유지)
-  - **중복 방지**: 큐(`newQueue`)와 마스터 목록(`newMastered`) 모두 체크하여 이미 존재하는 컴포넌트는 재삽입하지 않음
-- 슬롯 치환: `[VERB]`, `[ADJ]`, `[WORD]` → 마스터된 단어로 대체
-  - **결정적 선택**: `word.id % arr.length`로 동일 카드는 항상 같은 슬롯 필러를 받음 (비결정적 `Math.random()` 제거)
 
 ### 하드코어 타이머 + 타임아웃 페널티
 - **하드코어 타이머** (하드코어 모드 전용):
@@ -257,7 +249,6 @@ CATEGORY_META = {
 | 필드 | 검증 규칙 |
 |---|---|
 | `antonymId` | 동일 파일(word 타입) 내 실존 ID만 허용 |
-| `componentIds[]` | verbs(1~150) · adjectives(151~230) · patterns(231~280) 범위만 허용 |
 | `tags[0]` | `#동사` `#형용사` `#패턴` `#통문장` 중 하나여야 함 |
 | `politeness` | `'반말'` `'정중체'` `'해당없음'` 세 값만 허용 |
 

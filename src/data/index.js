@@ -20,7 +20,6 @@
  * description  : string   — 학습 포인트/주의사항
  * structure    : string?  — 문법 구조 (패턴 전용, 선택)
  * antonymId    : number?  — 반의어 ID (단어 전용, 선택)
- * componentIds : number[] — 구성 단어/패턴 ID (통문장 전용, 선택)
  */
 
 export { verbs }      from './verbs';

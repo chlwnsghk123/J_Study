@@ -18,7 +18,6 @@
 - **19일 커리큘럼**: 단어 230 + 통문장 150 = 380장을 19일로 균등 분배 (~20장/Day)
 - **마스터 조건**: 세션 내 masteryCount 2회 누적 정답 → SRS 주기 할당 (1일 → 3일 → 7일)
 - **오답 재삽입**: 현재 위치에서 +3~+5번째
-- **의존성 주입**: 통문장 오답 시 구성 단어를 큐에 자동 삽입 (패턴 제외)
 - **3회 오답 패스**: 동일 카드 3회 이상 오답 시 자동 스킵
 - **타임아웃 페널티**: 기준 시간 초과 + '알아요' 선택 시 큐 맨 끝 이동
 
@@ -49,7 +48,7 @@ npm run build
 J_Study/
 ├── .env                           # API 키 (git 제외)
 ├── src/
-│   ├── App.jsx                    # 핵심 엔진: SRS, 큐 빌드, 모드 제어, 의존성 주입
+│   ├── App.jsx                    # 핵심 엔진: SRS, 큐 빌드, 모드 제어
 │   ├── main.jsx
 │   ├── index.css                  # Tailwind + 3D 플립 + 드래그 CSS
 │   ├── lib/
@@ -98,7 +97,6 @@ J_Study/
   description:  string,   // 학습 포인트
   antonymId?:   number,   // 반의어 ID (word 전용)
   structure?:   string,   // 문법 구조 (pattern 전용)
-  componentIds?: number[], // 구성 요소 ID (sentence 전용, 의존성 주입용)
 }
 ```
 

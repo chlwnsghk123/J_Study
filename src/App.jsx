@@ -54,31 +54,6 @@ function getSRSNextDate(masteryCount) {
   return d.toISOString().slice(0, 10);
 }
 
-
-// ─── 동적 슬롯 치환 ──────────────────────────────────────────────
-function fillSlots(word, masteredWords) {
-  if (!word.pron?.includes('[') && !word.hiragana?.includes('[')) return word;
-
-  const pickByIndex = (arr, seed) => arr.length
-    ? arr[seed % arr.length]
-    : null;
-
-  const verbs = masteredWords.filter((w) => w.tags?.[0] === '#동사');
-  const adjs  = masteredWords.filter((w) => w.tags?.[0] === '#형용사');
-
-  let pron     = word.pron ?? '';
-  let hiragana = word.hiragana ?? '';
-  const v   = pickByIndex(verbs, word.id);
-  const a   = pickByIndex(adjs, word.id + 1);
-  const any = pickByIndex(masteredWords, word.id + 2);
-
-  if (v)   { pron = pron.replace(/\[VERB\]/g, v.pron);   hiragana = hiragana.replace(/\[VERB\]/g, v.hiragana); }
-  if (a)   { pron = pron.replace(/\[ADJ\]/g,  a.pron);   hiragana = hiragana.replace(/\[ADJ\]/g,  a.hiragana); }
-  if (any) { pron = pron.replace(/\[WORD\]/g, any.pron); hiragana = hiragana.replace(/\[WORD\]/g, any.hiragana); }
-
-  return { ...word, pron, hiragana };
-}
-
 // ─────────────────────────────────────────────────────────────────
 export default function App() {
   // ── 영구 상태 (localStorage) ────────────────────────────────
@@ -522,18 +497,6 @@ export default function App() {
       if (currentFail >= 3) {
         showToast('3회 오답 — 다음 카드로 넘어갑니다');
       } else {
-        // 의존성 주입: componentIds를 큐 5~10번째에 삽입
-        if (current.componentIds?.length > 0) {
-          current.componentIds.forEach((cid) => {
-            const comp = wordData.find((w) => w.id === cid);
-            if (comp && comp.type !== 'pattern' && !newQueue.find((w) => w.id === cid) && !newMastered.find((w) => w.id === cid)) {
-              const filled = fillSlots(comp, newMastered);
-              const at = Math.min(Math.floor(Math.random() * 6) + 5, newQueue.length);
-              newQueue = [...newQueue.slice(0, at), filled, ...newQueue.slice(at)];
-            }
-          });
-        }
-
         // 현재 카드 재삽입 (+3~+5)
         const insertAt = Math.min(Math.floor(Math.random() * 3) + 3, newQueue.length);
         newQueue = [
@@ -544,12 +507,7 @@ export default function App() {
       }
     }
 
-    // 슬롯 치환: 큐 첫 번째 카드에 적용
-    const filledQueue = newQueue.length > 0
-      ? [fillSlots(newQueue[0], newMastered), ...newQueue.slice(1)]
-      : newQueue;
-
-    setQueue(filledQueue);
+    setQueue(newQueue);
     setMastered(newMastered);
     setShowAnswer(false);
   };
@@ -584,12 +542,9 @@ export default function App() {
     });
 
     const newQueue = queue.slice(1); // 큐에서 완전 제거
-    const filledQueue = newQueue.length > 0
-      ? [fillSlots(newQueue[0], mastered), ...newQueue.slice(1)]
-      : newQueue;
 
     showToast('패스 — 이번 학습에서 제외');
-    setQueue(filledQueue);
+    setQueue(newQueue);
     setShowAnswer(false);
   };
 
