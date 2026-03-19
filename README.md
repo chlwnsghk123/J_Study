@@ -13,12 +13,14 @@
 | 기본 | 앞면: 발음 → 뒷면: 뜻 + 예문 + 학습 포인트 |
 | 리버스 | 앞면: 뜻 → 뒷면: 발음 (+ TTS 자동 재생) |
 | 블라인드 | 앞면: 오디오만 → 뒷면: 전체 정보 |
-| 하드코어 | 3초 안에 답 확인 안 하면 자동 오답 처리 |
+| 하드코어 | 단어 3초 / 패턴·통문장 7초 안에 답 확인 안 하면 자동 오답 처리 |
 
-- **마스터 조건**: 세션 내 2회 연속 정답 → SRS 주기 할당 (1일 → 3일 → 7일)
+- **19일 커리큘럼**: 단어 230 + 통문장 150 = 380장을 19일로 균등 분배 (~20장/Day)
+- **마스터 조건**: 세션 내 masteryCount 2회 누적 정답 → SRS 주기 할당 (1일 → 3일 → 7일)
 - **오답 재삽입**: 현재 위치에서 +3~+5번째
-- **반의어 쌍**: 한쪽 모르면 함께 재복습
-- **의존성 주입**: 통문장/패턴 3회 실패 시 구성 단어·패턴을 큐에 자동 삽입
+- **의존성 주입**: 통문장 오답 시 구성 단어를 큐에 자동 삽입 (패턴 제외)
+- **3회 오답 패스**: 동일 카드 3회 이상 오답 시 자동 스킵
+- **타임아웃 페널티**: 기준 시간 초과 + '알아요' 선택 시 큐 맨 끝 이동
 
 ---
 
@@ -28,8 +30,9 @@
 # 1. 의존성 설치
 npm install
 
-# 2. .env 파일에 Google TTS 키 확인
-# VITE_GOOGLE_TTS_API_KEY=...
+# 2. .env 파일에 API 키 설정
+# VITE_GOOGLE_TTS_API_KEY=...   # Google Cloud TTS
+# VITE_GEMINI_API_KEY=...       # Google Gemini AI
 
 # 3. 개발 서버 시작
 npm run dev
@@ -43,28 +46,34 @@ npm run build
 ## 프로젝트 구조
 
 ```
-단어외우기/
-├── .env                        # Google TTS API 키 (git 제외)
+J_Study/
+├── .env                           # API 키 (git 제외)
 ├── src/
-│   ├── App.jsx                 # 핵심 엔진: SRS, 큐, 모드 제어
+│   ├── App.jsx                    # 핵심 엔진: SRS, 큐 빌드, 모드 제어, 의존성 주입
 │   ├── main.jsx
-│   ├── index.css
+│   ├── index.css                  # Tailwind + 3D 플립 + 드래그 CSS
 │   ├── lib/
-│   │   └── googleTTS.js        # Google Cloud TTS 클라이언트 + 캐싱
+│   │   ├── googleTTS.js           # Google Cloud TTS + LRU 캐싱 (200개)
+│   │   ├── gemini.js              # Gemini AI 클라이언트 (askAI)
+│   │   └── curriculum.js          # 19일 커리큘럼 (비겹침 세트 분할)
 │   ├── hooks/
-│   │   └── useTTS.js           # 자동재생 훅 + speakText()
+│   │   └── useTTS.js              # 자동재생 훅 + speakText()
 │   ├── components/
-│   │   ├── WordCard.jsx        # 플래시카드 (앞/뒤, 리버스, 블라인드)
-│   │   ├── WordSelector.jsx    # 단어 선택 + 설정 + D-Day
-│   │   ├── ProgressBar.jsx
-│   │   └── CompletionScreen.jsx
+│   │   ├── WordCard.jsx           # 3D 플립 카드 + 드래그 스와이프
+│   │   ├── HomeScreen.jsx         # 홈: Day 선택, 설정, 탐색 모드
+│   │   ├── DayPreviewScreen.jsx   # Day 미리보기: 카드 선택 + 퀴즈 시작
+│   │   ├── BrowseScreen.jsx       # 전체 단어 탐색
+│   │   ├── AiChatModal.jsx        # AI 질문 바텀시트
+│   │   ├── ProgressBar.jsx        # 진행 바
+│   │   └── CompletionScreen.jsx   # 학습 완료 화면
 │   └── data/
-│       ├── index.js            # 통합 export + CATEGORY_META
-│       ├── verbs.js            # 동사 30개 (id 1~30)
-│       ├── adjectives.js       # 형용사 30개 (id 31~60)
-│       ├── patterns.js         # 필수 패턴 50개 (id 61~110)
-│       └── sentences.js        # 실전 통문장 50개 (id 111~160)
-├── index.html
+│       ├── index.js               # 통합 export + CATEGORY_META
+│       ├── verbs.js               # 동사 150개 (id 1~150)
+│       ├── adjectives.js          # 형용사 80개 (id 151~230)
+│       ├── patterns.js            # 패턴 50개 (id 231~280)
+│       └── sentences.js           # 통문장 150개 (id 281~430)
+├── public/                        # PWA manifest, 아이콘, OG 이미지
+├── index.html                     # PWA + OG 메타 태그
 ├── package.json
 ├── vite.config.js
 ├── tailwind.config.js
@@ -77,7 +86,7 @@ npm run build
 
 ```js
 {
-  id:           number,    // 전체 고유 (현재 1~160)
+  id:           number,    // 전체 고유 (현재 1~430, 새 항목은 431~)
   type:         string,    // 'word' | 'pattern' | 'sentence'
   priority:     1|2|3,    // 큐 우선순위 (1=높음)
   tags:         string[], // ['#동사', '#이동'] — tags[0]은 종류 표시
@@ -95,35 +104,23 @@ npm run build
 
 ---
 
-## 새 단어 팩 추가 방법
-
-```js
-// 1. src/data/expressions.js 생성 (id는 161부터)
-export const expressions = [
-  {
-    id: 161, type: 'word', priority: 2,
-    tags: ['#표현', '#인사'], politeness: '정중체',
-    pron: '요로시쿠 오네가이시마스', meaning: '잘 부탁드립니다',
-    hiragana: 'よろしくお願いします',
-    example: '처음 만나는 자리에서 사용',
-    description: '비즈니스 필수 표현.',
-  },
-];
-
-// 2. src/data/index.js에 추가
-import { expressions } from './expressions';
-export const wordData = [...verbs, ...adjectives, ...patterns, ...sentences, ...expressions];
-
-// 3. CATEGORY_META에 필요시 새 타입 추가
-```
-
----
-
 ## 주요 기능
 
 - **Google Cloud TTS** (ja-JP-Neural2-B) — 1.0x 자동 재생 / 0.7x 천천히 듣기
 - **오디오 프리패치** — 다음 5개 카드 백그라운드 캐싱으로 지연 없음
-- **SRS (Spaced Repetition)** — 세션 내 2회 정답 후 1/3/7일 주기 복습
-- **OR 태그 필터** — 원하는 태그만 선택해 맞춤 세션 구성
-- **D-Day 할당량** — 목표일 설정 시 남은 카드를 균등 재분배하여 일일 목표 표시
-- **localStorage 영속성** — 설정·SRS 데이터 세션 간 보존
+- **SRS (Spaced Repetition)** — masteryCount 2회 누적 후 1/3/7일 주기 복습
+- **19일 커리큘럼** — 단어·통문장을 각각 19등분 후 교차 배치 (패턴은 BrowseScreen 전용)
+- **AI 질문** — Gemini API로 카드별 맥락 기반 Q&A (추천 질문 3종)
+- **드래그 스와이프** — 좌: 패스 / 우: 되돌리기 (모바일+PC)
+- **세션 자동 저장** — 새로고침 시 마지막 화면과 선택 상태 복원
+- **PWA** — 모바일 홈 화면 추가 지원
+
+---
+
+## 스택
+
+- React 18 + Vite 5 + Tailwind CSS v3 + lucide-react + framer-motion
+- Google Cloud TTS API (`ja-JP-Neural2-B`)
+- Google Gemini API (`models/gemini-3-flash-preview`)
+- PWA (manifest.json + OG/Twitter Card 메타 태그)
+- Vercel 배포
