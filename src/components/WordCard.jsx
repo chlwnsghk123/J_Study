@@ -480,8 +480,14 @@ export default function WordCard({
 }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const [showMasteryConfirm, setShowMasteryConfirm] = useState(false);
-  const [enableFlipTransition, setEnableFlipTransition] = useState(false);
+  const [enableFlipTransition, setEnableFlipTransition] = useState(true);
   const prevWordIdRef = useRef(word.id);
+
+  // 렌더 중 동기 감지 — useEffect보다 먼저 실행되어 className에 즉시 반영
+  const isCardTransition = prevWordIdRef.current !== word.id;
+  if (isCardTransition) {
+    prevWordIdRef.current = word.id;
+  }
 
   const hasPair   = word.type === 'word' && word.antonymId && selectedWordIds.has(word.antonymId);
   const typeBadge = TYPE_META[word.type] ?? 'bg-slate-100 text-slate-700 border-slate-200';
@@ -492,13 +498,10 @@ export default function WordCard({
   const masteryCount = srsData[word.id]?.masteryCount ?? 0;
   const isMastered = masteryCount >= 2;
 
-  // 카드 전환 시 확인 다이얼로그 리셋 + 플립 트랜지션 일시 해제
+  // 카드 전환 후 2프레임 뒤 플립 트랜지션 재활성화 (다음 탭 플립용)
   useEffect(() => {
     setShowMasteryConfirm(false);
-    if (prevWordIdRef.current !== word.id) {
-      // 새 카드: 트랜지션 없이 즉시 앞면 표시
-      prevWordIdRef.current = word.id;
-      setEnableFlipTransition(false);
+    if (isCardTransition) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setEnableFlipTransition(true);
@@ -582,7 +585,7 @@ export default function WordCard({
         <div
           className={`flip-card-inner
             ${showAnswer ? 'flipped' : ''}
-            ${enableFlipTransition && !isDragging ? 'flip-transition' : ''}
+            ${enableFlipTransition && !isDragging && !isCardTransition ? 'flip-transition' : ''}
             ${!isDragging && dragX === 0 && enableFlipTransition ? 'snap-back' : ''}`}
           style={isDragging ? dragStyle : {}}
           onClick={(isDragging || didMove.current) ? undefined : onFlip}

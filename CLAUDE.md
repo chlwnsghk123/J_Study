@@ -61,14 +61,14 @@ CATEGORY_META = {
 | 파일 | 역할 |
 |---|---|
 | `src/lib/googleTTS.js` | TTS API 호출, 인메모리 LRU 캐싱 (최대 200개), prefetch |
-| `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion)` — 카드 문맥 주입형 |
-| `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 19일 커리큘럼 순수 함수 |
+| `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion, history)` — 카드 문맥 + 대화 히스토리 주입형 |
+| `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 19일 커리큘럼 순수 함수 (단어·통문장 비율 분배) |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
 | `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 (반의어 로직 제거됨) |
-| `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅: 좌=되돌리기/우=패스), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글, 입장 애니메이션 |
+| `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅: 좌=패스/우=되돌리기), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글(2단계), 카드 전환 시 플립 애니메이션 제거 |
 | `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 관리 설정 메뉴(전체 초기화), 탐색 모드 |
 | `src/components/DayPreviewScreen.jsx` | Day 미리보기 — 단어 체크박스 선택, 퀴즈 시작 |
-| `src/components/AiChatModal.jsx` | AI 질문 바텀시트 — 채팅 UI, 마크다운 렌더러, 카드 변경 시 기록 초기화, 스와이프 다운 닫기 |
+| `src/components/AiChatModal.jsx` | AI 질문 바텀시트 — 채팅 UI, 마크다운 렌더러, 카드별 대화 컨텍스트 유지, 추천 질문 3종, 드래그 핸들로 닫기, 오버레이 클릭 닫기 |
 | `src/components/CompletionScreen.jsx` | 학습 완료 화면 — 완료 메시지, 첫 화면 복귀 버튼 |
 | `src/components/ProgressBar.jsx` | 얇은 진행 바 (`h-1.5`), 마스터 수 / 전체 수 표시 |
 | `src/components/BrowseScreen.jsx` | 전체 단어 탐색 화면 |
@@ -82,14 +82,14 @@ CATEGORY_META = {
 ## 핵심 알고리즘
 
 ### SRS (Spaced Repetition) + 마스터리(Mastery) 누적 시스템
-- **masteryCount ≥ 3** = '완전히 아는 단어' (DayPreviewScreen 필터 기준)
+- **masteryCount ≥ 2** = '완전히 아는 단어' (DayPreviewScreen 필터 기준)
 - 제한 시간 내 정답(Know) → `masteryCount += 1`
 - 오답(Unknown) → `masteryCount -= 1` (최소 0)
 - 타임아웃(시간 초과) → `masteryCount` 변경 없음, 큐 맨 끝으로 이동
 - 마스터 확정 시 → `nextReview` = 오늘 + [1, 3, 7]일 (`masteryCount` 기반)
 - `srsData` = localStorage `jflash_srs_v2`
-- 진행도 시각화: 카드 우상단에 3개의 점(●●○)으로 현재 masteryCount 표시
-- 수동 토글: 마스터리 점(●●●) 터치 → 확인 다이얼로그 → masteryCount 3→1 (모르는 단어로만 전환 가능, 역방향 없음)
+- 진행도 시각화: 카드 우상단에 2개의 점(●○)으로 현재 masteryCount 표시
+- 수동 토글: 마스터리 점(●●) 터치 → 확인 다이얼로그 → masteryCount 2→0 (모르는 단어로만 전환 가능, 역방향 없음)
 
 ### 큐 빌드 순서
 1. 선택된 단어 필터링 → OR 태그 필터 → SRS 만기 필터 (maxCards 없음)
@@ -144,28 +144,30 @@ CATEGORY_META = {
   - `rotateY(180deg)` 상태에서 `translateX` 미러링 보정 (`-dragX`)
   - `touch-action: pan-y` + `e.preventDefault()` 로 브라우저 기본 스와이프(뒤로가기) 차단
   - 드래그/스크롤 시 클릭(플립) 방지 (`didMove` ref)
-- **카드 전환**: 애니메이션 없음 — 다음 카드 즉시 표시 (눈 피로 방지)
+- **카드 전환**: 애니메이션 없음 — 다음 카드 즉시 표시 (`prevWordIdRef`로 word.id 변경 즉시 감지, 플립 트랜지션 해제)
 - **명시적 액션 버튼 (뒷면 하단)**:
   - `❌ 모름` (bg-rose-500) / `⭕ 앎` (bg-emerald-500) 양쪽 나란히 배치
   - PC·모바일 공통 사용
-- **마스터리 수동 토글**: 마스터리 점(●●●) (카드 우상단 + DayPreviewScreen)
-  - 마스터된 카드(masteryCount ≥ 3)에서만 터치 가능 → 확인 다이얼로그 → masteryCount 3→1 전환
+- **마스터리 수동 토글**: 마스터리 점(●●) (카드 우상단 + DayPreviewScreen)
+  - 마스터된 카드(masteryCount ≥ 2)에서만 터치 가능 → 확인 다이얼로그 → masteryCount 2→0 전환
   - 모르는→아는 수동 전환은 없음 (학습을 통해서만 마스터 가능)
 - **PC 키보드 단축키**:
   - `↑ (ArrowUp)` / `↓ (ArrowDown)`: 카드 뒤집기 (앞↔뒤)
   - `← (ArrowLeft)`: 모르는 단어 (뒷면에서만)
   - `→ (ArrowRight)`: 아는 단어 (뒷면에서만)
 
-### 19일 커리큘럼 (비겹침)
-- 패턴 제외 380장(단어 230 + 통문장 150)을 id순 정렬 → 20장씩 19그룹 (`SETS[0]~SETS[18]`)
-- 각 Day = 고유 20장, 겹침 없음 (슬라이딩 윈도우 제거)
-- **패턴(pattern) 커리큘럼 완전 제외**: `SETS` 생성 시 `type !== 'pattern'` 필터 (BrowseScreen에서만 접근)
+### 19일 커리큘럼 (비겹침, 비율 분배)
+- 패턴 제외 380장(단어 230 + 통문장 150)을 **단어·통문장 각각** 19등분 후 교차 배치
+  - 단어 230 ÷ 19 ≈ 12~13장/Day, 통문장 150 ÷ 19 ≈ 7~8장/Day
+  - `splitIntoGroups()` 함수로 균등 분할 (나머지는 앞쪽 그룹에 +1)
+- 각 Day = 고유 ~20장, 겹침 없음
+- **패턴(pattern) 커리큘럼 완전 제외**: `SETS` 생성 시 `type === 'word'` / `type === 'sentence'`만 포함 (BrowseScreen에서만 접근)
 - `getDayBasePool(day)` = `SETS[day-1]` — 순수 함수
 - `currentDay` 변경 → `DayPreviewScreen` 경유 → `selectedWordIds` 동기화
 
 ### Day 미리보기 플로우
 1. `startGameByDay(day)` → `dayPreviewPool` + `selectedWordIds` 세팅 → `appScreen = 'day-preview'`
-   - **디폴트: 아는 단어(masteryCount ≥ 3) 제외** — 초기 선택에서 마스터 단어 자동 필터링
+   - **디폴트: 아는 단어(masteryCount ≥ 2) 제외** — 초기 선택에서 마스터 단어 자동 필터링
 2. `DayPreviewScreen` — 체크박스로 개별 카드 선택/해제, 전체 선택/해제
    - "아는 단어 포함" 필터칩: 기본 OFF, 토글로 포함/제외 전환
 3. "퀴즈 시작" → `startGameByDayWithSelection()` → `_launchGame()`
@@ -181,11 +183,16 @@ CATEGORY_META = {
 
 ### AI Q&A 흐름
 1. 카드 뒷면 하단 우측 `AI 질문` 버튼 → `AiChatModal` 오픈
-2. `askAI(currentCard, userQuestion)` — 카드 객체를 시스템 프롬프트에 주입
+2. `askAI(currentCard, userQuestion, history)` — 카드 객체 + 대화 히스토리를 시스템 프롬프트에 주입
+   - **카드별 대화 컨텍스트 유지**: 같은 카드 내에서 이전 질문/답변이 프롬프트에 포함됨
+   - **프롬프트 설정**: 일본어 발음 한국어 표기 필수, 정갈한 형식 요청
 3. Gemini 응답 → `MarkdownText` 컴포넌트로 렌더링 (`**굵게**`, `*기울임*`, `` `코드` ``, 불릿, 줄바꿈)
 4. `currentCard.id` 변경 시 채팅 기록 초기화
-5. **스와이프 다운 닫기**: 메시지 영역 최상단(`scrollTop ≤ 2px`)에서 80px 이상 아래로 스와이프 시 모달 닫힘 (스냅백 포함)
-6. AI 모달 열린 상태에서 카드 드래그 스와이프 비활성
+5. **추천 질문 3종**: 메시지 없을 때 `문장 분석` / `비슷한 예시` / `단어 뜻` 버튼 표시 (각각 "-일본어 발음을 같이 표기해줘" 프롬프트 포함)
+6. **입력**: Enter 전송 없음 (버튼으로만 전송)
+7. **닫기 방식**: 드래그 핸들 아래로 80px 스와이프 / 오버레이(빈 공간) 클릭 / X 버튼
+8. **제목 표시**: `pron`에서 `**` 마크다운 제거 후 표시 (`stripBold`)
+9. AI 모달 열린 상태에서 카드 드래그 스와이프 비활성
 
 ### 세션 상태 자동 저장 (새로고침 유지)
 - `jflash_session_v1`에 `appScreen`, `selectedWordIds`, `dayPreviewPoolIds` 저장
