@@ -54,12 +54,6 @@ function getSRSNextDate(masteryCount) {
   return d.toISOString().slice(0, 10);
 }
 
-function isDueToday(wordId, srsData) {
-  const rec = srsData[wordId];
-  if (!rec) return true;
-  const today = new Date().toISOString().slice(0, 10);
-  return rec.nextReview <= today;
-}
 
 // ─── 동적 슬롯 치환 ──────────────────────────────────────────────
 function fillSlots(word, masteredWords) {
@@ -234,36 +228,19 @@ export default function App() {
   );
   const clearTags = () => setSelectedTags([]);
 
-  // ── 큐 빌드 (pool → SRS → priority 정렬, maxCards 제한 없음) ─
+  // ── 큐 빌드 (pool → priority 정렬, maxCards 제한 없음) ─
   const buildQueue = (pool) => {
-    let active = [...pool];
-    const MIN_POOL = 5;
-
-    // 1. SRS 필터: 오늘 복습 예정만 (기록 충분 시, 최소 5개 보장, 소규모 풀 제외)
-    const hasSRS = Object.keys(srsData).length >= 5;
-    if (hasSRS && active.length > MIN_POOL) {
-      const due = active.filter((w) => isDueToday(w.id, srsData));
-      if (due.length >= 3) {
-        if (due.length >= MIN_POOL) {
-          active = due;
-        } else {
-          const nonDue = shuffle(active.filter((w) => !isDueToday(w.id, srsData)));
-          active = [...due, ...nonDue.slice(0, MIN_POOL - due.length)];
-        }
-      }
-    }
-
+    const active = [...pool];
     setTotalActive(active.length);
 
-    // 2. priority별 그룹화
+    // priority별 그룹화
     const byPriority = { 1: [], 2: [], 3: [] };
-
     active.forEach((word) => {
       const p = Math.min(3, Math.max(1, word.priority ?? 2));
       byPriority[p].push([word]);
     });
 
-    // 3. Fisher-Yates 셔플 (priority 순서 유지, 타입 믹싱)
+    // Fisher-Yates 셔플 (priority 순서 유지, 타입 믹싱)
     return [
       ...shuffle(byPriority[1]),
       ...shuffle(byPriority[2]),
@@ -549,7 +526,7 @@ export default function App() {
         if (current.componentIds?.length > 0) {
           current.componentIds.forEach((cid) => {
             const comp = wordData.find((w) => w.id === cid);
-            if (comp && !newQueue.find((w) => w.id === cid) && !newMastered.find((w) => w.id === cid)) {
+            if (comp && comp.type !== 'pattern' && !newQueue.find((w) => w.id === cid) && !newMastered.find((w) => w.id === cid)) {
               const filled = fillSlots(comp, newMastered);
               const at = Math.min(Math.floor(Math.random() * 6) + 5, newQueue.length);
               newQueue = [...newQueue.slice(0, at), filled, ...newQueue.slice(at)];
