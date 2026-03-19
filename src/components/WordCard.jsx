@@ -76,7 +76,7 @@ function PolitenessTag({ politeness }) {
 // ─── 마스터리 진행 표시 (●●○) ──────────────────────────────────────
 function MasteryDots({ masteryCount = 0 }) {
   const dots = [];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     dots.push(
       <span
         key={i}
@@ -228,11 +228,11 @@ function CardOverlay({ word, hasPair, typeBadge, badgeText, reverseMode, blindMo
             aria-label="모르는 단어로 변경"
             className="p-1 rounded-lg transition-colors hover:bg-emerald-50"
           >
-            <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
+            <MasteryDots masteryCount={Math.min(masteryCount, 2)} />
           </button>
         ) : (
           <div className="p-1">
-            <MasteryDots masteryCount={Math.min(masteryCount, 3)} />
+            <MasteryDots masteryCount={Math.min(masteryCount, 2)} />
           </div>
         )}
       </div>
@@ -480,7 +480,8 @@ export default function WordCard({
 }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const [showMasteryConfirm, setShowMasteryConfirm] = useState(false);
-  const [enableFlipTransition, setEnableFlipTransition] = useState(true);
+  const [enableFlipTransition, setEnableFlipTransition] = useState(false);
+  const prevWordIdRef = useRef(word.id);
 
   const hasPair   = word.type === 'word' && word.antonymId && selectedWordIds.has(word.antonymId);
   const typeBadge = TYPE_META[word.type] ?? 'bg-slate-100 text-slate-700 border-slate-200';
@@ -489,18 +490,21 @@ export default function WordCard({
     : CATEGORY_META[word.type]?.label ?? word.type;
 
   const masteryCount = srsData[word.id]?.masteryCount ?? 0;
-  const isMastered = masteryCount >= 3;
+  const isMastered = masteryCount >= 2;
 
   // 카드 전환 시 확인 다이얼로그 리셋 + 플립 트랜지션 일시 해제
   useEffect(() => {
     setShowMasteryConfirm(false);
-    // 새 카드 로드 시 플립 트랜지션 비활성화 (뒤→앞 뒤집힘 방지)
-    setEnableFlipTransition(false);
-    requestAnimationFrame(() => {
+    if (prevWordIdRef.current !== word.id) {
+      // 새 카드: 트랜지션 없이 즉시 앞면 표시
+      prevWordIdRef.current = word.id;
+      setEnableFlipTransition(false);
       requestAnimationFrame(() => {
-        setEnableFlipTransition(true);
+        requestAnimationFrame(() => {
+          setEnableFlipTransition(true);
+        });
       });
-    });
+    }
   }, [word.id]);
 
   // TTS 자동 재생: 기본=앞면, 리버스=뒷면(일본어 표시 시)

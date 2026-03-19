@@ -298,8 +298,8 @@ export default function App() {
     const pool = getDayBasePool(currentDay);
 
     setDayPreviewPool(pool);
-    // 아는 단어 제외가 디폴트 — masteryCount >= 3인 단어는 초기 선택에서 제외
-    const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 3;
+    // 아는 단어 제외가 디폴트 — masteryCount >= 2인 단어는 초기 선택에서 제외
+    const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 2;
     setSelectedWordIds(new Set(pool.filter((w) => !isKnown(w)).map((w) => w.id)));
     setAppScreen('day-preview');
   };
@@ -620,7 +620,7 @@ export default function App() {
   const toggleMastery = (wordId) => {
     setSrsData((prev) => {
       const rec = prev[wordId] ?? { masteryCount: 0 };
-      const newCount = rec.masteryCount >= 3 ? 1 : 3;  // 아는→모르는: 3→1
+      const newCount = rec.masteryCount >= 2 ? 0 : 2;  // 아는→모르는: 2→0
       const updated = {
         ...prev,
         [wordId]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },
