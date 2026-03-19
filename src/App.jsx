@@ -94,7 +94,10 @@ export default function App() {
   }));
   const [srsData, setSrsData] = useState(() => loadLS(LS.SRS, {}));
   const [currentDay, setCurrentDay] = useState(
-    () => loadLS(LS.CURRICULUM, { currentDay: 1 }).currentDay ?? 1
+    () => {
+      const saved = loadLS(LS.CURRICULUM, { currentDay: 1 }).currentDay ?? 1;
+      return Math.min(saved, TOTAL_DAYS);
+    }
   );
 
   const updateSettings = (patch) => {
@@ -234,13 +237,13 @@ export default function App() {
   // ── 큐 빌드 (pool → SRS → priority 정렬, maxCards 제한 없음) ─
   const buildQueue = (pool) => {
     let active = [...pool];
+    const MIN_POOL = 5;
 
-    // 1. SRS 필터: 오늘 복습 예정만 (기록 충분 시, 최소 5개 보장)
+    // 1. SRS 필터: 오늘 복습 예정만 (기록 충분 시, 최소 5개 보장, 소규모 풀 제외)
     const hasSRS = Object.keys(srsData).length >= 5;
-    if (hasSRS) {
+    if (hasSRS && active.length > MIN_POOL) {
       const due = active.filter((w) => isDueToday(w.id, srsData));
       if (due.length >= 3) {
-        const MIN_POOL = 5;
         if (due.length >= MIN_POOL) {
           active = due;
         } else {
@@ -252,30 +255,12 @@ export default function App() {
 
     setTotalActive(active.length);
 
-    // 2. priority별 그룹 + 반의어 쌍 묶기
-    const poolIds    = new Set(pool.map((w) => w.id));
+    // 2. priority별 그룹화
     const byPriority = { 1: [], 2: [], 3: [] };
-    const seen       = new Set();
 
     active.forEach((word) => {
-      if (seen.has(word.id)) return;
-
-      let group;
-      if (word.type === 'word' && word.antonymId && poolIds.has(word.antonymId)) {
-        const antonym = active.find((w) => w.id === word.antonymId);
-        if (antonym && !seen.has(antonym.id)) {
-          group = Math.random() > 0.5 ? [word, antonym] : [antonym, word];
-          seen.add(word.id);
-          seen.add(antonym.id);
-        } else {
-          group = [word]; seen.add(word.id);
-        }
-      } else {
-        group = [word]; seen.add(word.id);
-      }
-
       const p = Math.min(3, Math.max(1, word.priority ?? 2));
-      byPriority[p].push(group);
+      byPriority[p].push([word]);
     });
 
     // 3. Fisher-Yates 셔플 (priority 순서 유지, 타입 믹싱)
@@ -309,13 +294,12 @@ export default function App() {
 
   // ── 게임 시작 — HomeScreen (Day N 시작 → day-preview로 이동) ─
   const startGameByDay = () => {
-    const basePool = getDayBasePool(currentDay);
-    // 패턴(pattern) 제외 — 단어 + 통문장만
-    const pool = basePool.filter((w) => w.type !== 'pattern');
+    // 커리큘럼이 이미 패턴을 제외함
+    const pool = getDayBasePool(currentDay);
 
     setDayPreviewPool(pool);
-    // 아는 단어 제외가 디폴트 — masteryCount >= 3인 단어는 초기 선택에서 제외
-    const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 3;
+    // 아는 단어 제외가 디폴트 — masteryCount >= 2인 단어는 초기 선택에서 제외
+    const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 2;
     setSelectedWordIds(new Set(pool.filter((w) => !isKnown(w)).map((w) => w.id)));
     setAppScreen('day-preview');
   };
@@ -521,8 +505,8 @@ export default function App() {
       return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
     });
 
-    if (timedOut) {
-      // ── 시간 초과: 큐 맨 끝으로 이동 (SRS 미갱신, masteryCount 유지)
+    if (timedOut && actionType === 'know') {
+      // ── 시간 초과 + 안다: 큐 맨 끝으로 이동 (SRS 미갱신, masteryCount 유지)
       newQueue = [...newQueue, current];
       showToast('시간 초과 — 카드 보류됨');
 
@@ -561,23 +545,6 @@ export default function App() {
       if (currentFail >= 3) {
         showToast('3회 오답 — 다음 카드로 넘어갑니다');
       } else {
-        // 반의어 함께 재삽입
-        let antonym = null;
-        if (current.type === 'word' && current.antonymId && selectedWordIds.has(current.antonymId)) {
-          const antId = current.antonymId;
-          const mIdx  = newMastered.findIndex((w) => w.id === antId);
-          if (mIdx !== -1) antonym = newMastered.splice(mIdx, 1)[0];
-          else {
-            const qIdx = newQueue.findIndex((w) => w.id === antId);
-            if (qIdx !== -1) antonym = newQueue.splice(qIdx, 1)[0];
-            else {
-              // Fallback: 패스 등으로 세션에서 제거된 경우 wordData에서 직접 주입
-              const fromData = wordData.find((w) => w.id === antId);
-              if (fromData) antonym = fromData;
-            }
-          }
-        }
-
         // 의존성 주입: componentIds를 큐 5~10번째에 삽입
         if (current.componentIds?.length > 0) {
           current.componentIds.forEach((cid) => {
@@ -595,7 +562,6 @@ export default function App() {
         newQueue = [
           ...newQueue.slice(0, insertAt),
           current,
-          ...(antonym ? [antonym] : []),
           ...newQueue.slice(insertAt),
         ];
       }
@@ -654,7 +620,7 @@ export default function App() {
   const toggleMastery = (wordId) => {
     setSrsData((prev) => {
       const rec = prev[wordId] ?? { masteryCount: 0 };
-      const newCount = rec.masteryCount >= 3 ? 1 : 3;  // 아는→모르는: 3→1
+      const newCount = rec.masteryCount >= 2 ? 0 : 2;  // 아는→모르는: 2→0
       const updated = {
         ...prev,
         [wordId]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },

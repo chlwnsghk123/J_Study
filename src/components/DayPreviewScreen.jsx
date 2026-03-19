@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, CheckSquare, Square } from 'lucide-react';
 import { CATEGORY_META } from '../data';
 
-// ─── 소형 마스터리 점 (3개) ────────────────────────────────────────
+// ─── 소형 마스터리 점 (2개) ────────────────────────────────────────
 function MiniMasteryDots({ masteryCount = 0 }) {
   return (
     <div className="flex items-center gap-0.5">
-      {[0, 1, 2].map((i) => (
+      {[0, 1].map((i) => (
         <span
           key={i}
           className={`inline-block w-1.5 h-1.5 rounded-full ${
@@ -64,11 +64,11 @@ function WordRow({ word, isSelected, onToggle, isMastered, masteryCount, onToggl
           aria-label="모르는 단어로 변경"
           className="shrink-0 p-1 rounded-lg transition-colors hover:bg-emerald-50"
         >
-          <MiniMasteryDots masteryCount={Math.min(masteryCount, 3)} />
+          <MiniMasteryDots masteryCount={Math.min(masteryCount, 2)} />
         </button>
       ) : (
         <div className="shrink-0 p-1">
-          <MiniMasteryDots masteryCount={Math.min(masteryCount, 3)} />
+          <MiniMasteryDots masteryCount={Math.min(masteryCount, 2)} />
         </div>
       )}
 
@@ -153,7 +153,7 @@ export default function DayPreviewScreen({
   const totalCount    = dayPool.length;
 
   // ── SRS 기반 아는/모르는 단어 분류 ────────────────────────
-  const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 3;
+  const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 2;
   const getMasteryCount = (w) => srsData[w.id]?.masteryCount ?? 0;
 
   // ── 필터 적용 함수 ────────────────────────────────────────

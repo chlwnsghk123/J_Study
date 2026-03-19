@@ -62,9 +62,9 @@ CATEGORY_META = {
 |---|---|
 | `src/lib/googleTTS.js` | TTS API 호출, 인메모리 LRU 캐싱 (최대 200개), prefetch |
 | `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion)` — 카드 문맥 주입형 |
-| `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 43일 커리큘럼 순수 함수 |
+| `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 19일 커리큘럼 순수 함수 |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
-| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 |
+| `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 의존성 주입, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 (반의어 로직 제거됨) |
 | `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅: 좌=되돌리기/우=패스), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글, 입장 애니메이션 |
 | `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 관리 설정 메뉴(전체 초기화), 탐색 모드 |
 | `src/components/DayPreviewScreen.jsx` | Day 미리보기 — 단어 체크박스 선택, 퀴즈 시작 |
@@ -93,10 +93,10 @@ CATEGORY_META = {
 
 ### 큐 빌드 순서
 1. 선택된 단어 필터링 → OR 태그 필터 → SRS 만기 필터 (maxCards 없음)
-   - SRS 필터: `srsData` 5개 이상일 때 활성화, due 카드 3개 이상이면 due 우선
+   - SRS 필터: `srsData` 5개 이상 + 풀 6개 이상일 때만 활성화, due 카드 3개 이상이면 due 우선
    - **최소 풀 보장**: due 카드가 3~4개일 때 non-due 카드를 보충하여 최소 5개 유지
+   - **소규모 풀 보호**: 풀이 5개 이하이면 SRS 필터링 건너뜀 (1개라도 퀴즈 가능)
 2. priority 1 → 2 → 3 순으로 그룹화, 각 그룹 내 Fisher-Yates 셔플
-3. `word` 타입 + `antonymId` → 반의어 쌍 묶어서 함께 배치
 
 ### 3회 오답 패스
 - 동일 카드를 세션 내에서 3회 이상 '모름' → 큐에 재삽입하지 않고 자동 pass
@@ -114,11 +114,6 @@ CATEGORY_META = {
 - 슬롯 치환: `[VERB]`, `[ADJ]`, `[WORD]` → 마스터된 단어로 대체
   - **결정적 선택**: `word.id % arr.length`로 동일 카드는 항상 같은 슬롯 필러를 받음 (비결정적 `Math.random()` 제거)
 
-### 반의어 쌍 학습
-- 오답 카드에 `antonymId`가 있으면 반의어를 함께 재삽입
-- 검색 순서: `newMastered` → `newQueue` → `wordData` (fallback)
-  - **fallback**: 패스 등으로 세션에서 제거된 반의어도 `wordData`에서 직접 가져와 쌍 학습 보장
-
 ### 하드코어 타이머 + 타임아웃 페널티
 - **하드코어 타이머** (하드코어 모드 전용):
   - `word` 타입: **3초**, `pattern`/`sentence` 타입: **7초** 카운트다운
@@ -126,7 +121,8 @@ CATEGORY_META = {
   - **재플립 방지**: `answerSeenRef`로 뒷면 열람 추적 → 뒤→앞 재플립 시 타이머 재시작 차단 (악용 방지)
 - **타임아웃 페널티** (일반 학습, 하드코어와 독립):
   - 페널티 기준: `word` **8초**, `pattern` **13초**, `sentence` **17초**
-  - 기준 초과 → know/dontKnow 무관하게 큐 맨 끝 이동, SRS 미갱신 (masteryCount 변경 없음)
+  - 기준 초과 + **'안다' 선택 시에만** → 큐 맨 끝 이동, SRS 미갱신 (masteryCount 변경 없음)
+  - 기준 초과 + '모름' 선택 시 → 타임아웃 무시, 정상 오답 처리
   - 기준 내 '알아요' → 정상 마스터 처리
   - 기준 내 '모름' → `masteryCount -= 1` (최소 0)
 
@@ -160,11 +156,11 @@ CATEGORY_META = {
   - `← (ArrowLeft)`: 모르는 단어 (뒷면에서만)
   - `→ (ArrowRight)`: 아는 단어 (뒷면에서만)
 
-### 43일 커리큘럼 (슬라이딩 윈도우)
-- 전체 430장을 id 오름차순으로 10개씩 → `SETS[0]~SETS[42]` (모듈 로드 시 1회 계산, 불변)
-- Day별 풀: Day 1 = Set 1, Day 2 = Set 1-2, Day N≥3 = Set(N-2)~Set(N)
-- **패턴(pattern) UI에서 제외**: Day 시작 시 `type !== 'pattern'` 필터 적용 (데이터 파일은 유지)
-- `getDayBasePool(day)` — 순수 함수 (UI 미리보기용)
+### 19일 커리큘럼 (비겹침)
+- 패턴 제외 380장(단어 230 + 통문장 150)을 id순 정렬 → 20장씩 19그룹 (`SETS[0]~SETS[18]`)
+- 각 Day = 고유 20장, 겹침 없음 (슬라이딩 윈도우 제거)
+- **패턴(pattern) 커리큘럼 완전 제외**: `SETS` 생성 시 `type !== 'pattern'` 필터 (BrowseScreen에서만 접근)
+- `getDayBasePool(day)` = `SETS[day-1]` — 순수 함수
 - `currentDay` 변경 → `DayPreviewScreen` 경유 → `selectedWordIds` 동기화
 
 ### Day 미리보기 플로우
@@ -207,7 +203,7 @@ CATEGORY_META = {
 |---|---|
 | `jflash_settings_v2` | reverseMode, blindMode, hardcoreMode |
 | `jflash_srs_v2` | { [wordId]: { masteryCount, nextReview } } |
-| `jflash_curriculum_v1` | { currentDay: number } — 현재 학습 Day (1~43) |
+| `jflash_curriculum_v1` | { currentDay: number } — 현재 학습 Day (1~19) |
 | `jflash_session_v1` | { appScreen, selectedWordIds, dayPreviewPoolIds } — 세션 상태 (새로고침 복원용) |
 
 ---
