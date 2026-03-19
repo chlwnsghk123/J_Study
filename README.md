@@ -15,7 +15,7 @@
 | 블라인드 | 앞면: 오디오만 → 뒷면: 전체 정보 |
 | 하드코어 | 단어 3초 / 패턴·통문장 7초 안에 답 확인 안 하면 자동 오답 처리 |
 
-- **19일 커리큘럼**: 단어 230 + 통문장 150 = 380장을 19일로 균등 분배 (~20장/Day)
+- **19일 커리큘럼**: 단어 230 + 통문장 150 = 380장을 priority 기반 + 비율 그라데이션으로 19일 배분 (~20장/Day)
 - **마스터 조건**: 세션 내 masteryCount 2회 누적 정답 → SRS 주기 할당 (1일 → 3일 → 7일)
 - **오답 재삽입**: 현재 위치에서 +3~+5번째
 - **3회 오답 패스**: 동일 카드 3회 이상 오답 시 자동 스킵
@@ -54,7 +54,7 @@ J_Study/
 │   ├── lib/
 │   │   ├── googleTTS.js           # Google Cloud TTS + LRU 캐싱 (200개)
 │   │   ├── gemini.js              # Gemini AI 클라이언트 (askAI)
-│   │   └── curriculum.js          # 19일 커리큘럼 (비겹침 세트 분할)
+│   │   └── curriculum.js          # 19일 커리큘럼 (priority 기반 + 비율 그라데이션)
 │   ├── hooks/
 │   │   └── useTTS.js              # 자동재생 훅 + speakText()
 │   ├── components/
@@ -67,8 +67,9 @@ J_Study/
 │   │   └── CompletionScreen.jsx   # 학습 완료 화면
 │   └── data/
 │       ├── index.js               # 통합 export + CATEGORY_META
-│       ├── verbs.js               # 동사 150개 (id 1~150)
-│       ├── adjectives.js          # 형용사 80개 (id 151~230)
+│       ├── verbs.js               # 동사 100개 (id 1~100)
+│       ├── adjectives.js          # 형용사 55개 (id 101~155)
+│       ├── nouns.js               # 명사 75개 (id 156~230)
 │       ├── patterns.js            # 패턴 50개 (id 231~280)
 │       └── sentences.js           # 통문장 150개 (id 281~430)
 ├── public/                        # PWA manifest, 아이콘, OG 이미지
@@ -88,7 +89,7 @@ J_Study/
   id:           number,    // 전체 고유 (현재 1~430, 새 항목은 431~)
   type:         string,    // 'word' | 'pattern' | 'sentence'
   priority:     1|2|3,    // 큐 우선순위 (1=높음)
-  tags:         string[], // ['#동사', '#이동'] — tags[0]은 종류 표시
+  tags:         string[], // ['#동사', '#이동'] — tags[0]은 종류 표시 (#동사/#형용사/#명사 등)
   politeness:   string,   // '반말' | '정중체' | '해당없음'
   pron:         string,   // 한국어 발음 — 카드 앞면 핵심
   meaning:      string,   // 한국어 뜻
@@ -107,7 +108,7 @@ J_Study/
 - **Google Cloud TTS** (ja-JP-Neural2-B) — 1.0x 자동 재생 / 0.7x 천천히 듣기
 - **오디오 프리패치** — 다음 5개 카드 백그라운드 캐싱으로 지연 없음
 - **SRS (Spaced Repetition)** — masteryCount 2회 누적 후 1/3/7일 주기 복습
-- **19일 커리큘럼** — 단어·통문장을 각각 19등분 후 교차 배치 (패턴은 BrowseScreen 전용)
+- **19일 커리큘럼** — priority 기반 배치 + 단어:통문장 비율 그라데이션 (패턴은 BrowseScreen 전용)
 - **AI 질문** — Gemini API로 카드별 맥락 기반 Q&A (추천 질문 3종)
 - **드래그 스와이프** — 좌: 패스 / 우: 되돌리기 (모바일+PC)
 - **세션 자동 저장** — 새로고침 시 마지막 화면과 선택 상태 복원

@@ -11,7 +11,7 @@
  * id           : number    — 전체에서 고유 (현재 1~430 사용, 새 항목은 431~)
  * type         : string    — 'word' | 'pattern' | 'sentence'
  * priority     : 1|2|3    — 큐 우선순위 (1=높음, 먼저 출제)
- * tags         : string[] — 첫 번째 태그: 종류 표시용 (#동사/#형용사 등)
+ * tags         : string[] — 첫 번째 태그: 종류 표시용 (#동사/#형용사/#명사 등)
  * politeness   : string   — '반말' | '정중체' | '해당없음'
  * pron         : string   — 한국어 발음 (카드 앞면 핵심)
  * meaning      : string   — 한국어 뜻/번역
@@ -24,15 +24,17 @@
 
 export { verbs }      from './verbs';
 export { adjectives } from './adjectives';
+export { nouns }      from './nouns';
 export { patterns }   from './patterns';
 export { sentences }  from './sentences';
 
 import { verbs }      from './verbs';
 import { adjectives } from './adjectives';
+import { nouns }      from './nouns';
 import { patterns }   from './patterns';
 import { sentences }  from './sentences';
 
-export const wordData = [...verbs, ...adjectives, ...patterns, ...sentences];
+export const wordData = [...verbs, ...adjectives, ...nouns, ...patterns, ...sentences];
 
 // ─── 카테고리 메타데이터 (type 기반) ─────────────────────────────
 export const CATEGORY_META = {

@@ -21,7 +21,7 @@
   id:           number,    // 전체 고유 (현재 1~430, 새 항목은 431~)
   type:         string,    // 'word' | 'pattern' | 'sentence'
   priority:     1|2|3,    // 1=높음 — 큐 우선순위
-  tags:         string[], // tags[0]은 반드시 '#동사'|'#형용사' 등 종류 표시
+  tags:         string[], // tags[0]은 반드시 '#동사'|'#형용사'|'#명사' 등 종류 표시
   politeness:   string,   // '반말' | '정중체' | '해당없음'
   pron:         string,   // 한국어 발음 — 카드 앞면 핵심
   meaning:      string,   // 한국어 뜻
@@ -37,8 +37,9 @@
 
 | 파일 | export | type | ID 범위 | 수량 |
 |---|---|---|---|---|
-| `src/data/verbs.js` | `verbs` | word | 1~150 | 동사 150개 |
-| `src/data/adjectives.js` | `adjectives` | word | 151~230 | 형용사 80개 |
+| `src/data/verbs.js` | `verbs` | word | 1~100 | 동사 100개 |
+| `src/data/adjectives.js` | `adjectives` | word | 101~155 | 형용사 55개 |
+| `src/data/nouns.js` | `nouns` | word | 156~230 | 명사 75개 |
 | `src/data/patterns.js` | `patterns` | pattern | 231~280 | 패턴 50개 |
 | `src/data/sentences.js` | `sentences` | sentence | 281~430 | 통문장 150개 |
 
@@ -61,7 +62,7 @@ CATEGORY_META = {
 |---|---|
 | `src/lib/googleTTS.js` | TTS API 호출, 인메모리 LRU 캐싱 (최대 200개), prefetch |
 | `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion, history)` — 카드 문맥 + 대화 히스토리 주입형 |
-| `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 19일 커리큘럼 순수 함수 (단어·통문장 비율 분배) |
+| `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 19일 커리큘럼 (priority 기반 배치 + 단어:통문장 비율 그라데이션) |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
 | `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 (반의어·의존성 주입 로직 제거됨) |
 | `src/components/WordCard.jsx` | 3D 플립 카드, 드래그 스와이프(useDrag 훅: 좌=패스/우=되돌리기), 모드별 렌더링, TTS·AI·액션 버튼, 마스터리 토글(2단계), 카드 전환 시 플립 애니메이션 제거 |
@@ -151,12 +152,19 @@ CATEGORY_META = {
   - `← (ArrowLeft)`: 모르는 단어 (뒷면에서만)
   - `→ (ArrowRight)`: 아는 단어 (뒷면에서만)
 
-### 19일 커리큘럼 (비겹침, 비율 분배)
-- 패턴 제외 380장(단어 230 + 통문장 150)을 **단어·통문장 각각** 19등분 후 교차 배치
-  - 단어 230 ÷ 19 ≈ 12~13장/Day, 통문장 150 ÷ 19 ≈ 7~8장/Day
-  - `splitIntoGroups()` 함수로 균등 분할 (나머지는 앞쪽 그룹에 +1)
-- 각 Day = 고유 ~20장, 겹침 없음
-- **패턴(pattern) 커리큘럼 완전 제외**: `SETS` 생성 시 `type === 'word'` / `type === 'sentence'`만 포함 (BrowseScreen에서만 접근)
+### 19일 커리큘럼 (priority 기반 + 비율 그라데이션)
+- 패턴 제외 380장(단어 230 + 통문장 150)을 19일에 배분
+- **priority 기반 배치**: P1→앞쪽 Day 집중, P2→중간, P3→뒤쪽 Day
+  - 같은 priority 안에서는 seeded shuffle로 변주 (결정적, 동사/형용사/명사 혼합)
+- **Day별 단어:통문장 비율 그라데이션**:
+  - Day 1~3: 80:20 (기초 어휘 먼저)
+  - Day 4~7: 70:30
+  - Day 8~11: 50:50
+  - Day 12~15: 35:65
+  - Day 16~19: 30:70 (실전 문장 위주)
+- 비례 배분(`distribute()`)으로 단어 230개, 통문장 150개를 비율 가중치에 따라 각 Day에 분배
+- 하루 약 18~22장, 겹침 없음
+- **패턴(pattern) 커리큘럼 완전 제외**: BrowseScreen에서만 접근
 - `getDayBasePool(day)` = `SETS[day-1]` — 순수 함수
 - `currentDay` 변경 → `DayPreviewScreen` 경유 → `selectedWordIds` 동기화
 
@@ -230,8 +238,8 @@ CATEGORY_META = {
 데이터를 추가·수정하기 전에 반드시 아래 절차를 실행한다.
 
 ```
-① 4개 파일 전체 ID 스캔
-   verbs.js(1~150) / adjectives.js(151~230) / patterns.js(231~280) / sentences.js(281~430)
+① 5개 파일 전체 ID 스캔
+   verbs.js(1~100) / adjectives.js(101~155) / nouns.js(156~230) / patterns.js(231~280) / sentences.js(281~430)
 
 ② 중복 ID 존재 여부 확인
    → 중복 발견 시: 작업 중단 후 사용자에게 보고, 해결 방안 제시
@@ -248,8 +256,8 @@ CATEGORY_META = {
 
 | 필드 | 검증 규칙 |
 |---|---|
-| `antonymId` | 동일 파일(word 타입) 내 실존 ID만 허용 |
-| `tags[0]` | `#동사` `#형용사` `#패턴` `#통문장` 중 하나여야 함 |
+| `antonymId` | word 타입(1~230) 내 실존 ID만 허용 |
+| `tags[0]` | `#동사` `#형용사` `#명사` `#패턴` `#통문장` 중 하나여야 함 |
 | `politeness` | `'반말'` `'정중체'` `'해당없음'` 세 값만 허용 |
 
 위 규칙에 위배되는 항목을 발견하면 수정 전 사용자에게 명시적으로 알린다.
