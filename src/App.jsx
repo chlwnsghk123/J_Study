@@ -121,6 +121,7 @@ export default function App() {
   const [showAnswer, setShowAnswer]   = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [totalActive, setTotalActive] = useState(0);
+  const [passedCount, setPassedCount] = useState(0);
 
   // ── Toast ───────────────────────────────────────────────────
   const [toastMsg, setToastMsg] = useState('');
@@ -155,6 +156,7 @@ export default function App() {
     setGameStarted(false);
     setQueue([]);
     setMastered([]);
+    setPassedCount(0);
     setFailCount({});
     setShowAnswer(false);
     setHistoryStack([]);
@@ -233,6 +235,7 @@ export default function App() {
 
     setQueue(q);
     setMastered([]);
+    setPassedCount(0);
     setFailCount({});
     setShowAnswer(false);
     setGameStarted(true);
@@ -276,6 +279,7 @@ export default function App() {
     setGameStarted(false);
     setQueue([]);
     setMastered([]);
+    setPassedCount(0);
     setFailCount({});
     setShowAnswer(false);
     setHcTimeLeft(null);
@@ -415,6 +419,7 @@ export default function App() {
     setQueue((q) => [prev.card, ...q]);
     setMastered(prev.mastered);
     setFailCount(prev.failCount);
+    if (prev.wasPass) setPassedCount(prev.prevPassedCount);
     setShowAnswer(false);
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
@@ -447,12 +452,15 @@ export default function App() {
 
     // ── 히스토리 기록 (되돌리기용, 최대 50개) ──────────────
     const MAX_HISTORY = 50;
+    const was3FailPass = actionType === 'dontKnow' && (failCount[current.id] ?? 0) + 1 >= 3;
     setHistoryStack((s) => {
       const next = [...s, {
         card: current,
         mastered: [...mastered],
         failCount: { ...failCount },
         srsSnapshot: srsData[current.id] ?? null,
+        wasPass: was3FailPass,
+        prevPassedCount: passedCount,
       }];
       return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
     });
@@ -496,6 +504,7 @@ export default function App() {
       // ── 3회 이상 실패 → pass (재삽입 없이 건너뛰기)
       if (currentFail >= 3) {
         showToast('3회 오답 — 다음 카드로 넘어갑니다');
+        setPassedCount((c) => c + 1);
       } else {
         // 현재 카드 재삽입 (+3~+5)
         const insertAt = Math.min(Math.floor(Math.random() * 3) + 3, newQueue.length);
@@ -537,6 +546,8 @@ export default function App() {
         mastered: [...mastered],
         failCount: { ...failCount },
         srsSnapshot: srsData[current.id] ?? null,
+        wasPass: true,
+        prevPassedCount: passedCount,
       }];
       return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
     });
@@ -546,6 +557,7 @@ export default function App() {
     showToast('패스 — 이번 학습에서 제외');
     setQueue(newQueue);
     setShowAnswer(false);
+    setPassedCount((c) => c + 1);
   };
 
   // ── 수동 마스터 토글 (체크 아이콘, 확인 다이얼로그 경유) ─────
@@ -659,12 +671,12 @@ export default function App() {
           <X className="w-4 h-4" /> 종료
         </button>
         <span className="text-xs text-slate-400 font-medium">
-          {mastered.length} / {totalActive} 완료
+          {mastered.length + passedCount} / {totalActive} 완료
         </span>
       </div>
 
       {/* 진행률 바 (item 8) */}
-      <ProgressBar mastered={mastered.length} total={totalActive} />
+      <ProgressBar mastered={mastered.length + passedCount} total={totalActive} />
 
       {/* 하드코어 타이머 표시 */}
       {settings.hardcoreMode && hcTimeLeft !== null && !showAnswer && (
