@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight, Trash2, FileText, X } from 'lucide-react';
+import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight, Trash2, FileText, X, BarChart3 } from 'lucide-react';
 import { TOTAL_DAYS, getDayBasePool } from '../lib/curriculum';
 import updatesRaw from '../../updates.md?raw';
 
@@ -115,6 +115,104 @@ function DaySelector({ currentDay, onDayChange, dayPool }) {
           <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 inline-block" />
           통문장 <b>{sCount}</b>
         </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── 학습 시간 모달 ───────────────────────────────────────────────
+function formatSeconds(sec) {
+  if (sec < 60) return `${sec}초`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m < 60) return s > 0 ? `${m}분 ${s}초` : `${m}분`;
+  const h = Math.floor(m / 60);
+  const rm = m % 60;
+  return rm > 0 ? `${h}시간 ${rm}분` : `${h}시간`;
+}
+
+function StudyTimeModal({ studyTimeLog, onClose }) {
+  // 최근 7일 데이터 생성
+  const today = new Date();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const weekday = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+    days.push({
+      key,
+      label: i === 0 ? '오늘' : `${d.getMonth() + 1}/${d.getDate()}`,
+      weekday,
+      seconds: studyTimeLog[key] ?? 0,
+    });
+  }
+
+  const maxSec = Math.max(...days.map((d) => d.seconds), 1);
+  const totalToday = days[days.length - 1].seconds;
+  const totalWeek = days.reduce((sum, d) => sum + d.seconds, 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-xl max-w-sm w-full flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100">
+          <h3 className="text-base font-bold text-slate-800">학습 시간</h3>
+          <button
+            onClick={onClose}
+            aria-label="닫기"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* 요약 */}
+        <div className="flex gap-4 px-5 pt-4 pb-2">
+          <div className="flex-1 bg-sky-50 rounded-xl p-3 text-center">
+            <p className="text-[10px] text-slate-400 font-medium mb-1">오늘</p>
+            <p className="text-lg font-bold text-sky-600">{formatSeconds(totalToday)}</p>
+          </div>
+          <div className="flex-1 bg-emerald-50 rounded-xl p-3 text-center">
+            <p className="text-[10px] text-slate-400 font-medium mb-1">이번 주</p>
+            <p className="text-lg font-bold text-emerald-600">{formatSeconds(totalWeek)}</p>
+          </div>
+        </div>
+
+        {/* 막대 그래프 */}
+        <div className="px-5 pt-3 pb-5">
+          <p className="text-xs font-bold text-slate-500 mb-3">최근 7일</p>
+          <div className="flex items-end gap-2 h-32">
+            {days.map((d) => {
+              const pct = d.seconds > 0 ? Math.max((d.seconds / maxSec) * 100, 6) : 0;
+              const isToday = d.label === '오늘';
+              return (
+                <div key={d.key} className="flex-1 flex flex-col items-center gap-1">
+                  <span className="text-[9px] text-slate-400 font-medium">
+                    {d.seconds > 0 ? formatSeconds(d.seconds) : ''}
+                  </span>
+                  <div className="w-full flex items-end" style={{ height: '80px' }}>
+                    <div
+                      className={`w-full rounded-t-md transition-all duration-300 ${
+                        isToday ? 'bg-sky-400' : 'bg-slate-200'
+                      }`}
+                      style={{ height: d.seconds > 0 ? `${pct}%` : '2px' }}
+                    />
+                  </div>
+                  <span className={`text-[10px] font-medium ${isToday ? 'text-sky-600' : 'text-slate-400'}`}>
+                    {d.label}
+                  </span>
+                  <span className={`text-[9px] ${isToday ? 'text-sky-400' : 'text-slate-300'}`}>
+                    {d.weekday}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -255,7 +353,10 @@ export default function HomeScreen({
   onStart,
   onShowBrowse,
   onResetAll,
+  studyTimeLog = {},
 }) {
+  const [showStudyTime, setShowStudyTime] = useState(false);
+
   return (
     <div className="min-h-screen bg-sky-50 flex flex-col items-center py-8 px-4 font-sans">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-6 border-t-8 border-sky-400">
@@ -264,10 +365,25 @@ export default function HomeScreen({
         <div className="flex items-center justify-center gap-2 mb-1 relative">
           <BrainCircuit className="w-8 h-8 text-sky-500" />
           <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">JFlash</h1>
-          <div className="absolute right-0 top-0">
+          <div className="absolute right-0 top-0 flex items-center gap-1">
+            <button
+              onClick={() => setShowStudyTime(true)}
+              title="학습 시간"
+              aria-label="학습 시간"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <BarChart3 className="w-4 h-4" />
+            </button>
             <ManageMenu onResetAll={onResetAll} />
           </div>
         </div>
+
+        {showStudyTime && (
+          <StudyTimeModal
+            studyTimeLog={studyTimeLog}
+            onClose={() => setShowStudyTime(false)}
+          />
+        )}
         <p className="text-slate-400 text-center text-xs mb-5">
           일본어 소리 반사 훈련 · 430장 · 19일 커리큘럼
         </p>

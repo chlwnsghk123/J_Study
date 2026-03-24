@@ -230,6 +230,7 @@ CATEGORY_META = {
 | `jflash_srs_v2` | { [wordId]: { masteryCount, nextReview } } |
 | `jflash_curriculum_v1` | { currentDay: number } — 현재 학습 Day (1~19) |
 | `jflash_session_v1` | { appScreen, selectedWordIds, dayPreviewPoolIds } — 세션 상태 (새로고침 복원용) |
+| `jflash_study_time_v1` | { [YYYY-MM-DD]: seconds } — 일별 학습 시간 (초 단위 누적) |
 
 ---
 

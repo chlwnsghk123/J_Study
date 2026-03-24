@@ -16,6 +16,7 @@ const LS = {
   SRS:        'jflash_srs_v2',
   CURRICULUM: 'jflash_curriculum_v1',
   SESSION:    'jflash_session_v1',
+  STUDY_TIME: 'jflash_study_time_v1',
 };
 
 function loadLS(key, def) {
@@ -142,6 +143,10 @@ export default function App() {
   const overTimeRef      = useRef(false); // 초과 플래그
   const answerSeenRef    = useRef(false); // 현재 카드 뒷면 열람 여부
 
+  // ── 학습 시간 추적 ─────────────────────────────────────────
+  const sessionStartRef = useRef(null);
+  const [studyTimeLog, setStudyTimeLog] = useState(() => loadLS(LS.STUDY_TIME, {}));
+
   // ── 전체 초기화 ─────────────────────────────────────────────
   const handleResetAll = () => {
     // localStorage 전체 삭제
@@ -165,6 +170,7 @@ export default function App() {
     setHcTimeLeft(null);
     overTimeRef.current = false;
     answerSeenRef.current = false;
+    setStudyTimeLog({});
   };
 
   // ── Toast 헬퍼 ───────────────────────────────────────────────
@@ -245,6 +251,7 @@ export default function App() {
     setHcTimeLeft(null);
     overTimeRef.current = false;
     answerSeenRef.current = false;
+    sessionStartRef.current = Date.now();
   };
 
   // ── 게임 시작 — HomeScreen (Day N 시작 → day-preview로 이동) ─
@@ -273,8 +280,23 @@ export default function App() {
     _launchGame(pool);
   };
 
+  // ── 학습 시간 기록 ──────────────────────────────────────────────
+  const recordStudyTime = () => {
+    if (!sessionStartRef.current) return;
+    const elapsed = Math.round((Date.now() - sessionStartRef.current) / 1000);
+    sessionStartRef.current = null;
+    if (elapsed < 5) return; // 5초 미만 무시
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    setStudyTimeLog((prev) => {
+      const updated = { ...prev, [today]: (prev[today] ?? 0) + elapsed };
+      saveLS(LS.STUDY_TIME, updated);
+      return updated;
+    });
+  };
+
   // ── 중도 퇴장 (item 3) ────────────────────────────────────────
   const handleExit = () => {
+    recordStudyTime();
     clearInterval(hcRef.current);
     setGameStarted(false);
     setQueue([]);
@@ -638,12 +660,15 @@ export default function App() {
           onStart={startGameByDay}
           onShowBrowse={() => setAppScreen('browse')}
           onResetAll={handleResetAll}
+          studyTimeLog={studyTimeLog}
         />
       </>
     );
   }
 
   if (queue.length === 0) {
+    // 학습 완료 시 시간 기록
+    if (sessionStartRef.current) recordStudyTime();
     return (
       <>
         {Toast}
