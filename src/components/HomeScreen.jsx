@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight, Trash2 } from 'lucide-react';
+import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight, Trash2, FileText, X } from 'lucide-react';
 import { TOTAL_DAYS, getDayBasePool } from '../lib/curriculum';
+import updatesRaw from '../../updates.md?raw';
 
 // ─── 토글 스위치 ─────────────────────────────────────────────────
 function ToggleSwitch({ label, desc, checked, onChange, colorOn }) {
@@ -119,10 +120,61 @@ function DaySelector({ currentDay, onDayChange, dayPool }) {
   );
 }
 
+// ─── 업데이트 내역 모달 ───────────────────────────────────────────
+function UpdatesModal({ onClose }) {
+  // 간단한 마크다운 → JSX 변환 (# 헤딩 + - 리스트)
+  const lines = updatesRaw.split('\n');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-xl max-w-sm w-full max-h-[70vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100">
+          <h3 className="text-base font-bold text-slate-800">업데이트 내역</h3>
+          <button
+            onClick={onClose}
+            aria-label="닫기"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* 내용 */}
+        <div className="overflow-y-auto px-5 py-4 space-y-1">
+          {lines.map((line, i) => {
+            if (line.startsWith('# ')) return null; // 최상위 제목 숨김
+            if (line.startsWith('## ')) {
+              return (
+                <h4 key={i} className="text-sm font-bold text-slate-700 pt-3 pb-1">
+                  {line.replace('## ', '')}
+                </h4>
+              );
+            }
+            if (line.startsWith('- ')) {
+              return (
+                <p key={i} className="text-sm text-slate-600 pl-2">
+                  • {line.replace('- ', '')}
+                </p>
+              );
+            }
+            if (line.trim() === '') return null;
+            return <p key={i} className="text-sm text-slate-600">{line}</p>;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── 관리 설정 메뉴 ──────────────────────────────────────────────
 function ManageMenu({ onResetAll }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showUpdates, setShowUpdates] = useState(false);
 
   const handleReset = () => {
     onResetAll();
@@ -146,6 +198,13 @@ function ManageMenu({ onResetAll }) {
           <div className="fixed inset-0 z-30" onClick={() => setShowMenu(false)} />
           <div className="absolute right-0 top-8 z-40 bg-white rounded-xl shadow-lg border border-slate-200 py-2 min-w-[160px]">
             <button
+              onClick={() => { setShowMenu(false); setShowUpdates(true); }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              업데이트 내역
+            </button>
+            <button
               onClick={() => { setShowMenu(false); setShowConfirm(true); }}
               className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-rose-500 hover:bg-rose-50 transition-colors"
             >
@@ -155,6 +214,8 @@ function ManageMenu({ onResetAll }) {
           </div>
         </>
       )}
+
+      {showUpdates && <UpdatesModal onClose={() => setShowUpdates(false)} />}
 
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
