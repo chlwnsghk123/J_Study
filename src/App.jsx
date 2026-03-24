@@ -416,7 +416,7 @@ export default function App() {
     if (historyStack.length === 0) return;
     const prev = historyStack[historyStack.length - 1];
     setHistoryStack((s) => s.slice(0, -1));
-    setQueue((q) => [prev.card, ...q]);
+    setQueue((q) => [prev.card, ...q.filter((c) => c.id !== prev.card.id)]);
     setMastered(prev.mastered);
     setFailCount(prev.failCount);
     if (prev.wasPass) setPassedCount(prev.prevPassedCount);
