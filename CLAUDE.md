@@ -286,6 +286,17 @@ CATEGORY_META = {
 3. 발견된 이슈 및 처리 결과
 4. 다음 사용 가능 ID (데이터 추가 시)
 
+## Git 워크플로우 (자동 main 반영)
+
+코드 및 데이터 수정 완료 후 반드시 아래 순서를 따른다:
+
+1. 변경 파일 `git add` → `git commit`
+2. 머지 충돌 방지: push 전에 반드시 `git fetch origin main && git rebase origin/main` 실행
+3. `git push` (현재 브랜치)
+4. **main 브랜치에 머지** — 작업 브랜치에서 main으로 즉시 병합
+
+요약: 모든 코드 변경은 사용자의 별도 지시가 없어도 최종적으로 **main 브랜치에 자동 반영**되어야 한다.
+
 ---
 
 ## UI/UX 디자인 원칙
@@ -412,4 +423,4 @@ npm run build  # 빌드 (dist/)
 ### 4. 작업 보고 및 Git 자동화
 - [ ] 변경 파일, ID 범위, 발견된 이슈 간략 보고 작성 완료
 - [ ] `git add` & `commit` 완료
-- [ ] 리모트 반영(`push` 등) 완료
+- [ ] `main` 브랜치로 자동 병합(merge) 및 리모트 `push` 완료
