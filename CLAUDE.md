@@ -76,7 +76,7 @@ CATEGORY_META = {
 | 파일 | 역할 |
 |---|---|
 | `src/lib/googleTTS.js` | TTS API 호출, 인메모리 LRU 캐싱 (최대 200개), prefetch |
-| `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion, history)` — 카드 문맥 + 대화 히스토리 주입형 |
+| `src/lib/gemini.js` | Gemini API 클라이언트, `askAI(currentCard, userQuestion, history)` — 카드 문맥 + 대화 히스토리 주입형, `generatePatternSentences(pattern, words, count)` — AI 패턴 랩 다중 예문 생성 |
 | `src/lib/curriculum.js` | `TOTAL_DAYS`, `SETS`, `getDayBasePool(day)` — 19일 커리큘럼 (priority 기반 배치 + 단어:통문장 비율 그라데이션) |
 | `src/hooks/useTTS.js` | `useTTS(text, enabled)` 자동재생 훅, `speakText(text, {rate})` |
 | `src/App.jsx` | SRS, 큐 빌드, 하드코어/블라인드/리버스 모드, D-Day, 토스트, 세션 상태 자동 저장, 전체 초기화, 3회 오답 패스, 패스/되돌리기 (반의어·의존성 주입 로직 제거됨) |
@@ -84,6 +84,7 @@ CATEGORY_META = {
 | `src/components/HomeScreen.jsx` | 홈 화면 — Day 선택, 설정 패널(토글 3종), 관리 설정 메뉴(전체 초기화), 탐색 모드 |
 | `src/components/DayPreviewScreen.jsx` | Day 미리보기 — 단어 체크박스 선택, 퀴즈 시작 |
 | `src/components/AiChatModal.jsx` | AI 질문 바텀시트 — 채팅 UI, 마크다운 렌더러, 카드별 대화 컨텍스트 유지, 추천 질문 3종, 드래그 핸들로 닫기, 오버레이 클릭 닫기 |
+| `src/components/PatternLabScreen.jsx` | AI 패턴 랩 — 패턴 선택, 80/20 단어 자동 추출, Gemini 다중 예문 생성, 미리보기, localStorage 저장 |
 | `src/components/CompletionScreen.jsx` | 학습 완료 화면 — 완료 메시지, 첫 화면 복귀 버튼 |
 | `src/components/ProgressBar.jsx` | 얇은 진행 바 (`h-1.5`), 마스터 수 / 전체 수 표시 |
 | `src/components/BrowseScreen.jsx` | 전체 단어 탐색 화면 |
@@ -212,6 +213,21 @@ CATEGORY_META = {
 8. **제목 표시**: `pron`에서 `**` 마크다운 제거 후 표시 (`stripBold`)
 9. AI 모달 열린 상태에서 카드 드래그 스와이프 비활성
 
+### AI 패턴 랩 흐름
+1. HomeScreen → `AI 패턴 랩` 버튼 → `appScreen = 'pattern-lab'` → `PatternLabScreen` 렌더링
+2. 사용자가 `patterns.js` 50개 중 하나를 선택 (검색 지원)
+3. `AI 예문 자동 생성` 버튼 클릭 시:
+   - `pickWordsForPattern(pattern, 8)` — 패턴 structure에 맞는 단어 우선 추출, 80% 기존 데이터
+   - `generatePatternSentences(pattern, words, 5)` — Gemini API로 3~5개 예문 생성
+   - 프롬프트에 80% 기존 단어 목록 주입, 20%는 AI 자유 선정 지시
+4. 생성된 문장을 미리보기 카드로 표시 (pron, meaning, hiragana, example, description)
+5. `저장` 확정 시:
+   - ID 10001~부터 순번 할당 (`getNextAIId()`)
+   - `jflash_ai_sentences_v1`에 localStorage 저장
+   - `refreshWordData()` 호출 → `wordData` 갱신 → SRS 시스템에서 즉시 인식
+6. 저장된 AI 문장은 `type: 'sentence'`, `tags: ['#통문장', '#AI생성', ...]`
+7. 기존 BrowseScreen, Day 학습 등에서 동일하게 렌더링·학습 가능
+
 ### 세션 상태 자동 저장 (새로고침 유지)
 - `jflash_session_v1`에 `appScreen`, `selectedWordIds`, `dayPreviewPoolIds` 저장
 - `appScreen`, `selectedWordIds`, `dayPreviewPool` 변경 시 `useEffect`로 자동 저장
@@ -231,6 +247,36 @@ CATEGORY_META = {
 | `jflash_curriculum_v1` | { currentDay: number } — 현재 학습 Day (1~19) |
 | `jflash_session_v1` | { appScreen, selectedWordIds, dayPreviewPoolIds } — 세션 상태 (새로고침 복원용) |
 | `jflash_study_time_v1` | { [YYYY-MM-DD]: seconds } — 일별 학습 시간 (초 단위 누적) |
+| `jflash_ai_sentences_v1` | AI 패턴 랩에서 생성된 문장 배열 (sentences 스키마, id 10001~) |
+
+### 정적 데이터 + 동적 데이터 병합 아키텍처
+
+앱의 데이터는 두 가지 소스에서 병합된다:
+
+1. **정적 데이터** (코드 내 JS 파일):
+   - `verbs.js`, `adjectives.js`, `nouns.js`, `patterns.js`, `sentences.js`
+   - ID 범위: 1~430 (새 정적 데이터는 431~)
+   - 빌드 시 포함, 변경 불가
+
+2. **동적 데이터** (localStorage):
+   - `jflash_ai_sentences_v1`: AI 패턴 랩에서 생성된 문장
+   - ID 범위: 10001~ (정적 데이터와 충돌 방지)
+   - 런타임에 `getWordData()`로 정적 데이터와 병합
+
+**데이터 흐름:**
+```
+src/data/index.js
+  ├── 정적: [...verbs, ...adjectives, ...nouns, ...patterns, ...sentences]
+  └── 동적: loadAISentences()  ← localStorage('jflash_ai_sentences_v1')
+  → export let wordData = getWordData()  // 병합 결과
+  → refreshWordData()  // AI 데이터 추가 후 wordData 갱신 호출
+```
+
+**주의사항:**
+- AI 생성 문장 저장 후 반드시 `refreshWordData()`를 호출해야 기존 SRS 시스템에서 새 데이터를 인식
+- 동적 데이터의 `type`은 항상 `'sentence'`, `tags[0]`은 `'#통문장'`
+- 동적 데이터 ID는 정적 데이터 최대 ID(현재 430)보다 큰 10001부터 시작하여 충돌 방지
+- 전체 초기화 시 `jflash_ai_sentences_v1` 키도 함께 삭제해야 함
 
 ---
 

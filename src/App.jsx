@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, X, Undo2 } from 'lucide-react';
-import { wordData } from './data';
+import { wordData, refreshWordData } from './data';
 import { prefetch } from './lib/googleTTS';
 import { TOTAL_DAYS, getDayBasePool } from './lib/curriculum';
 import HomeScreen        from './components/HomeScreen';
 import BrowseScreen      from './components/BrowseScreen';
 import DayPreviewScreen  from './components/DayPreviewScreen';
+import PatternLabScreen  from './components/PatternLabScreen';
 import WordCard          from './components/WordCard';
 import ProgressBar       from './components/ProgressBar';
 import CompletionScreen  from './components/CompletionScreen';
@@ -145,12 +146,15 @@ export default function App() {
 
   // ── 학습 시간 추적 ─────────────────────────────────────────
   const sessionStartRef = useRef(null);
+  const accumulatedTimeRef = useRef(0); // 포그라운드 누적 시간 (ms)
   const [studyTimeLog, setStudyTimeLog] = useState(() => loadLS(LS.STUDY_TIME, {}));
 
   // ── 전체 초기화 ─────────────────────────────────────────────
   const handleResetAll = () => {
-    // localStorage 전체 삭제
+    // localStorage 전체 삭제 (정적 키 + 동적 AI 데이터)
     Object.values(LS).forEach((key) => { try { localStorage.removeItem(key); } catch {} });
+    try { localStorage.removeItem('jflash_ai_sentences_v1'); } catch {}
+    refreshWordData();
     // 상태 초기화
     setSettings({ ...DEFAULT_SETTINGS });
     setSrsData({});
@@ -251,6 +255,7 @@ export default function App() {
     setHcTimeLeft(null);
     overTimeRef.current = false;
     answerSeenRef.current = false;
+    accumulatedTimeRef.current = 0;
     sessionStartRef.current = Date.now();
   };
 
@@ -280,19 +285,44 @@ export default function App() {
     _launchGame(pool);
   };
 
-  // ── 학습 시간 기록 ──────────────────────────────────────────────
+  // ── 학습 시간 기록 (포그라운드만 집계) ────────────────────────
+  const flushForegroundTime = () => {
+    if (sessionStartRef.current) {
+      accumulatedTimeRef.current += Date.now() - sessionStartRef.current;
+      sessionStartRef.current = Date.now();
+    }
+  };
+
   const recordStudyTime = () => {
-    if (!sessionStartRef.current) return;
-    const elapsed = Math.round((Date.now() - sessionStartRef.current) / 1000);
+    flushForegroundTime();
+    const elapsed = Math.round(accumulatedTimeRef.current / 1000);
     sessionStartRef.current = null;
+    accumulatedTimeRef.current = 0;
     if (elapsed < 5) return; // 5초 미만 무시
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
     setStudyTimeLog((prev) => {
       const updated = { ...prev, [today]: (prev[today] ?? 0) + elapsed };
       saveLS(LS.STUDY_TIME, updated);
       return updated;
     });
   };
+
+  // ── 포그라운드/백그라운드 전환 감지 ─────────────────────────────
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!sessionStartRef.current) return;
+      if (document.hidden) {
+        // 백그라운드 진입: 현재까지 포그라운드 시간 누적 후 타이머 일시정지
+        accumulatedTimeRef.current += Date.now() - sessionStartRef.current;
+        sessionStartRef.current = null;
+      } else {
+        // 포그라운드 복귀: 타이머 재시작
+        sessionStartRef.current = Date.now();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   // ── 중도 퇴장 (item 3) ────────────────────────────────────────
   const handleExit = () => {
@@ -350,6 +380,10 @@ export default function App() {
   useEffect(() => {
     if (!gameStarted || queue.length === 0) return;
     const onKeyDown = (e) => {
+      // 모달/입력 중이면 단축키 무시 (AI 질문창 등)
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (document.querySelector('.fixed.z-50')) return; // 모달 열려있으면 무시
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
         handleFlip();   // ↑/↓ = 카드 뒤집기
@@ -648,6 +682,18 @@ export default function App() {
       );
     }
 
+    if (appScreen === 'pattern-lab') {
+      return (
+        <>
+          {Toast}
+          <PatternLabScreen
+            onBack={() => setAppScreen('home')}
+            onDataChanged={() => refreshWordData()}
+          />
+        </>
+      );
+    }
+
     return (
       <>
         {Toast}
@@ -659,6 +705,7 @@ export default function App() {
           onSettingsChange={updateSettings}
           onStart={startGameByDay}
           onShowBrowse={() => setAppScreen('browse')}
+          onShowPatternLab={() => setAppScreen('pattern-lab')}
           onResetAll={handleResetAll}
           studyTimeLog={studyTimeLog}
         />

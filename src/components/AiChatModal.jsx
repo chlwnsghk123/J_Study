@@ -158,10 +158,13 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
   };
 
   return (
-    /* 오버레이 — 빈 공간 클릭 시 닫기 */
+    /* 오버레이 — 빈 공간 클릭 시 닫기, 터치 이벤트 전파 차단 */
     <div
       className="fixed inset-0 z-50 flex flex-col justify-end"
       onClick={onClose}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
     >
       {/* 반투명 배경 */}
       <div className="absolute inset-0 bg-black/40" />

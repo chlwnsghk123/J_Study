@@ -63,6 +63,7 @@ J_Study/
 │   │   ├── DayPreviewScreen.jsx   # Day 미리보기: 카드 선택 + 퀴즈 시작
 │   │   ├── BrowseScreen.jsx       # 전체 단어 탐색
 │   │   ├── AiChatModal.jsx        # AI 질문 바텀시트
+│   │   ├── PatternLabScreen.jsx   # AI 패턴 랩 (예문 자동 생성)
 │   │   ├── ProgressBar.jsx        # 진행 바
 │   │   └── CompletionScreen.jsx   # 학습 완료 화면
 │   └── data/
@@ -110,9 +111,20 @@ J_Study/
 - **SRS (Spaced Repetition)** — masteryCount 2회 누적 후 1/3/7일 주기 복습
 - **19일 커리큘럼** — priority 기반 배치 + 단어:통문장 비율 그라데이션 (패턴은 BrowseScreen 전용)
 - **AI 질문** — Gemini API로 카드별 맥락 기반 Q&A (추천 질문 3종)
+- **AI 패턴 랩** — 패턴 선택 후 AI가 80/20 규칙으로 예문 자동 생성 (80% 기존 단어 활용, 20% AI 자유 선정), 저장된 문장은 기존 SRS 학습 큐에 즉시 편입
 - **드래그 스와이프** — 좌: 패스 / 우: 되돌리기 (모바일+PC)
 - **세션 자동 저장** — 새로고침 시 마지막 화면과 선택 상태 복원
 - **PWA** — 모바일 홈 화면 추가 지원
+
+---
+
+## AI 패턴 랩 워크플로우
+
+1. **패턴 선택**: HomeScreen → AI 패턴 랩 → patterns.js 50개 중 1개 선택
+2. **단어 자동 추출**: 패턴 structure에 맞는 단어를 시스템이 자동 구성 (80% 기존 데이터, 20% AI 자유)
+3. **AI 예문 생성**: Gemini API가 해당 패턴으로 3~5개 자연스러운 예문 생성
+4. **미리보기 & 저장**: 생성된 문장을 확인 후 저장 → localStorage(`jflash_ai_sentences_v1`)에 영구 보관
+5. **SRS 편입**: 저장된 AI 문장은 기존 wordData에 자동 병합, 동일한 SRS 알고리즘으로 학습 가능
 
 ---
 

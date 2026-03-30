@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight, Trash2, FileText, X, BarChart3 } from 'lucide-react';
+import { BrainCircuit, ChevronLeft, ChevronRight, Settings, BookOpen, ArrowRight, Trash2, FileText, X, BarChart3, Sparkles } from 'lucide-react';
 import { TOTAL_DAYS, getDayBasePool } from '../lib/curriculum';
 import updatesRaw from '../../updates.md?raw';
 
@@ -352,6 +352,7 @@ export default function HomeScreen({
   onSettingsChange,
   onStart,
   onShowBrowse,
+  onShowPatternLab,
   onResetAll,
   studyTimeLog = {},
 }) {
@@ -405,6 +406,16 @@ export default function HomeScreen({
         >
           Day {currentDay} 시작
           <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* AI 패턴 랩 */}
+        <button
+          onClick={onShowPatternLab}
+          className="w-full py-3 rounded-2xl border-2 border-violet-200 bg-violet-50 hover:bg-violet-100 text-violet-600 text-sm font-semibold flex items-center justify-center gap-2 transition-colors mb-3"
+        >
+          <Sparkles className="w-4 h-4" />
+          AI 패턴 랩
+          <ArrowRight className="w-4 h-4" />
         </button>
 
         {/* 전체 단어 보기 (보조) */}
