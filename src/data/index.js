@@ -34,25 +34,11 @@ import { nouns }      from './nouns';
 import { patterns }   from './patterns';
 import { sentences }  from './sentences';
 
-// ─── AI 생성 문장 로드 (localStorage) ────────────────────────────
-const AI_SENTENCES_KEY = 'jflash_ai_sentences_v1';
-function loadAISentences() {
-  try { return JSON.parse(localStorage.getItem(AI_SENTENCES_KEY)) ?? []; }
-  catch { return []; }
-}
+// 정적 데이터만 포함 (AI 생성 문장은 패턴 랩 전용 — wordData에 합치지 않음)
+export const wordData = [...verbs, ...adjectives, ...nouns, ...patterns, ...sentences];
 
-// 정적 데이터 + 동적 AI 생성 데이터 병합
-export function getWordData() {
-  return [...verbs, ...adjectives, ...nouns, ...patterns, ...sentences, ...loadAISentences()];
-}
-
-// 초기값 (앱 시작 시 한 번 로드)
-export let wordData = getWordData();
-
-// AI 데이터 변경 후 wordData 갱신용
-export function refreshWordData() {
-  wordData = getWordData();
-}
+// AI 생성 문장은 PatternLabScreen 내부에서만 관리 (jflash_ai_sentences_v1)
+// refreshWordData() 제거 — 더 이상 동적 병합 불필요
 
 // ─── 카테고리 메타데이터 (type 기반) ─────────────────────────────
 export const CATEGORY_META = {

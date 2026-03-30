@@ -249,33 +249,37 @@ CATEGORY_META = {
 | `jflash_study_time_v1` | { [YYYY-MM-DD]: seconds } — 일별 학습 시간 (초 단위 누적) |
 | `jflash_ai_sentences_v1` | AI 패턴 랩에서 생성된 문장 배열 (sentences 스키마, id 10001~) |
 
-### 정적 데이터 + 동적 데이터 병합 아키텍처
+### 정적 데이터 + 동적 데이터 분리 아키텍처
 
-앱의 데이터는 두 가지 소스에서 병합된다:
+앱의 데이터는 두 가지 소스로 **분리** 관리된다:
 
-1. **정적 데이터** (코드 내 JS 파일):
+1. **정적 데이터** (코드 내 JS 파일 → `wordData`):
    - `verbs.js`, `adjectives.js`, `nouns.js`, `patterns.js`, `sentences.js`
    - ID 범위: 1~430 (새 정적 데이터는 431~)
    - 빌드 시 포함, 변경 불가
+   - Day 커리큘럼, BrowseScreen 등 기존 학습 시스템에서 사용
 
-2. **동적 데이터** (localStorage):
+2. **동적 데이터** (localStorage → 패턴 랩 전용):
    - `jflash_ai_sentences_v1`: AI 패턴 랩에서 생성된 문장
    - ID 범위: 10001~ (정적 데이터와 충돌 방지)
-   - 런타임에 `getWordData()`로 정적 데이터와 병합
+   - **wordData에 합치지 않음** — PatternLabScreen 내부에서만 로드/관리
+   - 패턴 랩 전용 학습 모드에서만 사용 (기존 통문장 풀에 섞이지 않음)
 
 **데이터 흐름:**
 ```
 src/data/index.js
-  ├── 정적: [...verbs, ...adjectives, ...nouns, ...patterns, ...sentences]
-  └── 동적: loadAISentences()  ← localStorage('jflash_ai_sentences_v1')
-  → export let wordData = getWordData()  // 병합 결과
-  → refreshWordData()  // AI 데이터 추가 후 wordData 갱신 호출
+  → export const wordData = [...verbs, ...adjectives, ...nouns, ...patterns, ...sentences]
+  (정적 데이터만 — AI 생성 문장 미포함)
+
+src/components/PatternLabScreen.jsx
+  → loadAISentences()  ← localStorage('jflash_ai_sentences_v1')
+  → 패턴 랩 내 "내 학습" 탭에서 전용 학습 시작 시 App._launchGame(sentences) 호출
 ```
 
 **주의사항:**
-- AI 생성 문장 저장 후 반드시 `refreshWordData()`를 호출해야 기존 SRS 시스템에서 새 데이터를 인식
-- 동적 데이터의 `type`은 항상 `'sentence'`, `tags[0]`은 `'#통문장'`
-- 동적 데이터 ID는 정적 데이터 최대 ID(현재 430)보다 큰 10001부터 시작하여 충돌 방지
+- AI 생성 문장은 `wordData`에 포함되지 않으므로 Day 커리큘럼/BrowseScreen에 노출되지 않음
+- AI 문장의 SRS 데이터(`jflash_srs_v2`)는 기존 시스템과 동일한 키를 사용 (ID가 10001~이므로 충돌 없음)
+- 동적 데이터의 `type`은 항상 `'sentence'`, `tags[0]`은 `'#통문장'`, `patternId`로 패턴별 그룹화
 - 전체 초기화 시 `jflash_ai_sentences_v1` 키도 함께 삭제해야 함
 
 ---

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, X, Undo2 } from 'lucide-react';
-import { wordData, refreshWordData } from './data';
+import { wordData } from './data';
 import { prefetch } from './lib/googleTTS';
 import { TOTAL_DAYS, getDayBasePool } from './lib/curriculum';
 import HomeScreen        from './components/HomeScreen';
@@ -154,7 +154,6 @@ export default function App() {
     // localStorage 전체 삭제 (정적 키 + 동적 AI 데이터)
     Object.values(LS).forEach((key) => { try { localStorage.removeItem(key); } catch {} });
     try { localStorage.removeItem('jflash_ai_sentences_v1'); } catch {}
-    refreshWordData();
     // 상태 초기화
     setSettings({ ...DEFAULT_SETTINGS });
     setSrsData({});
@@ -688,7 +687,11 @@ export default function App() {
           {Toast}
           <PatternLabScreen
             onBack={() => setAppScreen('home')}
-            onDataChanged={() => refreshWordData()}
+            onStartStudy={(sentences) => {
+              if (sentences.length === 0) return;
+              _launchGame(sentences);
+            }}
+            srsData={srsData}
           />
         </>
       );
