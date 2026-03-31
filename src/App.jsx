@@ -119,28 +119,32 @@ export default function App() {
   // ── 안드로이드 뒤로가기 (History API) ──────────────────────
   const appScreenRef = useRef(appScreen);
   const gameStartedRef = useRef(gameStarted);
+  const handleExitRef = useRef(null);
   appScreenRef.current = appScreen;
   gameStartedRef.current = gameStarted;
 
-  // 화면 전환 시 history.pushState
+  // 화면 전환 시 history.pushState (초기 로드 건너뛰기)
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    if (isInitialMount.current) { isInitialMount.current = false; return; }
     if (appScreen !== 'home' || gameStarted) {
       window.history.pushState({ screen: appScreen, game: gameStarted }, '');
     }
   }, [appScreen, gameStarted]);
 
-  // popstate(뒤로가기) 리스너
+  // popstate(뒤로가기) 리스너 — ref 경유로 stale closure 방지
   useEffect(() => {
-    const handlePopState = () => {
+    const handlePopState = (e) => {
+      // 초기 로드 시 일부 브라우저가 popstate를 발사하는 것 방어
+      if (!e.state) return;
       if (gameStartedRef.current) {
-        handleExit();
+        handleExitRef.current?.();
       } else if (appScreenRef.current !== 'home') {
         setAppScreen('home');
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── 게임 상태 ─────────────────────────────────────────────
@@ -622,6 +626,7 @@ export default function App() {
 
   // ref 갱신 (stale closure 방지)
   handleActionRef.current = handleAction;
+  handleExitRef.current = handleExit;
 
   // ── 모르는 단어 처리 (WordCard 스와이프/화살표용) ──────────────
   const handleDontKnow = () => {
