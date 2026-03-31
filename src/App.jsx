@@ -116,6 +116,33 @@ export default function App() {
     });
   }, [appScreen, selectedWordIds, dayPreviewPool]);
 
+  // ── 안드로이드 뒤로가기 (History API) ──────────────────────
+  const appScreenRef = useRef(appScreen);
+  const gameStartedRef = useRef(gameStarted);
+  appScreenRef.current = appScreen;
+  gameStartedRef.current = gameStarted;
+
+  // 화면 전환 시 history.pushState
+  useEffect(() => {
+    if (appScreen !== 'home' || gameStarted) {
+      window.history.pushState({ screen: appScreen, game: gameStarted }, '');
+    }
+  }, [appScreen, gameStarted]);
+
+  // popstate(뒤로가기) 리스너
+  useEffect(() => {
+    const handlePopState = () => {
+      if (gameStartedRef.current) {
+        handleExit();
+      } else if (appScreenRef.current !== 'home') {
+        setAppScreen('home');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── 게임 상태 ─────────────────────────────────────────────
   const [queue, setQueue]         = useState([]);
   const [mastered, setMastered]   = useState([]);
@@ -306,22 +333,39 @@ export default function App() {
     });
   };
 
-  // ── 포그라운드/백그라운드 전환 감지 ─────────────────────────────
+  // ── 포그라운드/백그라운드 전환 감지 (5분 유예) ──────────────────
+  const bgTimestampRef = useRef(null); // 백그라운드 진입 시각
+  const GRACE_PERIOD = 5 * 60 * 1000;  // 5분 (ms)
+
   useEffect(() => {
     const handleVisibility = () => {
-      if (!sessionStartRef.current) return;
       if (document.hidden) {
-        // 백그라운드 진입: 현재까지 포그라운드 시간 누적 후 타이머 일시정지
-        accumulatedTimeRef.current += Date.now() - sessionStartRef.current;
-        sessionStartRef.current = null;
+        // 백그라운드 진입: 현재까지 시간 누적 + 진입 시각 기록
+        if (sessionStartRef.current) {
+          accumulatedTimeRef.current += Date.now() - sessionStartRef.current;
+          sessionStartRef.current = null;
+        }
+        bgTimestampRef.current = Date.now();
       } else {
-        // 포그라운드 복귀: 타이머 재시작
-        sessionStartRef.current = Date.now();
+        // 포그라운드 복귀
+        if (bgTimestampRef.current) {
+          const bgDuration = Date.now() - bgTimestampRef.current;
+          if (bgDuration <= GRACE_PERIOD) {
+            // 5분 이내 복귀 → 백그라운드 시간도 학습 시간으로 포함
+            accumulatedTimeRef.current += bgDuration;
+          }
+          // 5분 초과 → 백그라운드 시간 미포함 (이미 누적 안 됨)
+          bgTimestampRef.current = null;
+        }
+        // 게임 진행 중이면 타이머 재시작
+        if (gameStarted) {
+          sessionStartRef.current = Date.now();
+        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
+  }, [gameStarted]);
 
   // ── 중도 퇴장 (item 3) ────────────────────────────────────────
   const handleExit = () => {

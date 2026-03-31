@@ -414,7 +414,7 @@ export default function HomeScreen({
           className="w-full py-3 rounded-2xl border-2 border-violet-200 bg-violet-50 hover:bg-violet-100 text-violet-600 text-sm font-semibold flex items-center justify-center gap-2 transition-colors mb-3"
         >
           <Sparkles className="w-4 h-4" />
-          AI 패턴 랩
+          패턴 학습하기
           <ArrowRight className="w-4 h-4" />
         </button>
 
