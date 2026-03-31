@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Send, Loader2, Sparkles } from 'lucide-react';
 import { askAI } from '../lib/gemini';
 
 // ─── 마크다운 인라인 파서 ────────────────────────────────────────
-// **굵게**, *기울임*, `코드` 패턴을 React 엘리먼트로 변환
 function parseInline(line, lineKey) {
   const parts = [];
   const regex = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
@@ -26,7 +25,6 @@ function parseInline(line, lineKey) {
   return parts;
 }
 
-// 줄바꿈·불릿(- )·빈 줄 처리 포함
 function MarkdownText({ text }) {
   const lines = text.split('\n');
   return (
@@ -46,7 +44,6 @@ function MarkdownText({ text }) {
   );
 }
 
-// ** 마크다운 제거 (제목 표시용)
 function stripBold(text) {
   return text?.replace(/\*\*/g, '') ?? '';
 }
@@ -64,9 +61,13 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
   const bottomRef               = useRef(null);
   const inputRef                = useRef(null);
   const sheetRef                = useRef(null);
-  const dragStartY              = useRef(null);
-  const dragDeltaY              = useRef(0);
-  const handleRef               = useRef(null);
+  const scrollRef               = useRef(null);
+
+  // 드래그 상태
+  const dragStartY    = useRef(null);
+  const dragDeltaY    = useRef(0);
+  const isDragging    = useRef(false);   // 드래그 확정 여부
+  const isScrollArea  = useRef(false);   // 스크롤 영역에서 시작했는지
 
   // 새 메시지마다 스크롤 하단 이동
   useEffect(() => {
@@ -84,7 +85,6 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
     setLoading(true);
 
     try {
-      // 대화 히스토리 전달 (현재 질문 제외)
       const answer = await askAI(currentCard, text, messages);
       setMessages((prev) => [...prev, { id: Date.now() + 1, role: 'ai', text: answer }]);
     } catch {
@@ -99,66 +99,127 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
     }
   };
 
-  // ── 드래그 핸들로 닫기 ──────────────────────────────────────
-  const handleHandleTouchStart = (e) => {
-    dragStartY.current = e.touches[0].clientY;
-    dragDeltaY.current = 0;
-  };
-
-  const handleHandleTouchMove = (e) => {
-    if (dragStartY.current === null) return;
-    const dy = e.touches[0].clientY - dragStartY.current;
-    dragDeltaY.current = dy;
-    if (dy > 0 && sheetRef.current) {
-      sheetRef.current.style.transform = `translateY(${dy}px)`;
+  // ── 시트 translateY 적용 ─────────────────────────────────────
+  const applyTranslate = useCallback((dy, animated = false) => {
+    if (!sheetRef.current) return;
+    if (animated) {
+      sheetRef.current.style.transition = 'transform 0.25s ease';
+    } else {
       sheetRef.current.style.transition = 'none';
     }
-  };
+    sheetRef.current.style.transform = `translateY(${Math.max(0, dy)}px)`;
+  }, []);
 
-  const handleHandleTouchEnd = () => {
+  const closeWithAnimation = useCallback(() => {
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = 'transform 0.25s ease';
+      sheetRef.current.style.transform = 'translateY(100%)';
+    }
+    setTimeout(onClose, 250);
+  }, [onClose]);
+
+  // ── 시트 전체 터치 드래그 (핸들 + 메시지 영역) ──────────────
+  const handleTouchStart = useCallback((e) => {
+    // 입력 영역 터치는 무시
+    const tag = e.target.closest('textarea, button, input');
+    if (tag) return;
+
+    dragStartY.current = e.touches[0].clientY;
+    dragDeltaY.current = 0;
+    isDragging.current = false;
+
+    // 스크롤 영역 내에서 시작했는지 확인
+    isScrollArea.current = !!e.target.closest('[data-scroll-area]');
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (dragStartY.current === null) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+
+    // 스크롤 영역에서 시작한 경우: 스크롤이 맨 위에 있을 때만 드래그 허용
+    if (isScrollArea.current && !isDragging.current) {
+      const scrollEl = scrollRef.current;
+      if (scrollEl && scrollEl.scrollTop > 0) {
+        // 스크롤 중이면 드래그 안 함
+        dragStartY.current = null;
+        return;
+      }
+      // 위로 드래그(dy < 0)는 스크롤에 위임
+      if (dy < 0) {
+        dragStartY.current = null;
+        return;
+      }
+    }
+
+    // 아래로 10px 이상 이동하면 드래그 확정
+    if (!isDragging.current && dy > 10) {
+      isDragging.current = true;
+    }
+
+    if (isDragging.current && dy > 0) {
+      e.preventDefault(); // 브라우저 스크롤 차단
+      dragDeltaY.current = dy;
+      applyTranslate(dy);
+    }
+  }, [applyTranslate]);
+
+  const handleTouchEnd = useCallback(() => {
     if (dragStartY.current === null) return;
     const dy = dragDeltaY.current;
+    const wasDragging = isDragging.current;
     dragStartY.current = null;
-    if (dy > 80) {
-      if (sheetRef.current) {
-        sheetRef.current.style.transition = 'transform 0.2s ease';
-        sheetRef.current.style.transform = 'translateY(100%)';
-      }
-      setTimeout(onClose, 200);
-    } else if (sheetRef.current) {
-      sheetRef.current.style.transition = 'transform 0.2s ease';
-      sheetRef.current.style.transform = 'translateY(0)';
-    }
-  };
+    isDragging.current = false;
 
-  // 마우스 드래그도 지원
-  const handleHandleMouseDown = (e) => {
+    if (!wasDragging) return;
+
+    if (dy > 80) {
+      closeWithAnimation();
+    } else {
+      applyTranslate(0, true);
+    }
+  }, [applyTranslate, closeWithAnimation]);
+
+  // ── 마우스 드래그 (PC) ──────────────────────────────────────
+  const handleMouseDown = useCallback((e) => {
+    const tag = e.target.closest('textarea, button, input');
+    if (tag) return;
+
     e.preventDefault();
     dragStartY.current = e.clientY;
     dragDeltaY.current = 0;
+    isDragging.current = false;
+    isScrollArea.current = !!e.target.closest('[data-scroll-area]');
 
     const onMouseMove = (ev) => {
       if (dragStartY.current === null) return;
       const dy = ev.clientY - dragStartY.current;
-      dragDeltaY.current = dy;
-      if (dy > 0 && sheetRef.current) {
-        sheetRef.current.style.transform = `translateY(${dy}px)`;
-        sheetRef.current.style.transition = 'none';
+
+      if (isScrollArea.current && !isDragging.current) {
+        const scrollEl = scrollRef.current;
+        if (scrollEl && scrollEl.scrollTop > 0) { dragStartY.current = null; return; }
+        if (dy < 0) { dragStartY.current = null; return; }
+      }
+
+      if (!isDragging.current && dy > 10) isDragging.current = true;
+
+      if (isDragging.current && dy > 0) {
+        dragDeltaY.current = dy;
+        applyTranslate(dy);
       }
     };
 
     const onMouseUp = () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
-      handleHandleTouchEnd();
+      handleTouchEnd();
     };
 
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-  };
+  }, [applyTranslate, handleTouchEnd]);
 
   return (
-    /* 오버레이 — 빈 공간 클릭 시 닫기, 터치 이벤트 전파 차단 */
+    /* 오버레이 */
     <div
       className="fixed inset-0 z-50 flex flex-col justify-end"
       onClick={onClose}
@@ -173,18 +234,16 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
       <div
         ref={sheetRef}
         className="relative bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-[75vh]"
+        style={{ touchAction: 'none' }}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
       >
 
-        {/* 드래그 핸들 — 터치/마우스로 아래로 끌어서 닫기 */}
-        <div
-          ref={handleRef}
-          className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing"
-          onTouchStart={handleHandleTouchStart}
-          onTouchMove={handleHandleTouchMove}
-          onTouchEnd={handleHandleTouchEnd}
-          onMouseDown={handleHandleMouseDown}
-        >
+        {/* 드래그 핸들 */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing">
           <div className="w-10 h-1 rounded-full bg-slate-300" />
         </div>
 
@@ -205,7 +264,12 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
         </div>
 
         {/* 메시지 영역 */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+        <div
+          ref={scrollRef}
+          data-scroll-area
+          className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0"
+          style={{ touchAction: 'pan-y' }}
+        >
           {messages.length === 0 && (
             <p className="text-center text-xs text-slate-400 py-6">
               이 카드에 대해 궁금한 점을 질문해 보세요.
@@ -262,7 +326,7 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
         )}
 
         {/* 입력 영역 */}
-        <div className="flex items-end gap-2 px-4 py-3 border-t border-slate-100 shrink-0">
+        <div className="flex items-end gap-2 px-4 py-3 border-t border-slate-100 shrink-0" style={{ touchAction: 'auto' }}>
           <textarea
             ref={inputRef}
             value={input}
@@ -273,7 +337,7 @@ export default function AiChatModal({ currentCard, onClose, messages, setMessage
               px-3.5 py-2.5 text-sm text-slate-700 placeholder-slate-400
               focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-300
               max-h-24 overflow-y-auto"
-            style={{ fieldSizing: 'content' }}
+            style={{ fieldSizing: 'content', touchAction: 'auto' }}
           />
           <button
             onClick={() => handleSend()}
