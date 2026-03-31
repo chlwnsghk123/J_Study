@@ -17,7 +17,6 @@ const LS = {
   SRS:        'jflash_srs_v2',
   CURRICULUM: 'jflash_curriculum_v1',
   SESSION:    'jflash_session_v1',
-  STUDY_TIME: 'jflash_study_time_v1',
 };
 
 function loadLS(key, def) {
@@ -29,7 +28,6 @@ function saveLS(key, val) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 
-// maxCards 제거 (item 4)
 const DEFAULT_SETTINGS = {
   reverseMode:  false,
   blindMode:    false,
@@ -83,7 +81,6 @@ export default function App() {
   };
 
   // ── 화면 상태 ─────────────────────────────────────────────
-  // 'home' | 'browse' | 'day-preview'
   const [appScreen, setAppScreen] = useState(() => {
     const session = loadLS(LS.SESSION, {});
     return session.appScreen ?? 'home';
@@ -98,7 +95,7 @@ export default function App() {
   });
   const [selectedTags, setSelectedTags] = useState([]);
 
-  // Day 미리보기 풀 (item 5): startGameByDay 시 계산
+  // Day 미리보기 풀
   const [dayPreviewPool, setDayPreviewPool] = useState(() => {
     const session = loadLS(LS.SESSION, {});
     if (session.appScreen === 'day-preview' && session.dayPreviewPoolIds?.length > 0) {
@@ -118,25 +115,29 @@ export default function App() {
 
   // ── 안드로이드 뒤로가기 (History API) ──────────────────────
   const appScreenRef = useRef(appScreen);
-  const gameStartedRef = useRef(gameStarted);
+  const gameStartedRef = useRef(false);
   const handleExitRef = useRef(null);
   appScreenRef.current = appScreen;
-  gameStartedRef.current = gameStarted;
 
-  // 화면 전환 시 history.pushState (초기 로드 건너뛰기)
-  const isInitialMount = useRef(true);
   useEffect(() => {
-    if (isInitialMount.current) { isInitialMount.current = false; return; }
-    if (appScreen !== 'home' || gameStarted) {
-      window.history.pushState({ screen: appScreen, game: gameStarted }, '');
+    // 초기 로드 시 홈이 아니면 history에 하나 추가 (뒤로가기 대비)
+    if (appScreen !== 'home') {
+      window.history.pushState({ jflash: true }, '');
     }
-  }, [appScreen, gameStarted]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // popstate(뒤로가기) 리스너 — ref 경유로 stale closure 방지
+  // 화면 전환 시 pushState (홈→다른 화면)
+  const prevScreenRef = useRef(appScreen);
   useEffect(() => {
-    const handlePopState = (e) => {
-      // 초기 로드 시 일부 브라우저가 popstate를 발사하는 것 방어
-      if (!e.state) return;
+    if (prevScreenRef.current === 'home' && appScreen !== 'home') {
+      window.history.pushState({ jflash: true }, '');
+    }
+    prevScreenRef.current = appScreen;
+  }, [appScreen]);
+
+  useEffect(() => {
+    const handlePopState = () => {
       if (gameStartedRef.current) {
         handleExitRef.current?.();
       } else if (appScreenRef.current !== 'home') {
@@ -156,10 +157,13 @@ export default function App() {
   const [totalActive, setTotalActive] = useState(0);
   const [passedCount, setPassedCount] = useState(0);
 
+  // gameStartedRef 동기화
+  useEffect(() => { gameStartedRef.current = gameStarted; }, [gameStarted]);
+
   // ── Toast ───────────────────────────────────────────────────
   const [toastMsg, setToastMsg] = useState('');
 
-  // ── AI 채팅 상태 (호이스팅: 모달 닫아도 유지, 카드 전환 시 초기화) ─
+  // ── AI 채팅 상태 ─────────────────────────────────────────────
   const [aiMessages, setAiMessages] = useState([]);
 
   // ── 이전 카드 되돌리기 스택 ────────────────────────────────
@@ -170,22 +174,16 @@ export default function App() {
   const hcRef           = useRef(null);
   const handleActionRef = useRef(null);
 
-  // ── 시간 초과 시스템 refs (item 9) ──────────────────────────
-  const cardStartTimeRef = useRef(null); // 앞면 노출 시각
-  const overTimeRef      = useRef(false); // 초과 플래그
-  const answerSeenRef    = useRef(false); // 현재 카드 뒷면 열람 여부
-
-  // ── 학습 시간 추적 ─────────────────────────────────────────
-  const sessionStartRef = useRef(null);
-  const accumulatedTimeRef = useRef(0); // 포그라운드 누적 시간 (ms)
-  const [studyTimeLog, setStudyTimeLog] = useState(() => loadLS(LS.STUDY_TIME, {}));
+  // ── 시간 초과 시스템 refs ──────────────────────────────────
+  const cardStartTimeRef = useRef(null);
+  const overTimeRef      = useRef(false);
+  const answerSeenRef    = useRef(false);
 
   // ── 전체 초기화 ─────────────────────────────────────────────
   const handleResetAll = () => {
-    // localStorage 전체 삭제 (정적 키 + 동적 AI 데이터)
     Object.values(LS).forEach((key) => { try { localStorage.removeItem(key); } catch {} });
     try { localStorage.removeItem('jflash_ai_sentences_v1'); } catch {}
-    // 상태 초기화
+    try { localStorage.removeItem('jflash_study_time_v1'); } catch {}
     setSettings({ ...DEFAULT_SETTINGS });
     setSrsData({});
     setCurrentDay(1);
@@ -204,7 +202,6 @@ export default function App() {
     setHcTimeLeft(null);
     overTimeRef.current = false;
     answerSeenRef.current = false;
-    setStudyTimeLog({});
   };
 
   // ── Toast 헬퍼 ───────────────────────────────────────────────
@@ -245,19 +242,15 @@ export default function App() {
   );
   const clearTags = () => setSelectedTags([]);
 
-  // ── 큐 빌드 (pool → priority 정렬, maxCards 제한 없음) ─
+  // ── 큐 빌드 ───────────────────────────────────────────────
   const buildQueue = (pool) => {
     const active = [...pool];
     setTotalActive(active.length);
-
-    // priority별 그룹화
     const byPriority = { 1: [], 2: [], 3: [] };
     active.forEach((word) => {
       const p = Math.min(3, Math.max(1, word.priority ?? 2));
       byPriority[p].push([word]);
     });
-
-    // Fisher-Yates 셔플 (priority 순서 유지, 타입 믹싱)
     return [
       ...shuffle(byPriority[1]),
       ...shuffle(byPriority[2]),
@@ -269,10 +262,8 @@ export default function App() {
   const _launchGame = (pool) => {
     const poolIds = new Set(pool.map((w) => w.id));
     setSelectedWordIds(poolIds);
-
     const q = buildQueue(pool);
     if (q.length === 0) return;
-
     setQueue(q);
     setMastered([]);
     setPassedCount(0);
@@ -285,95 +276,33 @@ export default function App() {
     setHcTimeLeft(null);
     overTimeRef.current = false;
     answerSeenRef.current = false;
-    accumulatedTimeRef.current = 0;
-    sessionStartRef.current = Date.now();
+    // 게임 시작 시 pushState (뒤로가기로 종료 가능하도록)
+    window.history.pushState({ jflash: true }, '');
   };
 
-  // ── 게임 시작 — HomeScreen (Day N 시작 → day-preview로 이동) ─
+  // ── 게임 시작 ─────────────────────────────────────────────
   const startGameByDay = () => {
-    // 커리큘럼이 이미 패턴을 제외함
     const pool = getDayBasePool(currentDay);
-
     setDayPreviewPool(pool);
-    // 아는 단어 제외가 디폴트 — masteryCount >= 2인 단어는 초기 선택에서 제외
     const isKnown = (w) => (srsData[w.id]?.masteryCount ?? 0) >= 2;
     setSelectedWordIds(new Set(pool.filter((w) => !isKnown(w)).map((w) => w.id)));
     setAppScreen('day-preview');
   };
 
-  // ── 게임 시작 — DayPreviewScreen (선택된 단어로 시작) ────────
   const startGameByDayWithSelection = () => {
     const pool = wordData.filter((w) => selectedWordIds.has(w.id));
     if (pool.length === 0) return;
     _launchGame(pool);
   };
 
-  // ── 게임 시작 — BrowseScreen (selectedWordIds 직접 사용) ──────
   const startGameBySelection = () => {
     const pool = wordData.filter((w) => selectedWordIds.has(w.id));
     if (pool.length === 0) return;
     _launchGame(pool);
   };
 
-  // ── 학습 시간 기록 (포그라운드만 집계) ────────────────────────
-  const flushForegroundTime = () => {
-    if (sessionStartRef.current) {
-      accumulatedTimeRef.current += Date.now() - sessionStartRef.current;
-      sessionStartRef.current = Date.now();
-    }
-  };
-
-  const recordStudyTime = () => {
-    flushForegroundTime();
-    const elapsed = Math.round(accumulatedTimeRef.current / 1000);
-    sessionStartRef.current = null;
-    accumulatedTimeRef.current = 0;
-    if (elapsed < 5) return; // 5초 미만 무시
-    const today = new Date().toISOString().slice(0, 10);
-    setStudyTimeLog((prev) => {
-      const updated = { ...prev, [today]: (prev[today] ?? 0) + elapsed };
-      saveLS(LS.STUDY_TIME, updated);
-      return updated;
-    });
-  };
-
-  // ── 포그라운드/백그라운드 전환 감지 (5분 유예) ──────────────────
-  const bgTimestampRef = useRef(null); // 백그라운드 진입 시각
-  const GRACE_PERIOD = 5 * 60 * 1000;  // 5분 (ms)
-
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.hidden) {
-        // 백그라운드 진입: 현재까지 시간 누적 + 진입 시각 기록
-        if (sessionStartRef.current) {
-          accumulatedTimeRef.current += Date.now() - sessionStartRef.current;
-          sessionStartRef.current = null;
-        }
-        bgTimestampRef.current = Date.now();
-      } else {
-        // 포그라운드 복귀
-        if (bgTimestampRef.current) {
-          const bgDuration = Date.now() - bgTimestampRef.current;
-          if (bgDuration <= GRACE_PERIOD) {
-            // 5분 이내 복귀 → 백그라운드 시간도 학습 시간으로 포함
-            accumulatedTimeRef.current += bgDuration;
-          }
-          // 5분 초과 → 백그라운드 시간 미포함 (이미 누적 안 됨)
-          bgTimestampRef.current = null;
-        }
-        // 게임 진행 중이면 타이머 재시작
-        if (gameStarted) {
-          sessionStartRef.current = Date.now();
-        }
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [gameStarted]);
-
-  // ── 중도 퇴장 (item 3) ────────────────────────────────────────
+  // ── 중도 퇴장 ────────────────────────────────────────────────
   const handleExit = () => {
-    recordStudyTime();
     clearInterval(hcRef.current);
     setGameStarted(false);
     setQueue([]);
@@ -386,7 +315,6 @@ export default function App() {
     setAiMessages([]);
     overTimeRef.current = false;
     setAppScreen('home');
-    // srsData는 handleAction 시마다 saveLS 처리됨 — 추가 저장 불필요
   };
 
   // ── 하드코어 타이머 (word=3초, pattern/sentence=7초) ──────────
@@ -411,7 +339,6 @@ export default function App() {
       if (!showAnswer) setHcTimeLeft(null);
       return;
     }
-    // 이미 뒷면을 본 카드는 타이머 재시작 안 함 (뒤→앞 재플립 악용 방지)
     if (answerSeenRef.current) {
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
@@ -427,21 +354,20 @@ export default function App() {
   useEffect(() => {
     if (!gameStarted || queue.length === 0) return;
     const onKeyDown = (e) => {
-      // 모달/입력 중이면 단축키 무시 (AI 질문창 등)
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (document.querySelector('.fixed.z-50')) return; // 모달 열려있으면 무시
+      if (document.querySelector('.fixed.z-50')) return;
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
-        handleFlip();   // ↑/↓ = 카드 뒤집기
+        handleFlip();
       }
       if (e.key === 'ArrowLeft' && showAnswer) {
         e.preventDefault();
-        handleAction('dontKnow');  // ← = 모르는 단어
+        handleAction('dontKnow');
       }
       if (e.key === 'ArrowRight' && showAnswer) {
         e.preventDefault();
-        handleAction('know');  // → = 아는 단어
+        handleAction('know');
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -470,45 +396,36 @@ export default function App() {
     prefetch(nextTexts);
   }, [queue[0]?.id, gameStarted]);
 
-  // ── 카드 뒤집기 (Flip) — 탭/클릭은 뒤집기만 수행 ─────────────
+  // ── 카드 뒤집기 ─────────────────────────────────────────────
   const handleFlip = () => {
     if (!showAnswer) {
-      // 앞→뒤: 하드코어 타이머 정지 + 오버타임 체크
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
       answerSeenRef.current = true;
-
       if (cardStartTimeRef.current && queue.length > 0) {
         const t = queue[0].type;
         const threshold = t === 'word' ? 8000 : t === 'pattern' ? 13000 : 17000;
         const elapsed   = Date.now() - cardStartTimeRef.current;
-        if (elapsed > threshold) {
-          overTimeRef.current = true;
-        }
+        if (elapsed > threshold) overTimeRef.current = true;
       }
     }
     setShowAnswer((prev) => !prev);
   };
 
-  // ── 아는 단어 처리 (WordCard 버튼/키보드용, 뒷면에서만) ──────
   const handleKnow = () => {
     if (!showAnswer || queue.length === 0) return;
     handleAction('know');
   };
 
-  // ── 드래그 액션 처리 (앞면/뒷면 모두, 드래그 전용) ──────────
   const handleDragAction = (actionType) => {
     if (queue.length === 0) return;
-    // 앞면이면 오버타임 체크 (handleFlip의 앞→뒤 로직 동일)
     if (!showAnswer) {
       clearInterval(hcRef.current);
       setHcTimeLeft(null);
       if (cardStartTimeRef.current) {
         const t = queue[0].type;
         const threshold = t === 'word' ? 8000 : t === 'pattern' ? 13000 : 17000;
-        if (Date.now() - cardStartTimeRef.current > threshold) {
-          overTimeRef.current = true;
-        }
+        if (Date.now() - cardStartTimeRef.current > threshold) overTimeRef.current = true;
       }
     }
     handleAction(actionType);
@@ -528,7 +445,6 @@ export default function App() {
     setHcTimeLeft(null);
     overTimeRef.current = false;
     answerSeenRef.current = false;
-    // SRS 롤백
     if (prev.srsSnapshot !== undefined) {
       setSrsData((cur) => {
         const restored = { ...cur };
@@ -545,7 +461,6 @@ export default function App() {
     if (queue.length === 0) return;
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
-    // 시간 초과 플래그 스냅샷
     const timedOut = overTimeRef.current;
     overTimeRef.current = false;
 
@@ -553,7 +468,6 @@ export default function App() {
     let newQueue    = queue.slice(1);
     let newMastered = [...mastered];
 
-    // ── 히스토리 기록 (되돌리기용, 최대 50개) ──────────────
     const MAX_HISTORY = 50;
     const was3FailPass = actionType === 'dontKnow' && (failCount[current.id] ?? 0) + 1 >= 3;
     setHistoryStack((s) => {
@@ -569,12 +483,9 @@ export default function App() {
     });
 
     if (timedOut && actionType === 'know') {
-      // ── 시간 초과 + 안다: 큐 맨 끝으로 이동 (SRS 미갱신, masteryCount 유지)
       newQueue = [...newQueue, current];
       showToast('시간 초과 — 카드 보류됨');
-
     } else if (actionType === 'know') {
-      // ── 1회 즉시 마스터 (item 2)
       setSrsData((prev) => {
         const rec = prev[current.id] ?? { masteryCount: 0 };
         const next = {
@@ -587,9 +498,7 @@ export default function App() {
       });
       newMastered.push(current);
       setFailCount((p) => { const n = { ...p }; delete n[current.id]; return n; });
-
     } else {
-      // ── 오답 처리
       setSrsData((prev) => {
         const rec = prev[current.id] ?? { masteryCount: 0 };
         const newCount = Math.max(rec.masteryCount - 1, 0);
@@ -604,12 +513,10 @@ export default function App() {
       const currentFail = (failCount[current.id] ?? 0) + 1;
       setFailCount((p) => ({ ...p, [current.id]: currentFail }));
 
-      // ── 3회 이상 실패 → pass (재삽입 없이 건너뛰기)
       if (currentFail >= 3) {
         showToast('3회 오답 — 다음 카드로 넘어갑니다');
         setPassedCount((c) => c + 1);
       } else {
-        // 현재 카드 재삽입 (+3~+5)
         const insertAt = Math.min(Math.floor(Math.random() * 3) + 3, newQueue.length);
         newQueue = [
           ...newQueue.slice(0, insertAt),
@@ -628,20 +535,18 @@ export default function App() {
   handleActionRef.current = handleAction;
   handleExitRef.current = handleExit;
 
-  // ── 모르는 단어 처리 (WordCard 스와이프/화살표용) ──────────────
   const handleDontKnow = () => {
     if (queue.length === 0 || !showAnswer) return;
     handleAction('dontKnow');
   };
 
-  // ── 패스 (이번 세션에서 완전 제외) ─────────────────────────────
+  // ── 패스 ─────────────────────────────────────────────────────
   const handlePass = () => {
     if (queue.length === 0) return;
     clearInterval(hcRef.current);
     setHcTimeLeft(null);
     overTimeRef.current = false;
 
-    // ── 히스토리 기록 (되돌리기용) ──────────────────────
     const current = queue[0];
     const MAX_HISTORY = 50;
     setHistoryStack((s) => {
@@ -656,19 +561,17 @@ export default function App() {
       return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
     });
 
-    const newQueue = queue.slice(1); // 큐에서 완전 제거
-
     showToast('패스 — 이번 학습에서 제외');
-    setQueue(newQueue);
+    setQueue(queue.slice(1));
     setShowAnswer(false);
     setPassedCount((c) => c + 1);
   };
 
-  // ── 수동 마스터 토글 (체크 아이콘, 확인 다이얼로그 경유) ─────
+  // ── 수동 마스터 토글 ────────────────────────────────────────
   const toggleMastery = (wordId) => {
     setSrsData((prev) => {
       const rec = prev[wordId] ?? { masteryCount: 0 };
-      const newCount = rec.masteryCount >= 2 ? 0 : 2;  // 아는→모르는: 2→0
+      const newCount = rec.masteryCount >= 2 ? 0 : 2;
       const updated = {
         ...prev,
         [wordId]: { masteryCount: newCount, nextReview: getSRSNextDate(newCount) },
@@ -759,15 +662,12 @@ export default function App() {
           onShowBrowse={() => setAppScreen('browse')}
           onShowPatternLab={() => setAppScreen('pattern-lab')}
           onResetAll={handleResetAll}
-          studyTimeLog={studyTimeLog}
         />
       </>
     );
   }
 
   if (queue.length === 0) {
-    // 학습 완료 시 시간 기록
-    if (sessionStartRef.current) recordStudyTime();
     return (
       <>
         {Toast}
@@ -785,7 +685,6 @@ export default function App() {
     <div className="min-h-screen bg-sky-50 flex flex-col items-center py-6 px-4 font-sans">
       {Toast}
 
-      {/* 진행 헤더: Exit 버튼 + 완료 수 */}
       <div className="max-w-md w-full flex items-center justify-between mb-2">
         <button
           onClick={handleExit}
@@ -799,10 +698,8 @@ export default function App() {
         </span>
       </div>
 
-      {/* 진행률 바 (item 8) */}
       <ProgressBar mastered={mastered.length + passedCount} total={totalActive} />
 
-      {/* 하드코어 타이머 표시 */}
       {settings.hardcoreMode && hcTimeLeft !== null && !showAnswer && (
         <div className={`mb-3 flex items-center gap-2 px-5 py-2 rounded-full font-black text-base shadow-sm ${
           hcTimeLeft <= 1
@@ -832,7 +729,6 @@ export default function App() {
         setAiMessages={setAiMessages}
       />
 
-      {/* 되돌리기 버튼 — 카드 아래 왼쪽 */}
       {historyStack.length > 0 && (
         <div className="max-w-md w-full mb-1">
           <button
